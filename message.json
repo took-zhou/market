@@ -1,0 +1,24 @@
+
+
+
+
+/*market∂À∑¢ÀÕ–≈œ¢*/
+head.datatypeid = MARKETREQINSTRUMENTID
+head.fromclientname = MARKETNAME
+head.toclientname = TRADENAME
+head.length
+
+msg = {
+	"status": "",
+}
+
+
+head.datatypeid = 0x0001
+head.fromclientname = MARKETNAME
+head.toclientname = ROUTENAME
+head.length
+
+msg = {
+	"name": "",
+}
+

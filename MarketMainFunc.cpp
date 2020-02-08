@@ -1,0 +1,480 @@
+// 线程控制相关
+#include <pthread.h>
+#include <semaphore.h>
+#include <unistd.h>
+#include <assert.h>
+#include <thread>
+#include <fcntl.h>
+
+// 定时器相关
+#include <signal.h>
+#include <sys/time.h>
+#include <time.h>
+
+// 字符串编码转化
+#include <code_convert.h>
+#include "Std_Types.h"
+#include <mysql/mysql.h>
+
+//共享内存
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include "MarketMainFunc.h"
+#include "ctp_timer.h"
+#include <vector>
+
+#include "getconfig.h"
+#include "StoreDepthMarketData.h"
+#include "BuildContractDataPool.h"
+#include "MarketSocket.h"
+#include "keyboard.h"
+
+#define FILE "/tmp/MARKET_FILE"
+
+// 线程同步标志
+sem_t sem;
+vector<string> md_InstrumentID;
+extern int client_sock_fd;
+
+//Create an empty class
+CMdHandler *markH;
+
+static void error(const char *s);
+static void *thr_fn(void *arg);
+static void login_process(void);
+static void delete_file(void);
+
+/*
+------ Shared Memory Segments --------
+key        shmid      owner      perms      bytes      nattch     status
+0x7a150008 229379     zhoufan    666        417792     1
+    
+*/
+//异常退出处理
+void signal_exit_handler(int sig)
+{
+    exit(0);
+}
+
+//The constructor
+CMdHandler::CMdHandler(CThostFtdcMdApi *pUserApi)
+{
+    int shm_id;
+    key_t key;
+    char sharepath[] = {"/dev/shm/marketshm/."};
+    struct shmid_ds buf1;//Used to remove Shared memory
+    pthread_mutexattr_t attr;
+
+    //Write once, read multiple times, mutex before read, mutex between read and write
+    pthread_mutexattr_init(&attr);
+    pthread_mutexattr_setpshared(&attr, PTHREAD_PROCESS_SHARED);
+
+    //Create a Shared memory area
+    sharename = sharepath;
+    
+    if(access("/dev/shm/marketshm/",F_OK) == -1)
+    {
+        mkdir("/dev/shm/marketshm/",S_IRWXU);
+    }
+
+    if(( key = ftok(sharename, 'z')) < 0)
+    {
+        ERROR_LOG("ftok error.");
+        exit(1);
+    }
+
+    if( (shm_id = shmget(key,sizeof(MARKET_MSG),IPC_CREAT|0666)) == -1 )
+    {
+        ERROR_LOG("create shared memory error.");
+        exit(1);
+    }
+
+    share_msg = (MARKET_MSG*)shmat(shm_id, NULL, 0);
+    if(  (long)share_msg == -1)
+    {
+        ERROR_LOG("attach shared memory error.");
+        exit(1);
+    }
+
+    //Initializes the mutex
+    pthread_mutex_init(&share_msg->sm_mutex, &attr);
+
+    m_pUserMdApi = pUserApi;
+
+    reConnect = 0;
+
+    INFO_LOG("init share message address ok.");
+    
+}
+
+void CMdHandler::OnHeartBeatWarning(int nTimeLapse)
+{
+    INFO_LOG("i touch OnHeartBeatWarning  %d!",nTimeLapse);
+    
+}
+
+// 当客户端与交易托管系统建立起通信连接，客户端需要进行登录
+void CMdHandler::OnFrontConnected()
+{  
+    INFO_LOG("OnFrontConnected():is excuted...");
+    // 在登出后系统会重新调用OnFrontConnected，这里简单判断并忽略第1次之后的所有调用。
+    DEBUG_LOG("reConnect:%d.", reConnect);
+    if (reConnect++==0) {
+        sem_post(&sem);
+    }
+}
+
+void CMdHandler::ReqUserLogin()
+{
+    CThostFtdcReqUserLoginField reqUserLogin;
+
+    strcpy(reqUserLogin.BrokerID, getConfig("market", "BrokerID").c_str());
+    strcpy(reqUserLogin.UserID, getConfig("market", "UserID").c_str());
+    strcpy(reqUserLogin.Password, getConfig("market", "Password").c_str());
+    
+    int num = m_pUserMdApi->ReqUserLogin(&reqUserLogin, 0);
+    INFO_LOG("\tlogin num = %d", num);
+}
+
+// 当客户端发出登录请求之后，该方法会被调用，通知客户端登录是否成功
+void CMdHandler::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
+    CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+{
+    TThostFtdcErrorMsgType errormsg;
+    gbk2utf8(pRspInfo->ErrorMsg,errormsg,sizeof(errormsg));//报错返回信息
+    
+    INFO_LOG("OnRspUserLogin:");
+    INFO_LOG("\tErrorCode=[%d], ErrorMsg=[%s]", pRspInfo->ErrorID,
+        errormsg);
+    INFO_LOG("\tRequestID=[%d], Chain=[%d]", nRequestID, bIsLast);
+    if (pRspInfo->ErrorID != 0) {
+        // 端登失败，客户端需进行错误处理
+        INFO_LOG("\tFailed to login, errorcode=%d errormsg=%s requestid=%d chain = %d",
+            pRspInfo->ErrorID, errormsg, nRequestID, bIsLast);
+        exit(-1);
+    }
+    sem_post(&sem);
+}
+
+void CMdHandler::ReqUserLogout(void)
+{
+    CThostFtdcUserLogoutField reqUserLogout;
+
+    strcpy(reqUserLogout.BrokerID, getConfig("market", "BrokerID").c_str());
+    strcpy(reqUserLogout.UserID, getConfig("market", "UserID").c_str());
+
+    int num = m_pUserMdApi->ReqUserLogout(&reqUserLogout, 0);
+    INFO_LOG("\tlogin num = %d", num);
+}
+    
+    ///登出请求响应
+void CMdHandler::OnRspUserLogout(CThostFtdcUserLogoutField *pUserLogout, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+{
+    TThostFtdcErrorMsgType errormsg;
+    gbk2utf8(pRspInfo->ErrorMsg,errormsg,sizeof(errormsg));//报错返回信息
+    
+    INFO_LOG("OnRspUserLogout:");
+    INFO_LOG("\tErrorCode=[%d], ErrorMsg=[%s]", pRspInfo->ErrorID,
+        errormsg);
+    INFO_LOG("\tRequestID=[%d], Chain=[%d]", nRequestID, bIsLast);
+    if (pRspInfo->ErrorID != 0) {
+        // 端登失败，客户端需进行错误处理
+        INFO_LOG("\tFailed to logout, errorcode=%d errormsg=%s requestid=%d chain = %d",
+            pRspInfo->ErrorID, errormsg, nRequestID, bIsLast);
+        exit(-1);
+    }
+    sem_post(&sem);
+
+}
+
+void CMdHandler::SubscribeMarketData()//收行情
+{
+    int md_num = 0;
+    char **ppInstrumentID = new char*[5000];
+    for (int count1 = 0; count1 <= md_InstrumentID.size() / 500; count1++)
+    {
+        if (count1 < md_InstrumentID.size() / 500)
+        {
+            int a = 0;
+            for (a; a < 500; a++)
+            {
+                ppInstrumentID[a] = const_cast<char *>(md_InstrumentID.at(md_num).c_str());
+                md_num++;
+            }
+            int result = m_pUserMdApi->SubscribeMarketData(ppInstrumentID, a);
+            if( result == 0 )
+            {
+                INFO_LOG("订阅行情请求1......发送成功");
+            }
+            else
+            {
+                INFO_LOG("订阅行情请求1......发送失败，错误序号=[%d]", result);
+            }
+        }
+        else if (count1 == md_InstrumentID.size() / 500)
+        {
+            int count2 = 0;
+            for (count2; count2 < md_InstrumentID.size() % 500; count2++)
+            {
+                ppInstrumentID[count2] = const_cast<char *>(md_InstrumentID.at(md_num).c_str());
+                md_num++;
+            }
+            int result = m_pUserMdApi->SubscribeMarketData(ppInstrumentID, count2);
+
+            if( result == 0 )
+            {
+                INFO_LOG("订阅行情请求2......发送成功");
+            }
+            else
+            {
+                INFO_LOG("订阅行情请求2......发送失败，错误序号=[%d]", result);
+            }
+
+        }
+    }
+}
+
+///订阅行情应答
+void CMdHandler::OnRspSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+{
+    #if 0
+        INFO_LOG("<OnRspSubMarketData>");
+        if (pSpecificInstrument)
+        {
+            INFO_LOG("\tInstrumentID = [%s]", pSpecificInstrument->InstrumentID);
+        }
+        if (pRspInfo)
+        {
+            INFO_LOG("\tErrorMsg = [%s]", pRspInfo->ErrorMsg);
+            INFO_LOG("\tErrorID = [%d]", pRspInfo->ErrorID);
+        }
+        INFO_LOG("\tnRequestID = [%d]", nRequestID);
+        INFO_LOG("\tbIsLast = [%d]", bIsLast);
+        INFO_LOG("</OnRspSubMarketData>");
+    #endif
+    sem_post(&sem);
+}
+
+///深度行情通知
+void CMdHandler::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *pDepthMarketData)
+{
+    int ik;
+    //INFO_LOG("<OnRtnDepthMarketData>");
+    if (pDepthMarketData)
+    {
+        ik=pthread_mutex_lock(&share_msg->sm_mutex);
+        /*Market data is stored in the Shared memory area*/
+        InsertDataToContractPool(share_msg, pDepthMarketData);
+        /*Store tick data into CSV text*/
+        LoadDepthMarketDataToCsv(pDepthMarketData);
+        ik = pthread_mutex_unlock(&share_msg->sm_mutex);
+    }
+    //INFO_LOG("</OnRtnDepthMarketData>");
+}
+
+///订阅询价请求
+void CMdHandler::SubscribeForQuoteRsp()
+{
+    INFO_LOG("Quotation subscription inquiry request.");
+    char **ppInstrumentID = new char*[50];
+    string g_chInstrumentID ;
+    //= getConfig("config", "InstrumentID");
+    ppInstrumentID[0] = const_cast<char *>(g_chInstrumentID.c_str());
+    int result = m_pUserMdApi->SubscribeForQuoteRsp(ppInstrumentID, 1);
+}
+
+///订阅询价应答
+void CMdHandler::OnRspSubForQuoteRsp(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo,
+    int nRequestID, bool bIsLast)
+{
+    INFO_LOG("<OnRspSubForQuoteRsp>");
+    if (pSpecificInstrument)
+    {
+        INFO_LOG("\tInstrumentID = [%s]", pSpecificInstrument->InstrumentID);
+    }
+    if (pRspInfo)
+    {
+        INFO_LOG("\tErrorMsg = [%s]", pRspInfo->ErrorMsg);
+        INFO_LOG("\tErrorID = [%d]", pRspInfo->ErrorID);
+    }
+    INFO_LOG("\tnRequestID = [%d]", nRequestID);
+    INFO_LOG("\tbIsLast = [%d]", bIsLast);
+    INFO_LOG("</OnRspSubForQuoteRsp>");
+    sem_post(&sem);
+}
+
+///询价通知
+void CMdHandler::OnRtnForQuoteRsp(CThostFtdcForQuoteRspField *pForQuoteRsp)
+{
+    INFO_LOG("<OnRtnForQuoteRsp>");
+    if (pForQuoteRsp)
+    {
+        INFO_LOG("\tTradingDay = [%s]", pForQuoteRsp->TradingDay);
+        INFO_LOG("\tInstrumentID = [%s]", pForQuoteRsp->InstrumentID);
+        INFO_LOG("\tForQuoteSysID = [%s]", pForQuoteRsp->ForQuoteSysID);
+        INFO_LOG("\tForQuoteTime = [%s]", pForQuoteRsp->ForQuoteTime);
+        INFO_LOG("\tActionDay = [%s]", pForQuoteRsp->ActionDay);
+        INFO_LOG("\tExchangeID = [%s]", pForQuoteRsp->ExchangeID);
+    }
+    INFO_LOG("</OnRtnForQuoteRsp>");
+    sem_post(&sem);
+}
+
+//等待登出时间
+void CMdHandler::WaitLogoutTime(void)
+{
+    INFO_LOG("wait for logout time.");
+    time_t now;
+    struct tm *timenow;
+    
+    while(1)
+    {
+        time(&now);
+        timenow = localtime(&now);
+        
+        if( (timenow->tm_hour == 15) && (timenow->tm_min ==16) )
+        {
+            reConnect = 0;
+            DEBUG_LOG("reConnect:%d.", reConnect);
+            return; 
+        }
+        else
+        {
+            sleep(50);
+        }
+    }
+}  
+
+static void login_process(void)
+{
+    // 初始化线程同步变量
+    sem_init(&sem,0,0);
+
+    string marketCons = getConfig("market", "ConRelativePath");
+    CThostFtdcMdApi  *pUserMdApi = 
+    CThostFtdcMdApi::CreateFtdcMdApi(marketCons.c_str());
+
+    markH = new CMdHandler(pUserMdApi);
+    pUserMdApi->RegisterSpi(markH);
+
+    // 设置服务器地址
+    string g_chFrontaddr = getConfig("market", "FrontMdAddr");
+    pUserMdApi->RegisterFront(const_cast<char *>(g_chFrontaddr.c_str()));
+
+    // 链接交易系统
+    pUserMdApi->Init();
+    sem_wait(&sem);
+        
+    markH->ReqUserLogin();
+    sem_wait(&sem);
+        
+    //创建
+    BuildContractArray();
+        
+    LoadTradingContracts(&md_InstrumentID);
+        
+    markH->SubscribeMarketData();//订阅行情
+    sem_wait(&sem);
+    
+    markH->WaitLogoutTime();//等待登出时间
+
+    pUserMdApi->Release();
+}
+
+int main(int argc,char **argv) {
+    // 程序执行之初，先去判断文件是否存在
+    int fd = -1;
+    char consPath[256];
+    //初始化log参数
+    string logpath = getConfig("market", "LogRelativePath");
+    LOG_INIT(logpath.c_str(), "marketlog", 6);
+    
+    fd = open(FILE, O_RDWR | O_TRUNC | O_CREAT | O_EXCL, 0664);
+    if (fd < 0)
+    {
+        if (errno == EEXIST)
+        {
+            ERROR_LOG("进程已经存在，并不要重复执行\n");
+            return -1;
+        }
+    }
+    atexit(delete_file); // 注册进程清理函数
+    //捕获kill和ctrl+c
+    signal(SIGTERM, signal_exit_handler);
+    signal(SIGINT, signal_exit_handler);
+
+
+    time_t now;
+    struct tm *timenow;
+
+    pthread_t sockreadthread;
+
+    // 初始化socket
+    socket_init();
+    socket_write_clientName();
+
+    // 创建并启动读socket线程
+    if(pthread_create(&sockreadthread, NULL, thr_fn, NULL)) 
+    {
+        ERROR_LOG("read socket thread create failed");
+    }
+
+    string marketCons = getConfig("market", "ConRelativePath");
+    sprintf(consPath,"mkdir -p %s",marketCons.c_str());//合成存储路径
+    if(access(marketCons.c_str(),F_OK) == -1)
+    {
+        system(consPath);
+        if(access(marketCons.c_str(),F_OK) == 0)
+        {
+            INFO_LOG("mkdir %s ok.", marketCons.c_str());
+        }
+    }
+
+    //进程第一次运行的时候，默认登陆
+    login_process();
+
+    while(1)
+    {
+        time(&now);            
+        timenow = localtime(&now);//获取当前时间
+        if( (timenow->tm_hour == 20) && (timenow->tm_min ==50) )
+        {
+            login_process();
+        }
+        else
+        {
+            sleep(50);
+        }    
+    }
+
+    
+    return(0);
+}
+//目前的疑惑：
+//    账户登陆后在非交易时间段，闭市后，节假日会不会推出登陆，订阅的行情需不需要再次请求才能返回数据
+    
+static void error(const char *s)
+{
+    ERROR_LOG("%s",s);
+    assert(0);
+    exit(-1);
+}
+
+//存放讀取socket的函數
+static void *thr_fn(void *arg)
+{
+    socket_read_msg();
+    return NULL;
+}
+
+//删除文件
+static void delete_file(void)
+{
+    close(client_sock_fd);
+    remove(FILE);
+}
+
+
