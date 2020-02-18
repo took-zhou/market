@@ -220,6 +220,9 @@ void LoadTradingContracts(vector<string> *vec)
     vec->push_back("v2004");
     vec->push_back("v2005");
     vec->push_back("v2006");
+	vec->push_back("v2007");
+    vec->push_back("v2008");
+    vec->push_back("v2009");
     vec->push_back("pp2004");
     vec->push_back("pp2005");
     vec->push_back("pp2006");
@@ -229,6 +232,12 @@ void LoadTradingContracts(vector<string> *vec)
     vec->push_back("rb2004");
     vec->push_back("rb2005");
     vec->push_back("rb2006");
+    vec->push_back("l2004");
+    vec->push_back("l2005");
+    vec->push_back("l2006");
+	vec->push_back("l2007");
+    vec->push_back("l2008");
+    vec->push_back("l2009");
 }
 
 void LoadDepthMarketDataToMysql(void)
