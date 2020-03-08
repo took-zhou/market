@@ -32,8 +32,6 @@
 #include "MarketSocket.h"
 #include "keyboard.h"
 
-#define FILE "/tmp/MARKET_FILE"
-
 // 线程同步标志
 sem_t sem;
 vector<string> md_InstrumentID;
@@ -386,27 +384,11 @@ static void login_process(void)
 
 int main(int argc,char **argv) {
     // 程序执行之初，先去判断文件是否存在
-    int fd = -1;
     char consPath[256];
     //初始化log参数
     string logpath = getConfig("market", "LogRelativePath");
     LOG_INIT(logpath.c_str(), "marketlog", 6);
     
-    fd = open(FILE, O_RDWR | O_TRUNC | O_CREAT | O_EXCL, 0664);
-    if (fd < 0)
-    {
-        if (errno == EEXIST)
-        {
-            ERROR_LOG("进程已经存在，并不要重复执行\n");
-            return -1;
-        }
-    }
-    atexit(delete_file); // 注册进程清理函数
-    //捕获kill和ctrl+c
-    signal(SIGTERM, signal_exit_handler);
-    signal(SIGINT, signal_exit_handler);
-
-
     time_t now;
     struct tm *timenow;
 
@@ -468,13 +450,6 @@ static void *thr_fn(void *arg)
 {
     socket_read_msg();
     return NULL;
-}
-
-//删除文件
-static void delete_file(void)
-{
-    close(client_sock_fd);
-    remove(FILE);
 }
 
 
