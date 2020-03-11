@@ -44,6 +44,7 @@ static void error(const char *s);
 static void *thr_fn(void *arg);
 static void login_process(void);
 static void delete_file(void);
+std::vector<std::string> split(std::string str,std::string pattern);
 
 /*
 ------ Shared Memory Segments --------
@@ -416,13 +417,16 @@ int main(int argc,char **argv) {
     }
 
     //进程第一次运行的时候，默认登陆
-    login_process();
+    //login_process();
 
     while(1)
     {
         time(&now);            
         timenow = localtime(&now);//获取当前时间
-        if( (timenow->tm_hour == 20) && (timenow->tm_min ==50) )
+        string marketOpenTime = getConfig("market", "MarketOpenTime");
+        vector<string> timeStr=split(marketOpenTime,  ":");
+        INFO_LOG("atoi(timeStr[0]):%d  atoi(timeStr[1]):%d",atoi(timeStr[0].c_str()), atoi(timeStr[1].c_str()));
+        if( (timenow->tm_hour == atoi(timeStr[0].c_str())) && (timenow->tm_min ==atoi(timeStr[1].c_str())) )
         {
             login_process();
         }
@@ -450,6 +454,27 @@ static void *thr_fn(void *arg)
 {
     socket_read_msg();
     return NULL;
+}
+
+//字符串分割函数
+std::vector<std::string> split(std::string str,std::string pattern)
+{
+  std::string::size_type pos;
+  std::vector<std::string> result;
+  str+=pattern;//扩展字符串以方便操作
+  int size=str.size();
+ 
+  for(int i=0; i<size; i++)
+  {
+    pos=str.find(pattern,i);
+    if(pos<size)
+    {
+      std::string s=str.substr(i,pos-i);
+      result.push_back(s);
+      i=pos+pattern.size()-1;
+    }
+  }
+  return result;
 }
 
 
