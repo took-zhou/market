@@ -425,7 +425,6 @@ int main(int argc,char **argv) {
         timenow = localtime(&now);//获取当前时间
         string marketOpenTime = getConfig("market", "MarketOpenTime");
         vector<string> timeStr=split(marketOpenTime,  ":");
-        INFO_LOG("atoi(timeStr[0]):%d  atoi(timeStr[1]):%d",atoi(timeStr[0].c_str()), atoi(timeStr[1].c_str()));
         if( (timenow->tm_hour == atoi(timeStr[0].c_str())) && (timenow->tm_min ==atoi(timeStr[1].c_str())) )
         {
             login_process();
