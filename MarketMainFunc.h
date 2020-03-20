@@ -23,9 +23,6 @@ typedef struct market_msg
 class CMdHandler : public CThostFtdcMdSpi {
 
 public:
-    //共享内存路径名
-    char * sharename;
-
     //共享内存结构体指针
     MARKET_MSG *share_msg;
     

@@ -63,7 +63,6 @@ CMdHandler::CMdHandler(CThostFtdcMdApi *pUserApi)
 {
     int shm_id;
     key_t key;
-    char sharepath[] = {"/dev/shm/marketshm/."};
     struct shmid_ds buf1;//Used to remove Shared memory
     pthread_mutexattr_t attr;
 
@@ -72,14 +71,13 @@ CMdHandler::CMdHandler(CThostFtdcMdApi *pUserApi)
     pthread_mutexattr_setpshared(&attr, PTHREAD_PROCESS_SHARED);
 
     //Create a Shared memory area
-    sharename = sharepath;
-    
-    if(access("/dev/shm/marketshm/",F_OK) == -1)
+    string sharepath = getConfig("market", "ShareMemoryAddr");
+    string command = "touch " + sharepath;    
+    if(access(sharepath.c_str(), F_OK) == -1)
     {
-        mkdir("/dev/shm/marketshm/",S_IRWXU);
+        system(command.c_str());
     }
-
-    if(( key = ftok(sharename, 'z')) < 0)
+    if(( key = ftok(sharepath.c_str(), 'z')) < 0)
     {
         ERROR_LOG("ftok error.");
         exit(1);
@@ -351,8 +349,18 @@ static void login_process(void)
 {
     // 初始化线程同步变量
     sem_init(&sem,0,0);
-
+    
     string marketCons = getConfig("market", "ConRelativePath");
+    string command = "mkdir -p " + marketCons;  
+    if(access(marketCons.c_str(),F_OK) == -1)
+    {
+        system(command.c_str());
+        if(access(marketCons.c_str(),F_OK) == 0)
+        {
+            INFO_LOG("mkdir -p %s ok.", marketCons.c_str());
+        }
+    }
+
     CThostFtdcMdApi  *pUserMdApi = 
     CThostFtdcMdApi::CreateFtdcMdApi(marketCons.c_str());
 
@@ -384,8 +392,6 @@ static void login_process(void)
 }
 
 int main(int argc,char **argv) {
-    // 程序执行之初，先去判断文件是否存在
-    char consPath[256];
     //初始化log参数
     string logpath = getConfig("market", "LogRelativePath");
     LOG_INIT(logpath.c_str(), "marketlog", 6);
@@ -403,17 +409,6 @@ int main(int argc,char **argv) {
     if(pthread_create(&sockreadthread, NULL, thr_fn, NULL)) 
     {
         ERROR_LOG("read socket thread create failed");
-    }
-
-    string marketCons = getConfig("market", "ConRelativePath");
-    sprintf(consPath,"mkdir -p %s",marketCons.c_str());//合成存储路径
-    if(access(marketCons.c_str(),F_OK) == -1)
-    {
-        system(consPath);
-        if(access(marketCons.c_str(),F_OK) == 0)
-        {
-            INFO_LOG("mkdir %s ok.", marketCons.c_str());
-        }
     }
 
     //进程第一次运行的时候，默认登陆
