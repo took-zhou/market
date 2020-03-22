@@ -45,6 +45,8 @@ static void *thr_fn(void *arg);
 static void login_process(void);
 static void delete_file(void);
 std::vector<std::string> split(std::string str,std::string pattern);
+extern vector<string> contractPool;
+
 
 /*
 ------ Shared Memory Segments --------
@@ -414,6 +416,65 @@ int main(int argc,char **argv) {
     //进程第一次运行的时候，默认登陆
     //login_process();
 
+#if 0
+{
+    BuildContractArray();
+    
+    string marketCons = getConfig("market", "ConRelativePath");
+    string command = "mkdir -p " + marketCons;  
+    if(access(marketCons.c_str(),F_OK) == -1)
+    {
+        system(command.c_str());
+        if(access(marketCons.c_str(),F_OK) == 0)
+        {
+            INFO_LOG("mkdir -p %s ok.", marketCons.c_str());
+        }
+    }
+
+    CThostFtdcMdApi  *pUserMdApi = 
+    CThostFtdcMdApi::CreateFtdcMdApi(marketCons.c_str());
+
+    markH = new CMdHandler(pUserMdApi);
+
+    CThostFtdcDepthMarketDataField pDepthMarketData;
+    vector<float32> vec1, vec2;
+
+    string con1 = "l1705";
+    string con2 = "v1705";
+
+    LoadDepthMarketDataFromMysql(&vec1, con1.c_str());
+    LoadDepthMarketDataFromMysql(&vec2, con2.c_str());
+    
+    if( vec1.size() == vec2.size() )
+    {
+        strcpy(pDepthMarketData.ExchangeID, "DCE"); 
+        for(int i=0; i<vec1.size(); i++)
+        {
+            int ik;
+            
+            ik = pthread_mutex_lock(&markH->share_msg->sm_mutex);
+            
+            strcpy(pDepthMarketData.InstrumentID, con1.c_str() );
+            pDepthMarketData.LastPrice =  vec1[i];
+            InsertDataToContractPool(markH->share_msg, &pDepthMarketData);
+            INFO_LOG("%.2f", vec1[i]);
+            
+            strcpy(pDepthMarketData.InstrumentID, con2.c_str() );
+            pDepthMarketData.LastPrice =  vec2[i];
+            InsertDataToContractPool(markH->share_msg, &pDepthMarketData);
+            INFO_LOG("%.2f", vec2[i]);
+            
+            ik = pthread_mutex_unlock(&markH->share_msg->sm_mutex);
+            
+            usleep(500000);
+        }        
+    }
+    else
+    {
+        ERROR_LOG("get data length is not same");
+    }    
+}
+#endif
     while(1)
     {
         time(&now);            

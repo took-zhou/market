@@ -10,5 +10,5 @@
 void LoadDepthMarketDataToMysql(void);
 void LoadDepthMarketDataToCsv(CThostFtdcDepthMarketDataField * pD);
 void LoadTradingContracts(vector<string> *vec);
-
+void LoadDepthMarketDataFromMysql(vector<float> *vec, const char *contract);
 #endif

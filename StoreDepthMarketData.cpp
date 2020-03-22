@@ -240,6 +240,46 @@ void LoadTradingContracts(vector<string> *vec)
     vec->push_back("l2009");
 }
 
+void LoadDepthMarketDataFromMysql(vector<float> *vec, const char *contract)
+{
+    int res;
+    MYSQL conn;
+    MYSQL_ROW result_row;
+    int row, column; /*查询返回的行数和列数*/
+    MYSQL_RES *res_ptr;
+
+    mysql_init(&conn);
+    if( mysql_real_connect(&conn, "localhost", "root", "sCARbo12", "futures", 0, NULL, CLIENT_FOUND_ROWS) )
+    {
+        memset(sqlquery, 0, sizeof(sqlquery));
+        sprintf(sqlquery, "select Close from DCE where contracts =  \'%s\'", contract);
+        INFO_LOG("sqlquery:%s", sqlquery);
+        res = mysql_query(&conn, sqlquery);
+
+        if( res )
+        {
+            ERROR_LOG("query mysql error.");
+            mysql_close(&conn);    
+        }
+        else
+        {
+            res_ptr = mysql_store_result(&conn);
+            if( res_ptr )
+            {
+                column = mysql_num_fields(res_ptr);
+                row = mysql_num_rows(res_ptr);
+                INFO_LOG("column:%d row:%d", column, row);
+                for(int i = 0; i < row; i++)
+                {
+                    result_row = mysql_fetch_row(res_ptr);
+                    vec->push_back(stof(result_row[0], 0));
+                }
+            }
+        }
+    }    
+    mysql_close(&conn);
+}
+
 void LoadDepthMarketDataToMysql(void)
 {   
     #if 0
