@@ -32,6 +32,10 @@
 #include "MarketSocket.h"
 #include "keyboard.h"
 
+
+#define ENDHOURS    (15)
+#define ENDMINUTE   (16)
+
 // 线程同步标志
 sem_t sem;
 vector<string> md_InstrumentID;
@@ -40,7 +44,6 @@ extern int client_sock_fd;
 //Create an empty class
 CMdHandler *markH;
 
-static void error(const char *s);
 static void *thr_fn(void *arg);
 static void login_process(void);
 static void delete_file(void);
@@ -334,7 +337,7 @@ void CMdHandler::WaitLogoutTime(void)
         time(&now);
         timenow = localtime(&now);
         
-        if( (timenow->tm_hour == 15) && (timenow->tm_min ==16) )
+        if( (timenow->tm_hour == ENDHOURS) && (timenow->tm_min ==ENDMINUTE) )
         {
             reConnect = 0;
             DEBUG_LOG("reConnect:%d.", reConnect);
@@ -396,6 +399,16 @@ static void login_process(void)
 int main(int argc,char **argv) {
     //初始化log参数
     string logpath = getConfig("market", "LogRelativePath");
+    string command = "mkdir -p " + logpath;  
+    if(access(logpath.c_str(),F_OK) == -1)
+    {
+        system(command.c_str());
+        if(access(logpath.c_str(),F_OK) == 0)
+        {
+            INFO_LOG("mkdir -p %s ok.", logpath.c_str());
+        }
+    }
+
     LOG_INIT(logpath.c_str(), "marketlog", 6);
     
     time_t now;
@@ -412,9 +425,6 @@ int main(int argc,char **argv) {
     {
         ERROR_LOG("read socket thread create failed");
     }
-
-    //进程第一次运行的时候，默认登陆
-    //login_process();
 
 #if 0
 {
@@ -475,13 +485,14 @@ int main(int argc,char **argv) {
     }    
 }
 #endif
+
     while(1)
     {
         time(&now);            
         timenow = localtime(&now);//获取当前时间
         string marketOpenTime = getConfig("market", "MarketOpenTime");
         vector<string> timeStr=split(marketOpenTime,  ":");
-        if( (timenow->tm_hour == atoi(timeStr[0].c_str())) && (timenow->tm_min ==atoi(timeStr[1].c_str())) )
+        if( timenow->tm_hour >= atoi(timeStr[0].c_str()) ||  timenow->tm_hour <= ENDHOURS )
         {
             login_process();
         }
@@ -491,17 +502,7 @@ int main(int argc,char **argv) {
         }    
     }
 
-    
     return(0);
-}
-//目前的疑惑：
-//    账户登陆后在非交易时间段，闭市后，节假日会不会推出登陆，订阅的行情需不需要再次请求才能返回数据
-    
-static void error(const char *s)
-{
-    ERROR_LOG("%s",s);
-    assert(0);
-    exit(-1);
 }
 
 //存放讀取socket的函數
