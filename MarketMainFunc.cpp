@@ -31,6 +31,7 @@
 #include "BuildContractDataPool.h"
 #include "MarketSocket.h"
 #include "keyboard.h"
+#include "timer.h"
 
 
 #define ENDHOURS    (15)
@@ -44,18 +45,19 @@ extern int client_sock_fd;
 //Create an empty class
 CMdHandler *markH;
 
-static void *thr_fn(void *arg);
 static void login_process(void);
 static void delete_file(void);
 std::vector<std::string> split(std::string str,std::string pattern);
 extern vector<string> contractPool;
+//定时器实例
+TimeoutTimerPool timerPool;
 
 
 /*
 ------ Shared Memory Segments --------
 key        shmid      owner      perms      bytes      nattch     status
 0x7a150008 229379     zhoufan    666        417792     1
-    
+
 */
 //异常退出处理
 void signal_exit_handler(int sig)
@@ -109,18 +111,17 @@ CMdHandler::CMdHandler(CThostFtdcMdApi *pUserApi)
     reConnect = 0;
 
     INFO_LOG("init share message address ok.");
-    
+
 }
 
 void CMdHandler::OnHeartBeatWarning(int nTimeLapse)
 {
     INFO_LOG("i touch OnHeartBeatWarning  %d!",nTimeLapse);
-    
 }
 
 // 当客户端与交易托管系统建立起通信连接，客户端需要进行登录
 void CMdHandler::OnFrontConnected()
-{  
+{
     INFO_LOG("OnFrontConnected():is excuted...");
     // 在登出后系统会重新调用OnFrontConnected，这里简单判断并忽略第1次之后的所有调用。
     DEBUG_LOG("reConnect:%d.", reConnect);
@@ -136,7 +137,7 @@ void CMdHandler::ReqUserLogin()
     strcpy(reqUserLogin.BrokerID, getConfig("market", "BrokerID").c_str());
     strcpy(reqUserLogin.UserID, getConfig("market", "UserID").c_str());
     strcpy(reqUserLogin.Password, getConfig("market", "Password").c_str());
-    
+
     int num = m_pUserMdApi->ReqUserLogin(&reqUserLogin, 0);
     INFO_LOG("\tlogin num = %d", num);
 }
@@ -147,7 +148,7 @@ void CMdHandler::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin,
 {
     TThostFtdcErrorMsgType errormsg;
     gbk2utf8(pRspInfo->ErrorMsg,errormsg,sizeof(errormsg));//报错返回信息
-    
+
     INFO_LOG("OnRspUserLogin:");
     INFO_LOG("\tErrorCode=[%d], ErrorMsg=[%s]", pRspInfo->ErrorID,
         errormsg);
@@ -171,13 +172,13 @@ void CMdHandler::ReqUserLogout(void)
     int num = m_pUserMdApi->ReqUserLogout(&reqUserLogout, 0);
     INFO_LOG("\tlogin num = %d", num);
 }
-    
-    ///登出请求响应
+
+///登出请求响应
 void CMdHandler::OnRspUserLogout(CThostFtdcUserLogoutField *pUserLogout, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
     TThostFtdcErrorMsgType errormsg;
     gbk2utf8(pRspInfo->ErrorMsg,errormsg,sizeof(errormsg));//报错返回信息
-    
+
     INFO_LOG("OnRspUserLogout:");
     INFO_LOG("\tErrorCode=[%d], ErrorMsg=[%s]", pRspInfo->ErrorID,
         errormsg);
@@ -331,32 +332,32 @@ void CMdHandler::WaitLogoutTime(void)
     INFO_LOG("wait for logout time.");
     time_t now;
     struct tm *timenow;
-    
+
     while(1)
     {
         time(&now);
         timenow = localtime(&now);
-        
+
         if( (timenow->tm_hour == ENDHOURS) && (timenow->tm_min ==ENDMINUTE) )
         {
             reConnect = 0;
             DEBUG_LOG("reConnect:%d.", reConnect);
-            return; 
+            return;
         }
         else
         {
             sleep(50);
         }
     }
-}  
+}
 
 static void login_process(void)
 {
     // 初始化线程同步变量
     sem_init(&sem,0,0);
-    
+
     string marketCons = getConfig("market", "ConRelativePath");
-    string command = "mkdir -p " + marketCons;  
+    string command = "mkdir -p " + marketCons;
     if(access(marketCons.c_str(),F_OK) == -1)
     {
         system(command.c_str());
@@ -366,7 +367,7 @@ static void login_process(void)
         }
     }
 
-    CThostFtdcMdApi  *pUserMdApi = 
+    CThostFtdcMdApi  *pUserMdApi =
     CThostFtdcMdApi::CreateFtdcMdApi(marketCons.c_str());
 
     markH = new CMdHandler(pUserMdApi);
@@ -379,27 +380,31 @@ static void login_process(void)
     // 链接交易系统
     pUserMdApi->Init();
     sem_wait(&sem);
-        
+
     markH->ReqUserLogin();
     sem_wait(&sem);
-        
+
     //创建
     BuildContractArray();
-        
+
     LoadTradingContracts(&md_InstrumentID);
-        
+
     markH->SubscribeMarketData();//订阅行情
     sem_wait(&sem);
-    
+
     markH->WaitLogoutTime();//等待登出时间
 
     pUserMdApi->Release();
 }
 
 int main(int argc,char **argv) {
+    // 实时时间
+    time_t now;
+    struct tm *timenow;
+
     //初始化log参数
     string logpath = getConfig("market", "LogRelativePath");
-    string command = "mkdir -p " + logpath;  
+    string command = "mkdir -p " + logpath;
     if(access(logpath.c_str(),F_OK) == -1)
     {
         system(command.c_str());
@@ -408,30 +413,28 @@ int main(int argc,char **argv) {
             INFO_LOG("mkdir -p %s ok.", logpath.c_str());
         }
     }
-
     LOG_INIT(logpath.c_str(), "marketlog", 6);
-    
-    time_t now;
-    struct tm *timenow;
-
-    pthread_t sockreadthread;
 
     // 初始化socket
     socket_init();
-    socket_write_clientName();
 
     // 创建并启动读socket线程
-    if(pthread_create(&sockreadthread, NULL, thr_fn, NULL)) 
-    {
-        ERROR_LOG("read socket thread create failed");
-    }
+    thread t1(socket_read_msg);
+    t1.detach();
+
+    // 开启心跳线程
+    thread t2(socket_write_heartBeat);
+    t2.detach();
+
+    // 添加计时器
+    timerPool.addTimer(ROUTE_HEADBEAT_TIMER, socket_close, HEADBEAT_TIME_OUT_LENGTH);
 
 #if 0
 {
     BuildContractArray();
-    
+
     string marketCons = getConfig("market", "ConRelativePath");
-    string command = "mkdir -p " + marketCons;  
+    string command = "mkdir -p " + marketCons;
     if(access(marketCons.c_str(),F_OK) == -1)
     {
         system(command.c_str());
@@ -441,7 +444,7 @@ int main(int argc,char **argv) {
         }
     }
 
-    CThostFtdcMdApi  *pUserMdApi = 
+    CThostFtdcMdApi  *pUserMdApi =
     CThostFtdcMdApi::CreateFtdcMdApi(marketCons.c_str());
 
     markH = new CMdHandler(pUserMdApi);
@@ -454,83 +457,76 @@ int main(int argc,char **argv) {
 
     LoadDepthMarketDataFromMysql(&vec1, con1.c_str());
     LoadDepthMarketDataFromMysql(&vec2, con2.c_str());
-    
+
     if( vec1.size() == vec2.size() )
     {
-        strcpy(pDepthMarketData.ExchangeID, "DCE"); 
+        strcpy(pDepthMarketData.ExchangeID, "DCE");
         for(int i=0; i<vec1.size(); i++)
         {
             int ik;
-            
+
             ik = pthread_mutex_lock(&markH->share_msg->sm_mutex);
-            
+
             strcpy(pDepthMarketData.InstrumentID, con1.c_str() );
             pDepthMarketData.LastPrice =  vec1[i];
             InsertDataToContractPool(markH->share_msg, &pDepthMarketData);
             INFO_LOG("%.2f", vec1[i]);
-            
+
             strcpy(pDepthMarketData.InstrumentID, con2.c_str() );
             pDepthMarketData.LastPrice =  vec2[i];
             InsertDataToContractPool(markH->share_msg, &pDepthMarketData);
             INFO_LOG("%.2f", vec2[i]);
-            
+
             ik = pthread_mutex_unlock(&markH->share_msg->sm_mutex);
-            
+
             usleep(500000);
-        }        
+        }
     }
     else
     {
         ERROR_LOG("get data length is not same");
-    }    
+    }
 }
 #endif
 
     while(1)
     {
-        time(&now);            
+        time(&now);
         timenow = localtime(&now);//获取当前时间
         string marketOpenTime = getConfig("market", "MarketOpenTime");
         vector<string> timeStr=split(marketOpenTime,  ":");
-        if( timenow->tm_hour >= atoi(timeStr[0].c_str()) ||  timenow->tm_hour <= ENDHOURS )
+        if( timenow->tm_hour >= atoi(timeStr[0].c_str()) &&  timenow->tm_hour <= ENDHOURS )
         {
             login_process();
         }
         else
         {
             sleep(50);
-        }    
+        }
     }
 
     return(0);
 }
 
-//存放讀取socket的函數
-static void *thr_fn(void *arg)
-{
-    socket_read_msg();
-    return NULL;
-}
-
 //字符串分割函数
 std::vector<std::string> split(std::string str,std::string pattern)
 {
-  std::string::size_type pos;
-  std::vector<std::string> result;
-  str+=pattern;//扩展字符串以方便操作
-  int size=str.size();
- 
-  for(int i=0; i<size; i++)
-  {
-    pos=str.find(pattern,i);
-    if(pos<size)
+    std::string::size_type pos;
+    std::vector<std::string> result;
+    str+=pattern;//扩展字符串以方便操作
+    int size=str.size();
+
+    for(int i=0; i<size; i++)
     {
-      std::string s=str.substr(i,pos-i);
-      result.push_back(s);
-      i=pos+pattern.size()-1;
+        pos=str.find(pattern,i);
+        if(pos<size)
+        {
+            std::string s=str.substr(i,pos-i);
+            result.push_back(s);
+            i = pos+pattern.size()-1;
+        }
     }
-  }
-  return result;
+    return result;
 }
 
 
