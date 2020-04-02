@@ -18,12 +18,13 @@ typedef struct
 }MESSAGEHEAD;
 
 
-void socket_init(void);
+OSA_STATUS socket_init(void);
 void socket_read_msg(void);
 void socket_req_instruments(void);
 void socket_write_clientName(void);
 OSA_STATUS socket_write_heartBeat(void);
-
 void socket_close(void);
+OSA_STATUS socket_reconnect(void);
+
 #endif
 

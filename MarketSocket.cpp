@@ -22,7 +22,6 @@ using namespace std;
 
 bool socketConnectFlag;
 int client_sock_fd;
-extern TimeoutTimerPool timerPool;
 
 static OSA_STATUS socket_parse_json(MESSAGEHEAD &msgHead, json &msgBody)
 {
@@ -63,7 +62,7 @@ static OSA_STATUS socket_parse_json(MESSAGEHEAD &msgHead, json &msgBody)
 }
 
 //初始化socket
-void socket_init(void)
+OSA_STATUS socket_init(void)
 {
     struct sockaddr_in server_addr;
 
@@ -80,6 +79,7 @@ void socket_init(void)
     if(client_sock_fd == -1)
     {
         ERROR_LOG("socket error");
+        return OSA_ERROR;
     }
 
     //建立连接的时候需要传送客户端名称
@@ -94,6 +94,8 @@ void socket_init(void)
 
     //写客户端名字
     socket_write_clientName();
+
+    return OSA_OK;
 }
 
 //读取socket数据，分两次读，先读包头，再读包体，最终输出string
@@ -103,6 +105,7 @@ void socket_read_msg(void)
     MESSAGEHEAD msgHead;
     json msgBody;
     uint16 dataTypeId;
+    auto& timerPool= TimeoutTimerPool::getInstance();
 
     while(1)
     {
@@ -127,7 +130,7 @@ void socket_read_msg(void)
             case CLIENT_HEARTBEAT_ID:
                 timerPool.getTimerByName(MARKET_HEADBEAT_TIMER)->stop();
                 timerPool.getTimerByName(MARKET_HEADBEAT_TIMER)->restart();
-                INFO_LOG("read CLIENT_HEARTBEAT_ID.");
+                //INFO_LOG("read CLIENT_HEARTBEAT_ID.");
                 break;
             default:
                 WARNING_LOG("unregistered socket ID: %d!", dataTypeId);
@@ -204,6 +207,15 @@ void socket_close(void)
 {
     INFO_LOG("market socket is closed.");
     close(client_sock_fd);
+}
+
+OSA_STATUS socket_reconnect(void)
+{
+    socket_close();
+    if( socket_init() == OSA_OK )
+    {
+        INFO_LOG("market socker init ok.");
+    }
 }
 
 

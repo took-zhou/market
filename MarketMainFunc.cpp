@@ -35,7 +35,7 @@
 
 
 #define ENDHOURS    (15)
-#define ENDMINUTE   (16)
+#define LOGOUTHOURS   (16)
 
 // 线程同步标志
 sem_t sem;
@@ -48,10 +48,6 @@ CMdHandler *markH;
 static void login_process(void);
 static void delete_file(void);
 std::vector<std::string> split(std::string str,std::string pattern);
-extern vector<string> contractPool;
-//定时器实例
-TimeoutTimerPool timerPool;
-
 
 /*
 ------ Shared Memory Segments --------
@@ -338,7 +334,7 @@ void CMdHandler::WaitLogoutTime(void)
         time(&now);
         timenow = localtime(&now);
 
-        if( (timenow->tm_hour == ENDHOURS) && (timenow->tm_min ==ENDMINUTE) )
+        if( timenow->tm_hour == LOGOUTHOURS )
         {
             reConnect = 0;
             DEBUG_LOG("reConnect:%d.", reConnect);
@@ -427,7 +423,8 @@ int main(int argc,char **argv) {
     t2.detach();
 
     // 添加计时器
-    timerPool.addTimer(ROUTE_HEADBEAT_TIMER, socket_close, HEADBEAT_TIME_OUT_LENGTH);
+    auto& timerPool= TimeoutTimerPool::getInstance();
+    timerPool.addTimer(ROUTE_HEADBEAT_TIMER, socket_reconnect, HEADBEAT_TIME_OUT_LENGTH);
 
 #if 0
 {
