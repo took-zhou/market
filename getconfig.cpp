@@ -95,7 +95,7 @@ void getConfig_(string title, string cfgName,char* target)
 
 string getConfig(string title, string cfgName)
 {
-	const char* INIFile = "../../project/projroot/config.ini";
+	const char* INIFile = "/etc/chaodai/config.ini";
 	ifstream inifile(INIFile);
 	if (!inifile.is_open())
 	{
