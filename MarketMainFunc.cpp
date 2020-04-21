@@ -45,7 +45,7 @@ extern int client_sock_fd;
 //Create an empty class
 CMdHandler *markH;
 
-static void login_process(void);
+static OSA_STATUS login_process(void);
 static void delete_file(void);
 std::vector<std::string> split(std::string str,std::string pattern);
 
@@ -347,8 +347,12 @@ void CMdHandler::WaitLogoutTime(void)
     }
 }
 
-static void login_process(void)
+static OSA_STATUS login_process(void)
 {
+    // 实时时间
+    time_t now;
+    struct tm *timenow;
+
     // 初始化线程同步变量
     sem_init(&sem,0,0);
 
@@ -375,7 +379,18 @@ static void login_process(void)
 
     // 链接交易系统
     pUserMdApi->Init();
-    sem_wait(&sem);
+    while( sem_trywait(&sem) ==  EAGAIN )
+    {
+        time(&now);
+        timenow = localtime(&now);//获取当前时间
+        if( timenow->tm_hour >= ENDHOURS )
+        {
+            pUserMdApi->Release();
+            WARNING_LOG("during login time, but cannot login");
+            return OSA_ERROR;
+        }
+        usleep(1000000);
+    }
 
     markH->ReqUserLogin();
     sem_wait(&sem);
