@@ -344,14 +344,14 @@ void LoadDepthMarketDataToCsv(CThostFtdcDepthMarketDataField * pD)
     char ExchangeID[27];
     uint8 existFlag = 1;
     
-    if(access("../../../history_data_from_ctp",F_OK) == -1)
+    if(access("/etc/chaodai/history_data_from_ctp",F_OK) == -1)
     {
-        mkdir("../../../history_data_from_ctp",S_IRWXU);
+        mkdir("/etc/chaodai/history_data_from_ctp",S_IRWXU);
     }
           
     //gbk2utf8(pD->ExchangeID,ExchangeID,sizeof(ExchangeID));//交易所简称   
     gbk2utf8(pD->InstrumentID,InstrumentID,sizeof(InstrumentID));//合约代码
-    sprintf(csvpath,"../../../history_data_from_ctp/%s.csv",InstrumentID);//合成存储路径
+    sprintf(csvpath,"/etc/chaodai/history_data_from_ctp/%s.csv",InstrumentID);//合成存储路径
 
     //sprintf(csvpath,"../../../history_data_from_ctp/%s/%s.csv",ExchangeID,InstrumentID);//合成存储路径
     //sprintf(folderpath,"../../../history_data_from_ctp/%s",ExchangeID);//合成存储文件夹路径
