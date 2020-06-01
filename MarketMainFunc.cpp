@@ -32,22 +32,29 @@
 #include "MarketSocket.h"
 #include "keyboard.h"
 #include "timer.h"
+#include "MarketLoginControl.h"        // Model's header file
+#include "rtwtypes.h"
 
+#define LOGIN_TIME (uint8)1
+#define LOGOUT_TIME (uint8)2
 
-#define ENDHOURS    (15)
-#define LOGOUTHOURS   (16)
 
 // 线程同步标志
 sem_t sem;
 vector<string> md_InstrumentID;
 extern int client_sock_fd;
+uint8 login_status = LOGOUT_TIME;
+
 
 //Create an empty class
 CMdHandler *markH;
+static MarketLoginControlModelClass rtObj;// Instance of model class
 
 static OSA_STATUS login_process(void);
 static void delete_file(void);
 std::vector<std::string> split(std::string str,std::string pattern);
+void rt_OneStep();
+static void one_second_task(void);
 
 /*
 ------ Shared Memory Segments --------
@@ -126,6 +133,12 @@ void CMdHandler::OnFrontConnected()
     }
 }
 
+// 当客户端与交易托管系统建立起通信连接，客户端需要进行登录
+void CMdHandler::OnFrontDisconnected(int nReason)
+{
+    ERROR_LOG("OnFrontDisconnected, ErrorCode:%#x", nReason);
+}
+
 void CMdHandler::ReqUserLogin()
 {
     CThostFtdcReqUserLoginField reqUserLogin;
@@ -133,6 +146,9 @@ void CMdHandler::ReqUserLogin()
     strcpy(reqUserLogin.BrokerID, getConfig("market", "BrokerID").c_str());
     strcpy(reqUserLogin.UserID, getConfig("market", "UserID").c_str());
     strcpy(reqUserLogin.Password, getConfig("market", "Password").c_str());
+    INFO_LOG("BrokerID: %s", reqUserLogin.BrokerID);
+    INFO_LOG("UserID: %s", reqUserLogin.UserID);
+    INFO_LOG("Password: %s", reqUserLogin.Password);
 
     int num = m_pUserMdApi->ReqUserLogin(&reqUserLogin, 0);
     INFO_LOG("\tlogin num = %d", num);
@@ -323,18 +339,14 @@ void CMdHandler::OnRtnForQuoteRsp(CThostFtdcForQuoteRspField *pForQuoteRsp)
 }
 
 //等待登出时间
+#define LOGOUTHOURS 15
 void CMdHandler::WaitLogoutTime(void)
 {
     INFO_LOG("wait for logout time.");
-    time_t now;
-    struct tm *timenow;
 
     while(1)
     {
-        time(&now);
-        timenow = localtime(&now);
-
-        if( timenow->tm_hour == LOGOUTHOURS )
+        if( login_status == LOGOUT_TIME )
         {
             reConnect = 0;
             DEBUG_LOG("reConnect:%d.", reConnect);
@@ -379,18 +391,20 @@ static OSA_STATUS login_process(void)
 
     // 链接交易系统
     pUserMdApi->Init();
-    while( sem_trywait(&sem) ==  EAGAIN )
-    {
-        time(&now);
-        timenow = localtime(&now);//获取当前时间
-        if( timenow->tm_hour >= ENDHOURS )
-        {
-            pUserMdApi->Release();
-            WARNING_LOG("during login time, but cannot login");
-            return OSA_ERROR;
-        }
-        usleep(1000000);
-    }
+    sem_wait(&sem);
+
+    //while( sem_trywait(&sem) ==  EAGAIN )
+    //{
+    //    time(&now);
+    //    timenow = localtime(&now);//获取当前时间
+    //    if( timenow->tm_hour >= ENDHOURS )
+    //    {
+    //        pUserMdApi->Release();
+    //        WARNING_LOG("during login time, but cannot login");
+    //        return OSA_ERROR;
+    //    }
+    //    usleep(1000000);
+    //}
 
     markH->ReqUserLogin();
     sem_wait(&sem);
@@ -409,9 +423,8 @@ static OSA_STATUS login_process(void)
 }
 
 int main(int argc,char **argv) {
-    // 实时时间
-    time_t now;
-    struct tm *timenow;
+
+    rtObj.initialize();
 
     //初始化log参数
     string logpath = getConfig("market", "LogRelativePath");
@@ -436,6 +449,9 @@ int main(int argc,char **argv) {
     // 开启心跳线程
     thread t2(socket_write_heartBeat);
     t2.detach();
+
+    // 开启状态转换
+    thread t3(one_second_task);
 
     // 添加计时器
     auto& timerPool= TimeoutTimerPool::getInstance();
@@ -503,17 +519,13 @@ int main(int argc,char **argv) {
 
     while(1)
     {
-        time(&now);
-        timenow = localtime(&now);//获取当前时间
-        string marketOpenTime = getConfig("market", "MarketOpenTime");
-        vector<string> timeStr=split(marketOpenTime,  ":");
-        if( timenow->tm_hour >= atoi(timeStr[0].c_str()) &&  timenow->tm_hour <= ENDHOURS )
+        if(login_status = LOGIN_TIME)
         {
             login_process();
         }
         else
         {
-            sleep(50);
+            sleep(10);
         }
     }
 
@@ -539,6 +551,79 @@ std::vector<std::string> split(std::string str,std::string pattern)
         }
     }
     return result;
+}
+
+static void one_second_task(void)
+{
+    while(1)
+    {
+        rt_OneStep();
+        sleep(1);
+    }
+}
+
+void rt_OneStep(void)
+{
+  // 实时时间
+  time_t now = {0};
+  struct tm *timenow = NULL;
+
+  static boolean_T OverrunFlag = false;
+
+  // Disable interrupts here
+
+  // Check for overrun
+  if (OverrunFlag) {
+    rtmSetErrorStatus(rtObj.getRTM(), "Overrun");
+    return;
+  }
+
+  OverrunFlag = true;
+
+  // Save FPU context here (if necessary)
+  // Re-enable timer or interrupt here
+  // Set model inputs here
+  string timeStr = getConfig("market", "DayLoginTime");
+  vector<string> timeVec=split(timeStr,  ":");
+  rtObj.rtU.day_login_mins = atoi(timeVec[0].c_str())*60 + atoi(timeVec[1].c_str());
+  //INFO_LOG("rtObj.rtU.day_login_mins:%d", rtObj.rtU.day_login_mins);
+
+  timeStr = getConfig("market", "DayLogoutTime");
+  timeVec= split(timeStr,  ":");
+  rtObj.rtU.day_logout_mins= atoi(timeVec[0].c_str())*60 + atoi(timeVec[1].c_str());
+  //INFO_LOG("rtObj.rtU.day_logout_mins:%d", rtObj.rtU.day_logout_mins);
+
+  timeStr = getConfig("market", "NightLoginTime");
+  timeVec=split(timeStr,  ":");
+  rtObj.rtU.night_login_mins= atoi(timeVec[0].c_str())*60 + atoi(timeVec[1].c_str());
+  //INFO_LOG("rtObj.rtU.night_login_mins:%d", rtObj.rtU.night_login_mins);
+
+  timeStr = getConfig("market", "NightLogoutTime");
+  timeVec=split(timeStr,  ":");
+  rtObj.rtU.night_logout_mins= atoi(timeVec[0].c_str())*60 + atoi(timeVec[1].c_str());
+  //INFO_LOG("rtObj.rtU.night_logout_mins:%d", rtObj.rtU.night_logout_mins);
+
+  timeStr = getConfig("market", "LoginTime");
+  strcpy(rtObj.rtU.loginTime, timeStr.c_str());
+
+  time(&now);
+  timenow = localtime(&now);//获取当前时间
+  rtObj.rtU.now_mins= timenow->tm_hour*60 + timenow->tm_min;
+  //INFO_LOG("rtObj.rtU.now_mins:%d", rtObj.rtU.now_mins);
+
+  // Step the model
+  rtObj.step();
+
+  // Get model outputs here
+  login_status = rtObj.rtY.status;
+  INFO_LOG("rtObj.rtY.status:%d.", rtObj.rtY.status);
+
+  // Indicate task complete
+  OverrunFlag = false;
+
+  // Disable interrupts here
+  // Restore FPU context here (if necessary)
+  // Enable interrupts here
 }
 
 

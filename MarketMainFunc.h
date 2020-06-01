@@ -33,6 +33,8 @@ public:
     // 当客户端与交易托管系统建立起通信连接，客户端需要进行登录
     virtual void OnFrontConnected();
 
+    virtual void OnFrontDisconnected(int nReason);
+
     virtual void OnHeartBeatWarning(int nTimeLapse);
 
     void ReqUserLogin(void);
