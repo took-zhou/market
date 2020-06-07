@@ -222,11 +222,11 @@ void CMdHandler::SubscribeMarketData()//收行情
             int result = m_pUserMdApi->SubscribeMarketData(ppInstrumentID, a);
             if( result == 0 )
             {
-                INFO_LOG("订阅行情请求1......发送成功");
+                INFO_LOG("Subscription request 1......Send a success");
             }
             else
             {
-                INFO_LOG("订阅行情请求1......发送失败，错误序号=[%d]", result);
+                INFO_LOG("Subscription request 1......Failed to send, error serial number=[%d]", result);
             }
         }
         else if (count1 == md_InstrumentID.size() / 500)
@@ -241,11 +241,11 @@ void CMdHandler::SubscribeMarketData()//收行情
 
             if( result == 0 )
             {
-                INFO_LOG("订阅行情请求2......发送成功");
+                INFO_LOG("Subscription request 2......Send a success");
             }
             else
             {
-                INFO_LOG("订阅行情请求2......发送失败，错误序号=[%d]", result);
+                INFO_LOG("Subscription request 2......Failed to send, error serial number=[%d]", result);
             }
 
         }
@@ -339,7 +339,6 @@ void CMdHandler::OnRtnForQuoteRsp(CThostFtdcForQuoteRspField *pForQuoteRsp)
 }
 
 //等待登出时间
-#define LOGOUTHOURS 15
 void CMdHandler::WaitLogoutTime(void)
 {
     INFO_LOG("wait for logout time.");
@@ -519,7 +518,7 @@ int main(int argc,char **argv) {
 
     while(1)
     {
-        if(login_status = LOGIN_TIME)
+        if(login_status == LOGIN_TIME)
         {
             login_process();
         }
@@ -616,7 +615,6 @@ void rt_OneStep(void)
 
   // Get model outputs here
   login_status = rtObj.rtY.status;
-  INFO_LOG("rtObj.rtY.status:%d.", rtObj.rtY.status);
 
   // Indicate task complete
   OverrunFlag = false;

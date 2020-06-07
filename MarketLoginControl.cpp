@@ -123,7 +123,6 @@ void MarketLoginControlModelClass::step()
     // Outport: '<Root>/status'
     rtY.status = logout;
   } else {
-    INFO_LOG("rtDW.is_c3_MarketLoginControl:%d.", rtDW.is_c3_MarketLoginControl);
     switch (rtDW.is_c3_MarketLoginControl) {
      case IN_day_login:
       // Outport: '<Root>/status'
