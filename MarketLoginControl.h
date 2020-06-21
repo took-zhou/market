@@ -3,9 +3,9 @@
 //
 // Code generated for Simulink model 'MarketLoginControl'.
 //
-// Model version                  : 1.15
+// Model version                  : 1.29
 // Simulink Coder version         : 9.0 (R2018b) 24-May-2018
-// C/C++ source code generated on : Mon Jun  1 21:47:20 2020
+// C/C++ source code generated on : Sun Jun 21 23:14:08 2020
 //
 // Target selection: ert.tlc
 // Embedded hardware selection: Intel->x86-64 (Linux 64)
@@ -48,6 +48,7 @@ typedef struct {
   uint32_T day_logout_mins;            // '<Root>/day_logout_mins'
   uint32_T night_login_mins;           // '<Root>/night_login_mins'
   uint32_T night_logout_mins;          // '<Root>/night_logout_mins'
+  char_T loginMode[256];               // '<Root>/loginMode'
 } ExtU;
 
 // External outputs (root outports fed by signals with default storage)
@@ -98,6 +99,7 @@ class MarketLoginControlModelClass {
   uint32_T isDuringNightLogoutTime(void);
   uint32_T isDuringDayLoginTime(void);
   uint32_T isDuringNightLoginTime(void);
+  void determineLoginMode(void);
 };
 
 //-

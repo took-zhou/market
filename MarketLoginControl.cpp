@@ -3,9 +3,9 @@
 //
 // Code generated for Simulink model 'MarketLoginControl'.
 //
-// Model version                  : 1.15
+// Model version                  : 1.29
 // Simulink Coder version         : 9.0 (R2018b) 24-May-2018
-// C/C++ source code generated on : Mon Jun  1 21:47:20 2020
+// C/C++ source code generated on : Sun Jun 21 23:14:08 2020
 //
 // Target selection: ert.tlc
 // Embedded hardware selection: Intel->x86-64 (Linux 64)
@@ -15,7 +15,7 @@
 // Validation result: Not run
 //
 #include "MarketLoginControl.h"
-#include "log.h"
+
 // Named constants for Chart: '<Root>/MarketLoginControl'
 #define IN_day_login                   ((uint8_T)1U)
 #define IN_day_logout                  ((uint8_T)2U)
@@ -33,11 +33,13 @@ uint32_T MarketLoginControlModelClass::isDuringDayLogoutTime(void)
 
   // Inport: '<Root>/loginTime' incorporates:
   //   Inport: '<Root>/day_logout_mins'
+  //   Inport: '<Root>/loginMode'
   //   Inport: '<Root>/night_login_mins'
   //   Inport: '<Root>/now_mins'
 
-  if ((strcmp(rtU.loginTime, "night") != 0) && ((rtU.day_logout_mins <
-        rtU.now_mins) && (rtU.now_mins < rtU.night_login_mins))) {
+  if ((strcmp(rtU.loginTime, "night") != 0) && (strcmp(rtU.loginMode, "normal") ==
+       0) && ((rtU.day_logout_mins < rtU.now_mins) && (rtU.now_mins <
+        rtU.night_login_mins))) {
     out = 1U;
   }
 
@@ -53,11 +55,13 @@ uint32_T MarketLoginControlModelClass::isDuringNightLogoutTime(void)
 
   // Inport: '<Root>/loginTime' incorporates:
   //   Inport: '<Root>/day_login_mins'
+  //   Inport: '<Root>/loginMode'
   //   Inport: '<Root>/night_logout_mins'
   //   Inport: '<Root>/now_mins'
 
-  if ((strcmp(rtU.loginTime, "day") != 0) && ((rtU.night_logout_mins <
-        rtU.now_mins) && (rtU.now_mins < rtU.day_login_mins))) {
+  if ((strcmp(rtU.loginTime, "day") != 0) && (strcmp(rtU.loginMode, "normal") ==
+       0) && ((rtU.night_logout_mins < rtU.now_mins) && (rtU.now_mins <
+        rtU.day_login_mins))) {
     out = 1U;
   }
 
@@ -74,10 +78,12 @@ uint32_T MarketLoginControlModelClass::isDuringDayLoginTime(void)
   // Inport: '<Root>/loginTime' incorporates:
   //   Inport: '<Root>/day_login_mins'
   //   Inport: '<Root>/day_logout_mins'
+  //   Inport: '<Root>/loginMode'
   //   Inport: '<Root>/now_mins'
 
-  if ((strcmp(rtU.loginTime, "night") != 0) && ((rtU.day_login_mins <=
-        rtU.now_mins) && (rtU.now_mins <= rtU.day_logout_mins))) {
+  if ((strcmp(rtU.loginTime, "night") != 0) && (strcmp(rtU.loginMode, "normal") ==
+       0) && ((rtU.day_login_mins <= rtU.now_mins) && (rtU.now_mins <=
+        rtU.day_logout_mins))) {
     out = 1U;
   }
 
@@ -92,17 +98,34 @@ uint32_T MarketLoginControlModelClass::isDuringNightLoginTime(void)
   out = 0U;
 
   // Inport: '<Root>/loginTime' incorporates:
+  //   Inport: '<Root>/loginMode'
   //   Inport: '<Root>/night_login_mins'
   //   Inport: '<Root>/night_logout_mins'
   //   Inport: '<Root>/now_mins'
 
-  if ((strcmp(rtU.loginTime, "day") != 0) && ((rtU.night_login_mins <=
-        rtU.now_mins) || (rtU.now_mins <= rtU.night_logout_mins))) {
+  if ((strcmp(rtU.loginTime, "day") != 0) && (strcmp(rtU.loginMode, "normal") ==
+       0) && ((rtU.night_login_mins <= rtU.now_mins) || (rtU.now_mins <=
+        rtU.night_logout_mins))) {
     out = 1U;
   }
 
   // End of Inport: '<Root>/loginTime'
   return out;
+}
+
+// Function for Chart: '<Root>/MarketLoginControl'
+void MarketLoginControlModelClass::determineLoginMode(void)
+{
+  // Inport: '<Root>/loginMode'
+  if (strcmp(rtU.loginMode, "normal") == 0) {
+    // Outport: '<Root>/status'
+    rtY.status = logout;
+  } else {
+    // Outport: '<Root>/status'
+    rtY.status = login;
+  }
+
+  // End of Inport: '<Root>/loginMode'
 }
 
 // Model step function
@@ -119,14 +142,10 @@ void MarketLoginControlModelClass::step()
   if (rtDW.is_active_c3_MarketLoginControl == 0U) {
     rtDW.is_active_c3_MarketLoginControl = 1U;
     rtDW.is_c3_MarketLoginControl = IN_init_sts;
-
-    // Outport: '<Root>/status'
-    rtY.status = logout;
+    determineLoginMode();
   } else {
     switch (rtDW.is_c3_MarketLoginControl) {
      case IN_day_login:
-      // Outport: '<Root>/status'
-      rtY.status = login;
       if (rtU.now_mins == rtU.day_logout_mins) {
         rtDW.is_c3_MarketLoginControl = IN_day_logout;
 
@@ -136,9 +155,7 @@ void MarketLoginControlModelClass::step()
       break;
 
      case IN_day_logout:
-      // Outport: '<Root>/status'
-      rtY.status = logout;
-      if ((strcmp(rtU.loginTime, "all") == 0) && (rtU.now_mins ==
+      if ((strcmp(rtU.loginTime, "day") != 0) && (rtU.now_mins ==
            rtU.night_login_mins)) {
         rtDW.is_c3_MarketLoginControl = IN_night_login;
 
@@ -156,8 +173,6 @@ void MarketLoginControlModelClass::step()
       break;
 
      case IN_init_sts:
-      // Outport: '<Root>/status'
-      rtY.status = logout;
       if (isDuringDayLogoutTime() != 0U) {
         rtDW.is_c3_MarketLoginControl = IN_day_logout;
 
@@ -184,8 +199,6 @@ void MarketLoginControlModelClass::step()
       break;
 
      case IN_night_login:
-      // Outport: '<Root>/status'
-      rtY.status = login;
       if (rtU.now_mins == rtU.night_logout_mins) {
         rtDW.is_c3_MarketLoginControl = IN_night_logout;
 
@@ -195,9 +208,7 @@ void MarketLoginControlModelClass::step()
       break;
 
      default:
-      // Outport: '<Root>/status'
-      rtY.status = logout;
-      if ((strcmp(rtU.loginTime, "all") == 0) && (rtU.now_mins ==
+      if ((strcmp(rtU.loginTime, "night") != 0) && (rtU.now_mins ==
            rtU.day_login_mins)) {
         rtDW.is_c3_MarketLoginControl = IN_day_login;
 

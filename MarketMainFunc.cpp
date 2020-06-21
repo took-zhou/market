@@ -392,19 +392,6 @@ static OSA_STATUS login_process(void)
     pUserMdApi->Init();
     sem_wait(&sem);
 
-    //while( sem_trywait(&sem) ==  EAGAIN )
-    //{
-    //    time(&now);
-    //    timenow = localtime(&now);//获取当前时间
-    //    if( timenow->tm_hour >= ENDHOURS )
-    //    {
-    //        pUserMdApi->Release();
-    //        WARNING_LOG("during login time, but cannot login");
-    //        return OSA_ERROR;
-    //    }
-    //    usleep(1000000);
-    //}
-
     markH->ReqUserLogin();
     sem_wait(&sem);
 
@@ -582,6 +569,9 @@ void rt_OneStep(void)
   // Save FPU context here (if necessary)
   // Re-enable timer or interrupt here
   // Set model inputs here
+  string modeStr = getConfig("market", "LoginMode");
+  strcpy(rtObj.rtU.loginMode, modeStr.c_str());
+
   string timeStr = getConfig("market", "DayLoginTime");
   vector<string> timeVec=split(timeStr,  ":");
   rtObj.rtU.day_login_mins = atoi(timeVec[0].c_str())*60 + atoi(timeVec[1].c_str());
