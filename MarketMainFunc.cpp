@@ -23,7 +23,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include "MarketMainFunc.h"
-#include "ctp_timer.h"
 #include <vector>
 
 #include "getconfig.h"
@@ -34,6 +33,7 @@
 #include "timer.h"
 #include "MarketLoginControl.h"        // Model's header file
 #include "rtwtypes.h"
+#include "CSmtp.h"
 
 #define LOGIN_TIME (uint8)1
 #define LOGOUT_TIME (uint8)2
@@ -613,5 +613,3 @@ void rt_OneStep(void)
   // Restore FPU context here (if necessary)
   // Enable interrupts here
 }
-
-
