@@ -348,15 +348,13 @@ void LoadDepthMarketDataToCsv(CThostFtdcDepthMarketDataField * pD)
     {
         mkdir("/etc/chaodai/history_data_from_ctp",S_IRWXU);
     }
-          
-    //gbk2utf8(pD->ExchangeID,ExchangeID,sizeof(ExchangeID));//交易所简称   
+
+    gbk2utf8(pD->ExchangeID,ExchangeID,sizeof(ExchangeID));//交易所简称
     gbk2utf8(pD->InstrumentID,InstrumentID,sizeof(InstrumentID));//合约代码
-    sprintf(csvpath,"/etc/chaodai/history_data_from_ctp/%s.csv",InstrumentID);//合成存储路径
 
-    //sprintf(csvpath,"../../../history_data_from_ctp/%s/%s.csv",ExchangeID,InstrumentID);//合成存储路径
-    //sprintf(folderpath,"../../../history_data_from_ctp/%s",ExchangeID);//合成存储文件夹路径
+    sprintf(csvpath,"/etc/chaodai/history_data_from_ctp/%s/%s.csv",ExchangeID,InstrumentID);//合成存储路径
+    sprintf(folderpath,"/etc/chaodai/history_data_from_ctp/%s",ExchangeID);//合成存储文件夹路径
 
-    #if 0
     if(access(folderpath,F_OK) == -1)
     {
         if(mkdir(folderpath,S_IRWXU) == 0)
@@ -368,15 +366,16 @@ void LoadDepthMarketDataToCsv(CThostFtdcDepthMarketDataField * pD)
         {
             INFO_LOG("create folder %s fail.\n",folderpath);
             fflush(stdout);
-        }   
+        }
     }
-    #endif
+
     FormDepthMarketData2Stringflow(pD);
 
     if(access(csvpath,F_OK) == -1)
     {
         existFlag=0;
     }
+
     ofstream out(csvpath,ios::app);
     if(out.is_open())
     {
