@@ -1,7 +1,7 @@
 /*
  * proxyRecer.h
  *
- *  Created on: 2020Äê8ÔÂ29ÈÕ
+ *  Created on: 2020ï¿½ï¿½8ï¿½ï¿½29ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -18,9 +18,8 @@ struct ProxyRecer
     MsgStruct receMsg();
 //    MsgStruct rece();
     bool checkSessionAndTitle(std::vector<std::string>& sessionAndTitle);
-
-    ZmqBase* zmq{nullptr};
-
+    bool isTopicInSubTopics(std::string title);
+    std::vector<std::string> topicList;
 };
 
 

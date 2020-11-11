@@ -1,7 +1,7 @@
 /*
  * traderEvent.h
  *
- *  Created on: 2020Äê8ÔÂ30ÈÕ
+ *  Created on: 2020ï¿½ï¿½8ï¿½ï¿½30ï¿½ï¿½
  *      Author: Administrator
  */
 
@@ -19,6 +19,7 @@ struct TraderEvent
     void handle(MsgStruct& msg);
     void regMsgFun();
     void qryInstrumentRspHandle(MsgStruct& msg);
+    void QryInstrumentRsqHandle(MsgStruct& msg);
     std::map<std::string, std::function<void(MsgStruct& msg)>> msgFuncMap;
 };
 
