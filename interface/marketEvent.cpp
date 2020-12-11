@@ -1,7 +1,7 @@
 /*
  * marketEvent.cpp
  *
- *  Created on: 2020��9��9��
+ *  Created on: 2020.11.13
  *      Author: Administrator
  */
 #include "market/interface/marketEvent.h"
@@ -45,15 +45,16 @@ bool MarketEvent::run()
     auto proxyRecRun = [&](){
         while(1)
         {
-            INFO_LOG("proxyRecRun while");
+            // INFO_LOG("proxyRecRun while");
             MsgStruct msg = recerSender.ROLE(Recer).ROLE(ProxyRecer).receMsg();
-            INFO_LOG("handle new msg, session is[%s],msgName is[%s]",msg.sessionName.c_str(), msg.msgName.c_str());
-            if(! msg.isValid())
+            // INFO_LOG("handle new msg, session is[%s],msgName is[%s]", msg.sessionName.c_str(), msg.msgName.c_str());
+            if (!msg.isValid())
             {
-//                ERROR_LOG(" invalid msg, session is [%s], msgName is [%s]",msg.sessionName.c_str(), msg.msgName.c_str());
+                ERROR_LOG(" invalid msg, session is [%s], msgName is [%s]",msg.sessionName.c_str(), msg.msgName.c_str());
                 continue;
             }
-            auto eventFunc = [this, msg]{
+            auto eventFunc = [this, msg]
+            {
                 if(sessionFuncMap.find(msg.sessionName) != sessionFuncMap.end())
                 {
                     sessionFuncMap[msg.sessionName](msg);
@@ -71,20 +72,17 @@ bool MarketEvent::run()
         MsgStruct msg;
         while(1)
         {
-            INFO_LOG("ctpRecRun while");
             ctpMsgChan >> msg;
             if(! msg.isValid())
             {
                 ERROR_LOG(" invalid msg, session is [%s], msgName is [%s]",msg.sessionName.c_str(), msg.msgName.c_str());
                 continue;
             }
-            auto eventFunc = [this, msg]{
-                if(sessionFuncMap.find(msg.sessionName) != sessionFuncMap.end())
-                {
-                    sessionFuncMap[msg.sessionName](msg);
-                }
-            };
-            std::thread(eventFunc).detach();
+     
+            if(sessionFuncMap.find(msg.sessionName) != sessionFuncMap.end())
+            {
+                sessionFuncMap[msg.sessionName](msg);
+            }
         }
     };
     INFO_LOG("ctpRecRun prepare ok");

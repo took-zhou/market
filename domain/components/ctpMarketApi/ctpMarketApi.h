@@ -1,21 +1,33 @@
 /*
  * ctpMarketApi.h
  *
- *  Created on: 2020��8��30��
+ *  Created on: 2020.11.13
  *      Author: Administrator
  */
 
 #ifndef WORKSPACE_MARKET_DOMAIN_COMPONENTS_CTPMARKETAPI_CTPMARKETAPI_H_
 #define WORKSPACE_MARKET_DOMAIN_COMPONENTS_CTPMARKETAPI_CTPMARKETAPI_H_
 
+#include <set>
+#include <string>
+#include <vector>
+
 #include "common/extern/ctp/inc/ThostFtdcMdApi.h"
+#include "common/self/utils.h"
+
+struct MD_InstrumentIDs
+{
+    pthread_mutex_t sm_mutex;
+    std::set<utils::InstrumtntID, utils::InstrumtntIDSortCriterion> instrumentIDs;
+};
 
 class CtpMarketBaseApi : public CThostFtdcMdApi
 {
 public:
-    CThostFtdcMdApi*  marketApi;
-    CtpMarketBaseApi();
-    CThostFtdcMdApi *CreateFtdcMdApi(const char *pszFlowPath = "", const bool bIsUsingUdp=false, const bool bIsMulticast=false);
+    CtpMarketBaseApi() {};
+    CtpMarketBaseApi(CThostFtdcMdApi* _m_pApi):_m_pApi(_m_pApi) {};
+
+    CThostFtdcMdApi *CreateFtdcMdApi(const char *pszFlowPath = "");
 
     const char *GetApiVersion();
 
@@ -35,7 +47,9 @@ public:
 
     void RegisterSpi(CThostFtdcMdSpi *pSpi);
 
-    int SubscribeMarketData(char *ppInstrumentID[], int nCount);
+    // 订阅合约
+    int SubscribeMarketData(std::vector<utils::InstrumtntID> const & nameVec);
+    int SubscribeMarketData(char *ppInstrumentID[], int nCount){};
 
     int UnSubscribeMarketData(char *ppInstrumentID[], int nCount);
 
@@ -43,16 +57,40 @@ public:
 
     int UnSubscribeForQuoteRsp(char *ppInstrumentID[], int nCount);
 
-    int ReqUserLogin(CThostFtdcReqUserLoginField *pReqUserLoginField, int nRequestID);
+    // 登陆请求
+    int ReqUserLogin(void);
+    int ReqUserLogin(CThostFtdcReqUserLoginField *pReqUserLoginField, int nRequestID){};
 
-    int ReqUserLogout(CThostFtdcUserLogoutField *pUserLogout, int nRequestID);
+    // 登出请求
+    int ReqUserLogout(void);
+    int ReqUserLogout(CThostFtdcUserLogoutField *pUserLogout, int nRequestID){};
+
+    MD_InstrumentIDs md_InstrumentIDs;
+
+private:
+    CThostFtdcMdApi*  _m_pApi{nullptr};
+    int nRequestID = 0;
 };
 
 struct CtpMarketApi
 {
+public:
     bool init();
+
+    // 从trader端获取所有可交易合约
+    int reqInstrumentsFromTrader(void);
+
+    // 从本地构建交易合约
+    int reqInstrumentsFromLocal(void);
+
     void runLogInAndLogOutAlg();
+
     CtpMarketBaseApi* marketApi;
+
+    // 获取合约信息来源
+    std::string getInstrumentsFrom(void);
+private:
+    std::string instrumentFrom;
 };
 
 

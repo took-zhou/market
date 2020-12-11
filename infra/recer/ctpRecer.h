@@ -1,15 +1,16 @@
 /*
  * ctpRecer.h
  *
- *  Created on: 2020Äê8ÔÂ29ÈÕ
+ *  Created on: 2020.11.30
  *      Author: Administrator
  */
 
 #ifndef WORKSPACE_TRADER_INFRA_CTPRECER_H_
 #define WORKSPACE_TRADER_INFRA_CTPRECER_H_
 #include "common/extern/ctp/inc/ThostFtdcMdApi.h"
+
 struct CtpRecer;
-//ĞĞÇéÀà
+
 class MarketSpi : public CThostFtdcMdSpi
 {
 
@@ -32,31 +33,25 @@ public:
 
      void OnHeartBeatWarning(int nTimeLapse);
 
-    ///µÇÂ¼ÇëÇóÏìÓ¦
      void OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) ;
 
-    ///µÇ³öÇëÇóÏìÓ¦
      void OnRspUserLogout(CThostFtdcUserLogoutField *pUserLogout, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) ;
 
-    ///´íÎóÓ¦´ğ
+     // marketç«¯ctpç™»å‡ºæ²¡æœ‰åé¦ˆï¼Œä¸»åŠ¨è°ƒç”¨åé¦ˆæ¥å£
+     void OnRspUserLogout(void) ;
+
      void OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) ;
 
-    ///¶©ÔÄĞĞÇéÓ¦´ğ
      void OnRspSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 
-    ///È¡Ïû¶©ÔÄĞĞÇéÓ¦´ğ
      void OnRspUnSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 
-    ///¶©ÔÄÑ¯¼ÛÓ¦´ğ
      void OnRspSubForQuoteRsp(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 
-    ///È¡Ïû¶©ÔÄÑ¯¼ÛÓ¦´ğ
      void OnRspUnSubForQuoteRsp(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 
-    ///Éî¶ÈĞĞÇéÍ¨Öª
      void OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *pDepthMarketData);
 
-    ///Ñ¯¼ÛÍ¨Öª
      void OnRtnForQuoteRsp(CThostFtdcForQuoteRspField *pForQuoteRsp);
 
      bool init( CtpRecer* _uper){
@@ -65,6 +60,7 @@ public:
      };
 public:
      CtpRecer* uper{nullptr};
+     int reConnect = 0;
 };
 
 struct CtpRecer
@@ -72,7 +68,5 @@ struct CtpRecer
     bool init();
     CThostFtdcMdSpi*  ctpMdSpi{nullptr};
 };
-
-
 
 #endif /* WORKSPACE_TRADER_INFRA_CTPRECER_H_ */

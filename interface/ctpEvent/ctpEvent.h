@@ -1,7 +1,7 @@
 /*
  * ctpEvent.h
  *
- *  Created on: 2020��8��30��
+ *  Created on: 2020.11.13
  *      Author: Administrator
  */
 
@@ -10,16 +10,30 @@
 #include <map>
 #include <functional>
 #include <string>
+#include "common/extern/ctp/inc/ThostFtdcMdApi.h"
+
 struct MsgStruct;
+
 struct CtpEvent
 {
+public:
     bool init();
 
     void handle(MsgStruct& msg);
     void regMsgFun();
 
-    std::map<std::string, std::function<void(MsgStruct& msg)>> msgFuncMap;
+    // 处理深度行情数据
+    void DeepMarktDataHandle(MsgStruct& msg);
 
+    // 处理登录事件处理
+    void LoginInfoHandle(MsgStruct& msg);
+
+    // 处理登出事件处理
+    void LogoutInfoHandle(MsgStruct& msg);
+
+    std::map<std::string, std::function<void(MsgStruct& msg)>> msgFuncMap;
+private:
+    std::string reqInstrumentFrom = "local";
 };
 
 

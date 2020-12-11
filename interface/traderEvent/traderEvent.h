@@ -1,7 +1,7 @@
 /*
  * traderEvent.h
  *
- *  Created on: 2020��8��30��
+ *  Created on: 2020.11.13
  *      Author: Administrator
  */
 
@@ -15,12 +15,16 @@ struct MsgStruct;
 
 struct TraderEvent
 {
+public:
     bool init();
     void handle(MsgStruct& msg);
     void regMsgFun();
-    void qryInstrumentRspHandle(MsgStruct& msg);
+    void QryInstrumentRspHandle(MsgStruct& msg);
     void QryInstrumentRsqHandle(MsgStruct& msg);
     std::map<std::string, std::function<void(MsgStruct& msg)>> msgFuncMap;
+
+private:
+    pthread_mutex_t sm_mutex;
 };
 
 

@@ -1,7 +1,7 @@
 /*
  * marketService.h
  *
- *  Created on: 2020Äê8ÔÂ30ÈÕ
+ *  Created on: 2020.11.13
  *      Author: Administrator
  */
 
@@ -11,8 +11,11 @@
 #include "market/domain/components/market.h"
 #include "common/self/timer.h"
 #include "common/self/dci/Role.h"
-
+#include "market/domain/components/storeDepthMarketData.h"
+#include "market/domain/components/publishDepthMarketData.h"
 struct MarketService: Market
+                    , loadData
+                    , publishData
 {
     MarketService(){};
     MarketService(const MarketService&) = delete;
@@ -24,6 +27,8 @@ struct MarketService: Market
     }
 
     IMPL_ROLE(Market);
+    IMPL_ROLE(loadData);
+    IMPL_ROLE(publishData);
     TimeoutTimerPool& getTimeoutTimerPool();
 };
 

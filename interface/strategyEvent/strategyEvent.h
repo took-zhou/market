@@ -1,7 +1,7 @@
 /*
  * strategyEvent.h
  *
- *  Created on: 2020��8��30��
+ *  Created on: 2020.11.13
  *      Author: Administrator
  */
 
@@ -18,10 +18,13 @@ struct StrategyEvent
     void handle(MsgStruct& msg);
     void regMsgFun();
 
+    // 处理策略端请求的合约信息
+    void TickSubscribeReqHandle(MsgStruct& msg);
+
+    // 发布tick数据进度控制
+    void TickStartStopIndicationHandle(MsgStruct& msg);
+
     std::map<std::string, std::function<void(MsgStruct& msg)>> msgFuncMap;
-
 };
-
-
 
 #endif /* WORKSPACE_MARKET_INTERFACE_STRATEGYEVENT_STRATEGYEVENT_H_ */

@@ -1,13 +1,15 @@
 /*
  * proxySender.cpp
  *
- *  Created on: 2020Äê8ÔÂ30ÈÕ
+ *  Created on: 2020.11.13
  *      Author: Administrator
  */
 
 #include "market/infra/sender/proxySender.h"
 
 #include "market/infra/zmqBase.h"
+
+#include "common/extern/log/log.h"
 
 bool ProxySender::init()
 {
@@ -17,7 +19,8 @@ bool ProxySender::init()
     return true;
 }
 
-bool ProxySender::send()
+bool ProxySender::send(const char* head, const char* msg)
 {
-    return true;
+    auto& zmqBase = ZmqBase::getInstance();
+    return zmqBase.PublishMsg(head, msg);
 }

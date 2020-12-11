@@ -1,15 +1,15 @@
 /*
  * proxyRecer.cpp
  *
- *  Created on: 2020��8��30��
+ *  Created on: 2020.11.13
  *      Author: Administrator
  */
+#include <map>
 
 #include "market/infra/recer/proxyRecer.h"
 #include "market/infra/zmqBase.h"
 #include "common/extern/libzmq/include/zhelpers.h"
 #include "common/extern/log/log.h"
-#include <map>
 #include "common/self/utils.h"
 
 extern std::map<std::string, EventType> TitleToEvent;
@@ -19,14 +19,14 @@ bool ProxyRecer::init()
 {
     topicList.clear();
 
-    //market_strategy
-    topicList.push_back("market_strategy.TickSubscribe");
-    topicList.push_back("market_strategy.TickUnSubscribe");
+    // market_strategy
+    topicList.push_back("market_strategy.TickSubscribeReq");
+    topicList.push_back("market_strategy.TickStartStopIndication");
 
     // market_market
     topicList.push_back("market_market.HeartBeat");
 
-    //market_trader
+    // market_trader
     topicList.push_back("market_trader.QryInstrumentRsq");
 
     auto& zmqBase = ZmqBase::getInstance();
@@ -65,26 +65,26 @@ MsgStruct ProxyRecer::receMsg()
     {
         ERROR_LOG("receiver is nullptr");
     }
-    INFO_LOG("prepare recv titleChar");
+    // INFO_LOG("prepare recv titleChar");
     char* recContent = s_recv(receiver);
     std::string content = std::string(recContent);
     auto spacePos = content.find_first_of(" ");
     auto title = content.substr(0, spacePos);
     auto pbMsg = content.substr(spacePos+1);
-    if(! isTopicInSubTopics(title))
+    if (!isTopicInSubTopics(title))
     {
         return NilMsgStruct;
     }
-    INFO_LOG("recv msg, topic is[%s]",title.c_str());
+    // INFO_LOG("recv msg, topic is[%s]",title.c_str());
 
     std::string tmpEventName = std::string(title);
     std::vector<std::string> sessionAndTitle = utils::splitString(tmpEventName, std::string("."));
-    if(sessionAndTitle.size() != 2)
+    if (sessionAndTitle.size() != 2)
     {
         return NilMsgStruct;
     }
 
-    if(! checkSessionAndTitle(sessionAndTitle))
+    if (!checkSessionAndTitle(sessionAndTitle))
     {
         return NilMsgStruct;
     }
@@ -94,7 +94,7 @@ MsgStruct ProxyRecer::receMsg()
     msg.sessionName = session;
     msg.msgName = msgTitle;
     msg.pbMsg = pbMsg;
-    INFO_LOG("return msg");
+    // INFO_LOG("return msg");
     return msg;
 }
 

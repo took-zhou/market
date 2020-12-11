@@ -1,7 +1,7 @@
 /*
  * proxySender.h
  *
- *  Created on: 2020Äê8ÔÂ29ÈÕ
+ *  Created on: 2020.11.13
  *      Author: Administrator
  */
 
@@ -12,7 +12,7 @@ struct ZmqBase;
 struct ProxySender
 {
     bool init();
-    bool send();
+    bool send(const char* head, const char* msg);
     ZmqBase* zmq{nullptr};
 };
 

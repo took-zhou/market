@@ -1,7 +1,7 @@
 /*
  * proxyRecer.h
  *
- *  Created on: 2020��8��29��
+ *  Created on: 2020.11.13
  *      Author: Administrator
  */
 
