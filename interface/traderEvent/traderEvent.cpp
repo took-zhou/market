@@ -57,7 +57,7 @@ void TraderEvent::QryInstrumentRspHandle(MsgStruct& msg)
     auto& rsp = rspMsg.qry_instrument_rsp();
     auto& dataList = rsp.instrument_data_list();
 
-    for(int i = 0; i < dataList.size(); i++)
+    for (int i = 0; i < dataList.size(); i++)
     {
         utils::InstrumtntID instrumtntID;
         instrumtntID.exch = dataList.at(i).exchangeid();
@@ -73,8 +73,10 @@ void TraderEvent::QryInstrumentRspHandle(MsgStruct& msg)
     {
         marketServer.ROLE(Market).marketApi->SubscribeMarketData(ins_vec);
         INFO_LOG("The number of contracts being traded is: %d.", instrumentCount);
+        instrumentCount = 0;
+        ins_vec.clear();
     }
-    else if( ins_vec.size() >= 500 )
+    else if (ins_vec.size() >= 500)
     {
         marketServer.ROLE(Market).marketApi->SubscribeMarketData(ins_vec);
         ins_vec.clear();

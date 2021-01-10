@@ -21,7 +21,7 @@ struct MD_InstrumentIDs
     std::set<utils::InstrumtntID, utils::InstrumtntIDSortCriterion> instrumentIDs;
 };
 
-class CtpMarketBaseApi : public CThostFtdcMdApi
+class CtpMarketBaseApi
 {
 public:
     CtpMarketBaseApi() {};
@@ -49,9 +49,9 @@ public:
 
     // 订阅合约
     int SubscribeMarketData(std::vector<utils::InstrumtntID> const & nameVec);
-    int SubscribeMarketData(char *ppInstrumentID[], int nCount){};
 
-    int UnSubscribeMarketData(char *ppInstrumentID[], int nCount);
+    // 退订合约
+    int UnSubscribeMarketData(std::vector<utils::InstrumtntID> const & nameVec);
 
     int SubscribeForQuoteRsp(char *ppInstrumentID[], int nCount);
 
@@ -59,16 +59,14 @@ public:
 
     // 登陆请求
     int ReqUserLogin(void);
-    int ReqUserLogin(CThostFtdcReqUserLoginField *pReqUserLoginField, int nRequestID){};
 
     // 登出请求
     int ReqUserLogout(void);
-    int ReqUserLogout(CThostFtdcUserLogoutField *pUserLogout, int nRequestID){};
 
     MD_InstrumentIDs md_InstrumentIDs;
 
 private:
-    CThostFtdcMdApi*  _m_pApi{nullptr};
+    CThostFtdcMdApi* _m_pApi;
     int nRequestID = 0;
 };
 
@@ -89,6 +87,8 @@ public:
 
     // 获取合约信息来源
     std::string getInstrumentsFrom(void);
+
+    bool release();
 private:
     std::string instrumentFrom;
 };

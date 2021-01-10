@@ -9,12 +9,15 @@
 #include "common/self/fileUtil.h"
 #include "common/extern/libzmq/include/zhelpers.h"
 #include "common/extern/log/log.h"
+#include "common/self/basetype.h"
 
 #include <string>
 #include <sstream>
 #include <unistd.h>
 
 using json = nlohmann::json;
+
+constexpr U32 WAITTIME_FOR_ZMQ_INIT = 1;
 
 bool ZmqBase::init()
 {
@@ -24,7 +27,7 @@ bool ZmqBase::init()
     auto& jsonCfg = utils::JsonConfig::getInstance();
     std::string netStr = jsonCfg.getConfig("market", "SubAddPort").get<std::string>();
     int result = zmq_connect(receiver, netStr.c_str());
-    sleep(1);
+    sleep(WAITTIME_FOR_ZMQ_INIT);
     INFO_LOG("result = %d",result);
     if(result != 0)
     {
@@ -44,15 +47,14 @@ bool ZmqBase::init()
     return true;
 }
 
-
 void ZmqBase::SubscribeTopic(const char* topicStr)
 {
-    zmq_setsockopt(receiver, ZMQ_SUBSCRIBE, topicStr, 1);
+    zmq_setsockopt(receiver, ZMQ_SUBSCRIBE, topicStr, strlen(topicStr));
 }
 
 void ZmqBase::unSubscribeTopic(const char* topicStr)
 {
-    zmq_setsockopt(receiver, ZMQ_UNSUBSCRIBE, topicStr, 1);
+    zmq_setsockopt(receiver, ZMQ_UNSUBSCRIBE, topicStr, strlen(topicStr));
 }
 
 int ZmqBase::PublishMsg(const char* head, const char* msg)

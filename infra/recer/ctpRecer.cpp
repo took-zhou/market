@@ -31,12 +31,12 @@ void MarketSpi::OnFrontConnected()
 
 void MarketSpi::OnFrontDisconnected(int nReason)
 {
-
+    ERROR_LOG("OnFrontDisconnected, ErrorCode:%#x", nReason);
 }
 
 void MarketSpi::OnHeartBeatWarning(int nTimeLapse)
 {
-
+    ERROR_LOG("OnHeartBeatWarning  %d!",nTimeLapse);
 }
 
 void MarketSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
@@ -103,9 +103,7 @@ void MarketSpi::OnRspSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificI
 
 void MarketSpi::OnRspUnSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
-    std::string semName = "unsub_market_data";
-    globalSem.postSemBySemName(semName);
-    INFO_LOG("post sem of [%s]",semName.c_str());
+    return;
 }
 
 void MarketSpi::OnRspSubForQuoteRsp(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)

@@ -14,7 +14,12 @@
 #include "market/domain/marketService.h"
 #include "common/self/semaphorePart.h"
 
+#include <string>
+#include <sstream>
+#include <unistd.h>
+
 extern GlobalSem globalSem;
+constexpr U32 WAITTIME_FOR_CONTRACTS_UNSCRIBEED = 1;
 
 bool CtpEvent::init()
 {
@@ -112,15 +117,48 @@ void CtpEvent::LogoutInfoHandle(MsgStruct& msg)
     }
     else
     {
+        UnSubscribeAllMarketData();
+        sleep(WAITTIME_FOR_CONTRACTS_UNSCRIBEED);
         auto& marketSer = MarketService::getInstance();
-        marketSer.ROLE(loadData).ClassifyContractFiles();
-        marketSer.ROLE(Market).marketApi->Release();
-        delete marketSer.ROLE(Market).marketApi;
-        marketSer.ROLE(Market).marketApi = nullptr;
-        delete ctpMsg;
+
+        if (reqInstrumentFrom == "trader")
+        {
+            marketSer.ROLE(loadData).ClassifyContractFiles();
+        }
+
+        marketSer.ROLE(Market).release();
+        delete (CThostFtdcRspInfoField*)ctpMsg;
 
         std::string semName = "market_logout";
         globalSem.postSemBySemName(semName);
         INFO_LOG("post sem of [%s]", semName.c_str());
     }
+}
+
+void CtpEvent::UnSubscribeAllMarketData(void)
+{
+    int instrumentCount = 0;
+    auto& marketSer = MarketService::getInstance();
+    vector<utils::InstrumtntID> ins_vec;
+    auto iter = marketSer.ROLE(Market).marketApi->md_InstrumentIDs.instrumentIDs.begin();
+
+    while (iter != marketSer.ROLE(Market).marketApi->md_InstrumentIDs.instrumentIDs.end())
+    {
+        ins_vec.push_back(*iter);
+        if (ins_vec.size() >= 500)
+        {
+            marketSer.ROLE(Market).marketApi->UnSubscribeMarketData(ins_vec);
+            ins_vec.clear();
+        }
+        iter++;
+        instrumentCount++;
+    }
+
+    if (ins_vec.size() != 0)
+    {
+        marketSer.ROLE(Market).marketApi->UnSubscribeMarketData(ins_vec);
+        ins_vec.clear();
+    }
+
+    INFO_LOG("The number of contracts being unsubscribe is: %d.", instrumentCount);
 }

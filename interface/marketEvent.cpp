@@ -78,7 +78,7 @@ bool MarketEvent::run()
                 ERROR_LOG(" invalid msg, session is [%s], msgName is [%s]",msg.sessionName.c_str(), msg.msgName.c_str());
                 continue;
             }
-     
+
             if(sessionFuncMap.find(msg.sessionName) != sessionFuncMap.end())
             {
                 sessionFuncMap[msg.sessionName](msg);

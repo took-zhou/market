@@ -30,12 +30,18 @@ CThostFtdcMdApi* CtpMarketBaseApi::CreateFtdcMdApi(const char *pszFlowPath)
 
 const char* CtpMarketBaseApi::GetApiVersion()
 {
-    return CThostFtdcMdApi::GetApiVersion();
+    return _m_pApi->GetApiVersion();
 }
 
 void CtpMarketBaseApi::Release()
 {
-    _m_pApi->Release();
+    if (_m_pApi)
+    {
+        _m_pApi->RegisterSpi(NULL);
+        _m_pApi->Release();
+        _m_pApi = NULL;
+    }
+
     return;
 }
 
@@ -88,7 +94,7 @@ void CtpMarketBaseApi::RegisterSpi(CThostFtdcMdSpi *pSpi)
         ERROR_LOG("pSpi is nullptr");
         return;
     }
-    INFO_LOG("lslt");
+
     _m_pApi->RegisterSpi(pSpi);
     return;
 }
@@ -136,15 +142,57 @@ int CtpMarketBaseApi::SubscribeMarketData(std::vector<utils::InstrumtntID> const
         INFO_LOG("no instrument need to Subscription.");
     }
 
-    delete ppInstrumentID2;
+    delete[] *ppInstrumentID2;
     ik = pthread_mutex_unlock(&md_InstrumentIDs.sm_mutex);
 
     return result;
 }
 
-int CtpMarketBaseApi::UnSubscribeMarketData(char *ppInstrumentID[], int nCount)
+int CtpMarketBaseApi::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const & nameVec)
 {
-    return 0;
+    int result = 0;
+    int md_num = 0;
+
+    if (nameVec.size() > 500)
+    {
+        WARNING_LOG("too much instruments to unSubscription.");
+        return result;
+    }
+
+    int ik = pthread_mutex_lock(&md_InstrumentIDs.sm_mutex);
+    char **ppInstrumentID2 = new char*[5000];
+
+    for (int i = 0; i < nameVec.size(); i++)
+    {
+        if (md_InstrumentIDs.instrumentIDs.find(nameVec[i]) != end(md_InstrumentIDs.instrumentIDs))
+        {
+            ppInstrumentID2[md_num] = const_cast<char *>(nameVec[i].ins.c_str());
+            md_InstrumentIDs.instrumentIDs.erase(nameVec[i]);
+            md_num++;
+        }
+    }
+
+    if (md_num > 0)
+    {
+        result = _m_pApi->UnSubscribeMarketData(ppInstrumentID2, md_num);
+        if( result == 0 )
+        {
+            INFO_LOG("unSubscription request ......Send a success, total number: %d", md_num);
+        }
+        else
+        {
+            INFO_LOG("unSubscription request ......Failed to send, error serial number=[%d]", result);
+        }
+    }
+    else
+    {
+        INFO_LOG("no instrument need to unSubscription.");
+    }
+
+    delete[] *ppInstrumentID2;
+    ik = pthread_mutex_unlock(&md_InstrumentIDs.sm_mutex);
+
+    return result;
 }
 
 int CtpMarketBaseApi::SubscribeForQuoteRsp(char *ppInstrumentID[], int nCount)
@@ -195,8 +243,6 @@ int CtpMarketBaseApi::ReqUserLogout()
 
 bool CtpMarketApi::init()
 {
-    sem_t sem;
-    sem_init(&sem,0,0);
     INFO_LOG("begin CtpMarketApi init");
     marketApi = new CtpMarketBaseApi;
     auto& jsonCfg = utils::JsonConfig::getInstance();
@@ -218,7 +264,7 @@ int CtpMarketApi::reqInstrumentsFromTrader(void)
     reqInstrument->set_identity("all");
     std::string reqStr;
     reqMsg.SerializeToString(&reqStr);
-    INFO_LOG("reqStr: %s", reqStr.c_str());
+
     auto& recerSender = RecerSender::getInstance();
     recerSender.ROLE(Sender).ROLE(ProxySender).send("market_trader.QryInstrumentReq", reqStr.c_str());
 }
@@ -241,6 +287,13 @@ int CtpMarketApi::reqInstrumentsFromLocal(void)
 std::string CtpMarketApi::getInstrumentsFrom()
 {
     return instrumentFrom;
+}
+
+bool CtpMarketApi::release()
+{
+    marketApi->Release();
+    delete marketApi;
+    marketApi = nullptr;
 }
 
 void CtpMarketApi::runLogInAndLogOutAlg()
@@ -271,14 +324,17 @@ void CtpMarketApi::runLogInAndLogOutAlg()
             {
                 if (loginState.output.status == LOGOUT_TIME)
                 {
+                    // 调用marketApi->ReqUserLogout()没有反馈，这里强行调用反馈接口
+                    // marketApi->ReqUserLogout();
+                    INFO_LOG("logout time, is going to logout.");
                     std::string semName = "market_logout";
+                    semName = "market_logout";
                     globalSem.addOrderSem(semName);
                     auto& marketSpi = MarketSpi::getInstance();
                     marketSpi.OnRspUserLogout();
                     semName = "market_logout";
                     globalSem.waitSemBySemName(semName);
                     globalSem.delOrderSem(semName);
-                    INFO_LOG("logout time, is going to logout.");
 
                     break;
                 }

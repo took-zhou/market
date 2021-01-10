@@ -56,6 +56,7 @@ void StrategyEvent::TickSubscribeReqHandle(MsgStruct& msg)
     market_strategy::message _reqInfo;
     _reqInfo.ParseFromString(msg.pbMsg);
     auto reqInfo = _reqInfo.tick_sub_req();
+
     for (int i = 0; i < reqInfo.instrument_info_list_size(); i++)
     {
         utils::InstrumtntID insId;
@@ -84,11 +85,18 @@ void StrategyEvent::TickSubscribeReqHandle(MsgStruct& msg)
     marketSer.ROLE(publishData).buildInstrumentList(insVec);
     marketSer.ROLE(publishData).buildKeywordList(keywordVec);
     marketSer.ROLE(publishData).setInterval(std::atoi(reqInfo.interval().c_str()));
-    marketSer.ROLE(Market).ROLE(CtpMarketApi).marketApi->SubscribeMarketData(insVec);
 
-    // 开启发布线程
-    thread t(publishData::publishToStrategy,  std::ref(marketSer.ROLE(publishData)));
-    t.detach();
+    if (marketSer.ROLE(Market).ROLE(CtpMarketApi).marketApi != nullptr)
+    {
+        marketSer.ROLE(Market).ROLE(CtpMarketApi).marketApi->SubscribeMarketData(insVec);
+        // 开启发布线程
+        thread t(publishData::publishToStrategy,  std::ref(marketSer.ROLE(publishData)));
+        t.detach();
+    }
+    else
+    {
+        ERROR_LOG("marketApi is nullptr.");
+    }
 }
 
 void StrategyEvent::TickStartStopIndicationHandle(MsgStruct& msg)

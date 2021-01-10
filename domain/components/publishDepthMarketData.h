@@ -61,7 +61,7 @@ public:
 private:
     std::set<std::string> keywordList;
     std::set<tickDataPool, tickDataPoolSortCriterion> instrumentList;
-    market_strategy::TickStartStopIndication_MessageType indication = market_strategy::TickStartStopIndication_MessageType_finish;
+    market_strategy::TickStartStopIndication_MessageType indication = market_strategy::TickStartStopIndication_MessageType_reserve;
     int interval = 0;
 };
 

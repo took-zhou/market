@@ -62,13 +62,11 @@ bool marketData::insertInsExchPair(const std::string &ins, const std::string &ex
     {
         if (md_Instrument_Exhange[ins] != exch)
         {
-            INFO_LOG("ins: %s, exch: %s", ins.c_str(), exch.c_str());
             md_Instrument_Exhange.insert(pair<string, string>(ins, exch));
         }
     }
     else
     {
-        INFO_LOG("ins: %s, exch: %s", ins.c_str(), exch.c_str());
         md_Instrument_Exhange.insert(pair<string, string>(ins, exch));
     }
     return true;

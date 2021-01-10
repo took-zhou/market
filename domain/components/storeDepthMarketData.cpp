@@ -196,17 +196,16 @@ bool loadData::ClassifyContractFiles(void)
 {
     struct dirent * filename;    // return value for readdir()
     DIR * dir;                   // return value for opendir()
-    dir = opendir( history_tick_folder.c_str() );
-    if( NULL == dir )
+    dir = opendir(history_tick_folder.c_str());
+    if (NULL == dir)
     {
         ERROR_LOG("Can not open dir ");
         return false;
     }
 
-    while( ( filename = readdir(dir) ) != NULL )
+    while ((filename = readdir(dir)) != NULL)
     {
-        if( strcmp( filename->d_name , "." ) == 0 || 
-            strcmp( filename->d_name , "..") == 0    )
+        if (strcmp(filename->d_name , ".") == 0 || strcmp(filename->d_name , "..") == 0)
             continue;
 
         //在map中查找合约
@@ -215,7 +214,7 @@ bool loadData::ClassifyContractFiles(void)
         string fileName(contractFile.substr(0,pos));
         string fileFormat(contractFile.substr(pos+1));
 
-        if( (pos == -1) || (strcmp(fileFormat.c_str(), "csv") != 0) )
+        if ((pos == -1) || (strcmp(fileFormat.c_str(), "csv") != 0))
         {
             continue;
         }
@@ -231,7 +230,7 @@ bool loadData::ClassifyContractFiles(void)
             WARNING_LOG("not found fileName:%s", fileName.c_str());
         }
     }
-    
+
     closedir(dir);
     return true;
 } 

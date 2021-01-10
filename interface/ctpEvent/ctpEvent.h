@@ -34,6 +34,8 @@ public:
     std::map<std::string, std::function<void(MsgStruct& msg)>> msgFuncMap;
 private:
     std::string reqInstrumentFrom = "local";
+
+    void UnSubscribeAllMarketData(void);
 };
 
 
