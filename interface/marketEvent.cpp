@@ -14,15 +14,23 @@
 #include "market/domain/marketService.h"
 
 extern co_chan<MsgStruct> ctpMsgChan;
+constexpr U32 MAIN_THREAD_WAIT_TIME = 100000;
 
 void MarketEvent::regSessionFunc()
 {
+    int cnt = 0;
     sessionFuncMap.clear();
     sessionFuncMap.insert(std::pair<std::string, std::function<void(MsgStruct msg)>>("market_trader",         [this](MsgStruct msg){ROLE(TraderEvent).handle(msg);}));
     sessionFuncMap.insert(std::pair<std::string, std::function<void(MsgStruct msg)>>("market_strategy",       [this](MsgStruct msg){ROLE(StrategyEvent).handle(msg);}));
     sessionFuncMap.insert(std::pair<std::string, std::function<void(MsgStruct msg)>>("market_market",         [this](MsgStruct msg){ROLE(SelfEvent).handle(msg);}));
     sessionFuncMap.insert(std::pair<std::string, std::function<void(MsgStruct msg)>>("interactor_market",     [this](MsgStruct msg){ROLE(InteractEvent).handle(msg);}));
     sessionFuncMap.insert(std::pair<std::string, std::function<void(MsgStruct msg)>>("ctp",                   [this](MsgStruct msg){ROLE(CtpEvent).handle(msg);}));
+
+    for(auto iter : sessionFuncMap)
+    {
+        INFO_LOG("sessionFuncMap[%d] key is [%s]",cnt, iter.first.c_str());
+        cnt++;
+    }
 }
 
 bool MarketEvent::init()
@@ -88,16 +96,10 @@ bool MarketEvent::run()
     INFO_LOG("ctpRecRun prepare ok");
     std::thread(ctpRecRun).detach();
 
-    auto ctpMarketLogInOutFuc = [&](){
-        auto& marketSer = MarketService::getInstance();
-        marketSer.ROLE(Market).runLogInAndLogOutAlg();
-    };
-
-//    go co_scheduler(sched) proxyRecRun;
-//    go co_scheduler(sched) ctpRecRun;
-    go co_scheduler(sched) ctpMarketLogInOutFuc;
-
-    std::thread([sched]{ sched->Start(0,10); }).join();
+    while (1)
+    {
+        usleep(MAIN_THREAD_WAIT_TIME);
+    }
     return true;
 }
 

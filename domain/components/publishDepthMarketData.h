@@ -5,6 +5,7 @@
 #include <string>
 #include <map>
 
+#include "common/self/dci/Role.h"
 #include "common/self/basetype.h"
 #include "common/extern/ctp/inc/ThostFtdcUserApiStruct.h"
 #include "common/self/protobuf/market-strategy.pb.h"
@@ -52,17 +53,19 @@ public:
 
     void insertDataToTickDataPool(CThostFtdcDepthMarketDataField *pD);
     // 传输给策略端
-    static void publishToStrategy(publishData &pub);
+    void publishToStrategy(void);
     void once(void);
 
     deepTickData *tickData;
     void setStartStopIndication(market_strategy::TickStartStopIndication_MessageType _indication);
     void setInterval(int _interval);
+
 private:
     std::set<std::string> keywordList;
     std::set<tickDataPool, tickDataPoolSortCriterion> instrumentList;
     market_strategy::TickStartStopIndication_MessageType indication = market_strategy::TickStartStopIndication_MessageType_reserve;
     int interval = 0;
+    int thread_uniqueness_cnt = 0;
 };
 
 #endif

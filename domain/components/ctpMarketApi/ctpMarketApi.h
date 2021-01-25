@@ -12,6 +12,8 @@
 #include <string>
 #include <vector>
 
+#include "common/self/dci/Role.h"
+#include "market/domain/components/ctpMarketApi/marketLoginState.h"
 #include "common/extern/ctp/inc/ThostFtdcMdApi.h"
 #include "common/self/utils.h"
 
@@ -89,6 +91,8 @@ public:
     std::string getInstrumentsFrom(void);
 
     bool release();
+
+    USE_ROLE(MarketLoginState);
 private:
     std::string instrumentFrom;
 };

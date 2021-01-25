@@ -19,7 +19,14 @@ bool InteractEvent::init()
 
 void InteractEvent::regMsgFun()
 {
+    int cnt = 0;
     msgFuncMap.clear();
+
+    for(auto iter : msgFuncMap)
+    {
+        INFO_LOG("msgFuncMap[%d] key is [%s]",cnt, iter.first.c_str());
+        cnt++;
+    }
 }
 
 void InteractEvent::handle(MsgStruct& msg)

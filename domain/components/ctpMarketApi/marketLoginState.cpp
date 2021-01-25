@@ -178,7 +178,7 @@ void MarketLoginState::step()
     }
 }
 
-void MarketLoginState::update(MarketLoginState& login_state)
+void MarketLoginState::update(void)
 {
     time_t now = {0};
     struct tm *timenow = NULL;
@@ -187,9 +187,9 @@ void MarketLoginState::update(MarketLoginState& login_state)
     {
         time(&now);
         timenow = localtime(&now);//获取当前时间
-        login_state.input.now_mins= timenow->tm_hour*60 + timenow->tm_min;
+        input.now_mins= timenow->tm_hour*60 + timenow->tm_min;
 
-        login_state.step();
+        step();
         sleep(1);
     }
 }

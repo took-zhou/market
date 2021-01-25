@@ -51,7 +51,7 @@ public:
     void step();
 
     // model update function
-    static void update(MarketLoginState& login_state);
+    void update(void);
 
     MarketLoginState();
 

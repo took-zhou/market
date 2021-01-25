@@ -26,6 +26,7 @@
 #include "common/self/protobuf/market-strategy.pb.h"
 #include "market/infra/recer/ctpRecer.h"
 #include "market/infra/recerSender.h"
+#include "market/domain/marketService.h"
 
 publishData::publishData()
 {
@@ -82,6 +83,12 @@ void publishData::once(void)
     int ik = pthread_mutex_lock(&(tickData->sm_mutex));
     for (int i = 0; i < instrumentList.size(); i++)
     {
+        if (isValidTickData(&tickData->datafield[i]) == false)
+        {
+            ik = pthread_mutex_unlock(&(tickData->sm_mutex));
+            return;
+        }
+
         auto iter = tick_data->add_tick_list();
         iter->set_state(market_strategy::TickData_TickState_active);
         iter->set_instrument_id(tickData->datafield[i].InstrumentID);
@@ -165,24 +172,34 @@ void publishData::once(void)
     recerSender.ROLE(Sender).ROLE(ProxySender).send("market_strategy.TickData", tickStr.c_str());
 }
 
-void publishData::publishToStrategy(publishData &pub)
+void publishData::publishToStrategy(void)
 {
-    while (1)
+    if (thread_uniqueness_cnt++ == 0)
     {
-        if (pub.indication == market_strategy::TickStartStopIndication_MessageType_start)
+        while (1)
         {
-            pub.once();
+            if (indication == market_strategy::TickStartStopIndication_MessageType_start)
+            {
+                auto& marketSer = MarketService::getInstance();
+                if (marketSer.ROLE(Market).ROLE(MarketLoginState).output.status == LOGIN_TIME)
+                {
+                    once();
+                }
+            }
+            else if (indication == market_strategy::TickStartStopIndication_MessageType_stop)
+            {
+                INFO_LOG("publishToStrategy is stopping.");
+            }
+            else if (indication == market_strategy::TickStartStopIndication_MessageType_finish)
+            {
+                INFO_LOG("is going to exit publishToStrategy thread.");
+                indication = market_strategy::TickStartStopIndication_MessageType_reserve;
+                keywordList.clear();
+                instrumentList.clear();
+                break;
+            }
+            sleep(interval);
         }
-        else if (pub.indication == market_strategy::TickStartStopIndication_MessageType_stop)
-        {
-            ;;
-        }
-        else if (pub.indication == market_strategy::TickStartStopIndication_MessageType_finish)
-        {
-            pub.keywordList.clear();
-            pub.instrumentList.clear();
-        }
-        sleep(pub.interval);
     }
 }
 

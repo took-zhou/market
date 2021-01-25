@@ -7,7 +7,6 @@
 #include "market/infra/recer/ctpRecer.h"
 #include "market/infra/recerSender.h"
 #include "market/domain/components/ctpMarketApi/ctpMarketApi.h"
-#include "market/domain/components/ctpMarketApi/marketLoginState.h"
 #include "common/self/protobuf/market-trader.pb.h"
 #include "common/extern/log/log.h"
 #include "common/self/fileUtil.h"
@@ -142,7 +141,7 @@ int CtpMarketBaseApi::SubscribeMarketData(std::vector<utils::InstrumtntID> const
         INFO_LOG("no instrument need to Subscription.");
     }
 
-    delete[] *ppInstrumentID2;
+    delete[] ppInstrumentID2;
     ik = pthread_mutex_unlock(&md_InstrumentIDs.sm_mutex);
 
     return result;
@@ -189,7 +188,7 @@ int CtpMarketBaseApi::UnSubscribeMarketData(std::vector<utils::InstrumtntID> con
         INFO_LOG("no instrument need to unSubscription.");
     }
 
-    delete[] *ppInstrumentID2;
+    delete[] ppInstrumentID2;
     ik = pthread_mutex_unlock(&md_InstrumentIDs.sm_mutex);
 
     return result;
@@ -298,13 +297,9 @@ bool CtpMarketApi::release()
 
 void CtpMarketApi::runLogInAndLogOutAlg()
 {
-    auto loginState = MarketLoginState();
-    thread t(&MarketLoginState::update, std::ref(loginState));
-    t.detach();
-
     while(1)
     {
-        if (loginState.output.status == LOGIN_TIME)
+        if (ROLE(MarketLoginState).output.status == LOGIN_TIME)
         {
             this->init();
             INFO_LOG("during login time.");
@@ -322,7 +317,7 @@ void CtpMarketApi::runLogInAndLogOutAlg()
 
             while(1)
             {
-                if (loginState.output.status == LOGOUT_TIME)
+                if (ROLE(MarketLoginState).output.status == LOGOUT_TIME)
                 {
                     // 调用marketApi->ReqUserLogout()没有反馈，这里强行调用反馈接口
                     // marketApi->ReqUserLogout();

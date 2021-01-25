@@ -145,5 +145,3 @@ bool CtpRecer::init(){
     marketSpi.init(this);
     return true;
 };
-
-

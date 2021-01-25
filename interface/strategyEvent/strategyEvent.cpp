@@ -23,10 +23,11 @@ bool StrategyEvent::init()
 
 void StrategyEvent::regMsgFun()
 {
+    int cnt = 0;
     msgFuncMap.clear();
     msgFuncMap.insert(std::pair<std::string, std::function<void(MsgStruct& msg)>>("TickSubscribeReq", [this](MsgStruct& msg){TickSubscribeReqHandle(msg);}));
     msgFuncMap.insert(std::pair<std::string, std::function<void(MsgStruct& msg)>>("TickStartStopIndication", [this](MsgStruct& msg){TickStartStopIndicationHandle(msg);}));
-    int cnt = 0;
+
     for(auto iter : msgFuncMap)
     {
         INFO_LOG("msgFuncMap[%d] key is [%s]",cnt, iter.first.c_str());
@@ -90,8 +91,12 @@ void StrategyEvent::TickSubscribeReqHandle(MsgStruct& msg)
     {
         marketSer.ROLE(Market).ROLE(CtpMarketApi).marketApi->SubscribeMarketData(insVec);
         // 开启发布线程
-        thread t(publishData::publishToStrategy,  std::ref(marketSer.ROLE(publishData)));
-        t.detach();
+        auto publishDataFuc = [&](){
+            marketSer.ROLE(publishData).publishToStrategy();
+        };
+
+        INFO_LOG("publishDataFuc prepare ok");
+        std::thread(publishDataFuc).detach();
     }
     else
     {

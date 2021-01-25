@@ -33,9 +33,10 @@ void TraderEvent::handle(MsgStruct& msg)
 
 void TraderEvent::regMsgFun()
 {
+    int cnt = 0;
     msgFuncMap.clear();
     msgFuncMap.insert(std::pair<std::string, std::function<void(MsgStruct& msg)>>("QryInstrumentRsq",   [this](MsgStruct& msg){QryInstrumentRspHandle(msg);}));
-    int cnt = 0;
+
     for(auto iter : msgFuncMap)
     {
         INFO_LOG("msgFuncMap[%d] key is [%s]",cnt, iter.first.c_str());
