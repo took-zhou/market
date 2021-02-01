@@ -176,6 +176,7 @@ void publishData::publishToStrategy(void)
 {
     if (thread_uniqueness_cnt++ == 0)
     {
+        INFO_LOG("publishDataFuc prepare ok");
         while (1)
         {
             if (indication == market_strategy::TickStartStopIndication_MessageType_start)
@@ -196,6 +197,7 @@ void publishData::publishToStrategy(void)
                 indication = market_strategy::TickStartStopIndication_MessageType_reserve;
                 keywordList.clear();
                 instrumentList.clear();
+                thread_uniqueness_cnt = 0;
                 break;
             }
             sleep(interval);

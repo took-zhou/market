@@ -107,7 +107,7 @@ bool marketData::getLocalTime(char *t_arr)
     time_t now_time = time(NULL);
     //local time
     tm* local_time = localtime(&now_time);
-    sprintf(t_arr, "%d-%02d-%02d %02d:%02d:%02d",
+    sprintf(t_arr, "%d-%02d-%02d-%02d:%02d:%02d.000",
         local_time->tm_year + 1900,
         local_time->tm_mon + 1,
         local_time->tm_mday,

@@ -95,7 +95,6 @@ void StrategyEvent::TickSubscribeReqHandle(MsgStruct& msg)
             marketSer.ROLE(publishData).publishToStrategy();
         };
 
-        INFO_LOG("publishDataFuc prepare ok");
         std::thread(publishDataFuc).detach();
     }
     else
