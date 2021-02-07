@@ -11,18 +11,18 @@
 #include <thread>
 
 #include "market/domain/components/ctpMarketApi/ctpMarketApi.h"
-#include "market/domain/components/ctpMarketApi/marketLoginState.h"
+#include "market/domain/components/ctpMarketApi/marketTimeState.h"
 #include "common/self/dci/Role.h"
 #include "common/extern/log/log.h"
 
 struct Market: CtpMarketApi
-             , MarketLoginState
+             , MarketTimeState
 {
     bool init()
     {
         // 启动登录登出状态转换线程
         auto loginStateRun = [&](){
-            ROLE(MarketLoginState).update();
+            ROLE(MarketTimeState).update();
         };
         INFO_LOG("loginStateRun prepare ok");
         std::thread(loginStateRun).detach();
@@ -38,7 +38,7 @@ struct Market: CtpMarketApi
     }
 
     IMPL_ROLE(CtpMarketApi);
-    IMPL_ROLE(MarketLoginState);
+    IMPL_ROLE(MarketTimeState);
 };
 
 

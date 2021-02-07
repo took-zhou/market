@@ -7,6 +7,7 @@
 #include "market/infra/recer/ctpRecer.h"
 #include "market/infra/recerSender.h"
 #include "market/domain/components/ctpMarketApi/ctpMarketApi.h"
+#include "market/domain/marketService.h"
 #include "common/self/protobuf/market-trader.pb.h"
 #include "common/extern/log/log.h"
 #include "common/self/fileUtil.h"
@@ -254,6 +255,15 @@ bool CtpMarketApi::init()
 
     std::string frontaddr = jsonCfg.getConfig("market","FrontMdAddr").get<std::string>();
     marketApi->RegisterFront(const_cast<char *>(frontaddr.c_str()));
+
+    marketApi->Init();
+
+    std::string semName = "market_init";
+    /*在这个地方加一个登录登出的优化*/
+    globalSem.waitSemBySemName(semName);
+    globalSem.delOrderSem(semName);
+
+    INFO_LOG("market init ok.");
 }
 
 int CtpMarketApi::reqInstrumentsFromTrader(void)
@@ -283,6 +293,17 @@ int CtpMarketApi::reqInstrumentsFromLocal(void)
     marketApi->SubscribeMarketData(ins_vec);
 }
 
+int CtpMarketApi::reqInstrumentsFromStrategy(void)
+{
+    auto& marketSer = MarketService::getInstance();
+    auto instrumentVec = marketSer.ROLE(publishData).getInstrumentList();
+
+    if (instrumentVec.size() != 0)
+    {
+        marketApi->SubscribeMarketData(instrumentVec);
+    }
+}
+
 std::string CtpMarketApi::getInstrumentsFrom()
 {
     return instrumentFrom;
@@ -290,59 +311,75 @@ std::string CtpMarketApi::getInstrumentsFrom()
 
 bool CtpMarketApi::release()
 {
+    INFO_LOG("Is going to release marketApi.");
     marketApi->Release();
     delete marketApi;
     marketApi = nullptr;
+
+    auto& marketSpi = MarketSpi::getInstance();
+    marketSpi.reConnect = 0;
+}
+
+void CtpMarketApi::login()
+{
+    INFO_LOG("login time, is going to login.");
+    marketApi->ReqUserLogin();
+    std::string semName = "market_login";
+    globalSem.waitSemBySemName(semName);
+    globalSem.delOrderSem(semName);
+
+    login_state = LOGIN_STATE;
+}
+
+void logOutReqTimeOutFunc(void)
+{
+    auto& marketSpi = MarketSpi::getInstance();
+    marketSpi.OnRspUserLogout();
+}
+
+// ctp market登出有异常，做特殊处理
+void CtpMarketApi::logout()
+{
+    INFO_LOG("logout time, is going to logout.");
+    marketApi->ReqUserLogout();
+
+    auto& timerPool = TimeoutTimerPool::getInstance();
+    timerPool.addTimer(MARKET_LOGOUT_TIMER, logOutReqTimeOutFunc, MARKET_LOGOUT_TIMEOUT);
+
+    std::string semName = "market_logout";
+    globalSem.waitSemBySemName(semName);
+    globalSem.delOrderSem(semName);
+
+    timerPool.killTimerByName(MARKET_LOGOUT_TIMER);
+    login_state = LOGOUT_STATE;
+}
+
+MARKET_LOGIN_STATE CtpMarketApi::getMarketLoginState(void)
+{
+    return login_state;
 }
 
 void CtpMarketApi::runLogInAndLogOutAlg()
 {
     while(1)
     {
-        if (ROLE(MarketLoginState).output.status == LOGIN_TIME)
+        if (ROLE(MarketTimeState).output.status == LOGIN_TIME && login_state == LOGOUT_STATE)
         {
             this->init();
-            INFO_LOG("during login time.");
-            marketApi->Init();
-            std::string semName = "market_init";
-            globalSem.waitSemBySemName(semName);
-            globalSem.delOrderSem(semName);
-            INFO_LOG("market init ok.");
-
-            marketApi->ReqUserLogin();
-            semName = "market_login";
-            globalSem.waitSemBySemName(semName);
-            globalSem.delOrderSem(semName);
-            INFO_LOG("wait for logout time.");
-
-            while(1)
+            if (ROLE(MarketTimeState).output.status == LOGIN_TIME)
             {
-                if (ROLE(MarketLoginState).output.status == LOGOUT_TIME)
-                {
-                    // 调用marketApi->ReqUserLogout()没有反馈，这里强行调用反馈接口
-                    // marketApi->ReqUserLogout();
-                    INFO_LOG("logout time, is going to logout.");
-                    std::string semName = "market_logout";
-                    semName = "market_logout";
-                    globalSem.addOrderSem(semName);
-                    auto& marketSpi = MarketSpi::getInstance();
-                    marketSpi.OnRspUserLogout();
-                    semName = "market_logout";
-                    globalSem.waitSemBySemName(semName);
-                    globalSem.delOrderSem(semName);
-
-                    break;
-                }
-                else
-                {
-                    sleep(1);
-                }
+                this->login();
+            }
+            else
+            {
+                this->release();
             }
         }
-        else
+        else if (ROLE(MarketTimeState).output.status == LOGOUT_TIME && login_state == LOGIN_STATE)
         {
-            sleep(1);
+            this->logout();
         }
+        sleep(1);
     }
     return;
 }

@@ -97,6 +97,10 @@ void CtpEvent::LoginInfoHandle(MsgStruct& msg)
         {
             marketSer.ROLE(Market).ROLE(CtpMarketApi).reqInstrumentsFromTrader();
         }
+        else if (reqInstrumentFrom == "strategy")
+        {
+            marketSer.ROLE(Market).ROLE(CtpMarketApi).reqInstrumentsFromStrategy();
+        }
 
         std::string semName = "market_login";
         globalSem.postSemBySemName(semName);

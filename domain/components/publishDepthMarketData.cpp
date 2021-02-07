@@ -182,7 +182,7 @@ void publishData::publishToStrategy(void)
             if (indication == market_strategy::TickStartStopIndication_MessageType_start)
             {
                 auto& marketSer = MarketService::getInstance();
-                if (marketSer.ROLE(Market).ROLE(MarketLoginState).output.status == LOGIN_TIME)
+                if (marketSer.ROLE(Market).ROLE(CtpMarketApi).getMarketLoginState() == LOGIN_STATE)
                 {
                     once();
                 }
@@ -252,4 +252,32 @@ void publishData::buildInstrumentList(std::vector<utils::InstrumtntID> const &na
             instrumentList.insert(tempData);
         }
     }
+}
+
+std::vector<std::string> publishData::getKeywordList(void)
+{
+    std::vector<std::string> keyword_vector;
+    keyword_vector.clear();
+    auto iter = keywordList.begin();
+    while (iter != keywordList.end())
+    {
+        keyword_vector.push_back(*iter);
+        iter++;
+    }
+
+    return keyword_vector;
+}
+
+std::vector<utils::InstrumtntID> publishData::getInstrumentList(void)
+{
+    std::vector<utils::InstrumtntID> instrument_vector;
+    instrument_vector.clear();
+    auto iter = instrumentList.begin();
+    while (iter != instrumentList.end())
+    {
+        instrument_vector.push_back(iter->id);
+        iter++;
+    }
+
+    return instrument_vector;
 }

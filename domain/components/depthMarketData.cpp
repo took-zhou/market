@@ -48,13 +48,6 @@ bool marketData::isValidTickData(CThostFtdcDepthMarketDataField * pD)
     {
         return true;
     }
-    else
-    {
-        WARNING_LOG("instrument:%s invalid tick data, ctp time:%dH-%dM-%dS, local time:%dH-%dM-%dS", 
-            pD->InstrumentID, atoi(timeVec[0].c_str()), atoi(timeVec[1].c_str()), atoi(timeVec[2].c_str()), 
-            local_time->tm_hour, local_time->tm_min, local_time->tm_sec);
-        return false;
-    }
 }
 
 bool marketData::insertInsExchPair(const std::string &ins, const std::string &exch)

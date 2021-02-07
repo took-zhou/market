@@ -51,6 +51,9 @@ public:
     void buildKeywordList(std::vector<std::string> &keyword);
     void buildInstrumentList(std::vector<utils::InstrumtntID> const &nameVec);
 
+    std::vector<std::string> getKeywordList(void);
+    std::vector<utils::InstrumtntID> getInstrumentList(void);
+
     void insertDataToTickDataPool(CThostFtdcDepthMarketDataField *pD);
     // 传输给策略端
     void publishToStrategy(void);

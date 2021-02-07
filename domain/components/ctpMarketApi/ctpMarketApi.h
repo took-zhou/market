@@ -13,7 +13,7 @@
 #include <vector>
 
 #include "common/self/dci/Role.h"
-#include "market/domain/components/ctpMarketApi/marketLoginState.h"
+#include "market/domain/components/ctpMarketApi/marketTimeState.h"
 #include "common/extern/ctp/inc/ThostFtdcMdApi.h"
 #include "common/self/utils.h"
 
@@ -72,16 +72,29 @@ private:
     int nRequestID = 0;
 };
 
+enum MARKET_LOGIN_STATE
+{
+    LOGIN_STATE = 1,
+    LOGOUT_STATE = 2
+};
+
 struct CtpMarketApi
 {
 public:
     bool init();
+
+    void login();
+
+    void logout();
 
     // 从trader端获取所有可交易合约
     int reqInstrumentsFromTrader(void);
 
     // 从本地构建交易合约
     int reqInstrumentsFromLocal(void);
+
+    // 从本地构建交易合约
+    int reqInstrumentsFromStrategy(void);
 
     void runLogInAndLogOutAlg();
 
@@ -90,11 +103,16 @@ public:
     // 获取合约信息来源
     std::string getInstrumentsFrom(void);
 
+    // 获取market登录登出状态
+    MARKET_LOGIN_STATE getMarketLoginState(void);
+
     bool release();
 
-    USE_ROLE(MarketLoginState);
+    USE_ROLE(MarketTimeState);
 private:
     std::string instrumentFrom;
+
+    MARKET_LOGIN_STATE login_state = LOGOUT_STATE;
 };
 
 

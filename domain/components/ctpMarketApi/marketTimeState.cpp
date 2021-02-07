@@ -1,10 +1,10 @@
 /*
- * marketLoginState.cpp
+ * MarketTimeState.cpp
  *
  *  Created on: 2020.11.13
  *      Author: Administrator
  */
-#include "market/domain/components/ctpMarketApi/marketLoginState.h"
+#include "market/domain/components/ctpMarketApi/marketTimeState.h"
 #include "common/self/fileUtil.h"
 #include "common/self/utils.h"
 #include "common/extern/log/log.h"
@@ -18,7 +18,7 @@
 #define IN_night_login                 ((U8)4U)
 #define IN_night_logout                ((U8)5U)
 
-U32 MarketLoginState::isDuringDayLogoutTime(void)
+U32 MarketTimeState::isDuringDayLogoutTime(void)
 {
     U32 out;
     out = 0U;
@@ -33,7 +33,7 @@ U32 MarketLoginState::isDuringDayLogoutTime(void)
     return out;
 }
 
-U32 MarketLoginState::isDuringNightLogoutTime(void)
+U32 MarketTimeState::isDuringNightLogoutTime(void)
 {
     U32 out;
     out = 0U;
@@ -48,7 +48,7 @@ U32 MarketLoginState::isDuringNightLogoutTime(void)
     return out;
 }
 
-U32 MarketLoginState::isDuringDayLoginTime(void)
+U32 MarketTimeState::isDuringDayLoginTime(void)
 {
     U32 out;
     out = 0U;
@@ -63,7 +63,7 @@ U32 MarketLoginState::isDuringDayLoginTime(void)
     return out;
 }
 
-U32 MarketLoginState::isDuringNightLoginTime(void)
+U32 MarketTimeState::isDuringNightLoginTime(void)
 {
     U32 out;
     out = 0U;
@@ -76,7 +76,7 @@ U32 MarketLoginState::isDuringNightLoginTime(void)
     return out;
 }
 
-void MarketLoginState::determineLoginMode(void)
+void MarketTimeState::determineLoginMode(void)
 {
     if (strcmp(input.loginMode, "normal") == 0)
     {
@@ -89,22 +89,22 @@ void MarketLoginState::determineLoginMode(void)
 }
 
 // Model step function
-void MarketLoginState::step()
+void MarketTimeState::step()
 {
-    if (rtDW.is_active_MarketLoginState == 0U) 
+    if (rtDW.is_active_MarketTimeState == 0U) 
     {
-        rtDW.is_active_MarketLoginState = 1U;
-        rtDW.is_MarketLoginState = IN_init_sts;
+        rtDW.is_active_MarketTimeState = 1U;
+        rtDW.is_MarketTimeState = IN_init_sts;
         determineLoginMode();
     }
     else
     {
-        switch (rtDW.is_MarketLoginState)
+        switch (rtDW.is_MarketTimeState)
         {
             case IN_day_login:
                 if (input.now_mins == input.day_logout_mins)
                 {
-                    rtDW.is_MarketLoginState = IN_day_logout;
+                    rtDW.is_MarketTimeState = IN_day_logout;
                     output.status = LOGOUT_TIME;
                 }
                 break;
@@ -112,14 +112,14 @@ void MarketLoginState::step()
             case IN_day_logout:
                 if ((strcmp(input.loginTime, "day") != 0) && (input.now_mins == input.night_login_mins))
                 {
-                    rtDW.is_MarketLoginState = IN_night_login;
+                    rtDW.is_MarketTimeState = IN_night_login;
                     output.status = LOGIN_TIME;
                 }
                 else
                 {
                     if ((strcmp(input.loginTime, "day") == 0) && (input.now_mins == input.day_login_mins))
                     {
-                        rtDW.is_MarketLoginState = IN_day_login;
+                        rtDW.is_MarketTimeState = IN_day_login;
                         output.status = LOGIN_TIME;
                     }
                 }
@@ -128,24 +128,24 @@ void MarketLoginState::step()
             case IN_init_sts:
                 if (isDuringDayLogoutTime() != 0U)
                 {
-                    rtDW.is_MarketLoginState = IN_day_logout;
+                    rtDW.is_MarketTimeState = IN_day_logout;
                     output.status = LOGOUT_TIME;
                 } 
                 else if (isDuringNightLogoutTime() != 0U)
                 {
-                    rtDW.is_MarketLoginState = IN_night_logout;
+                    rtDW.is_MarketTimeState = IN_night_logout;
                     output.status = LOGOUT_TIME;
                 }
                 else if (isDuringDayLoginTime() != 0U)
                 {
-                    rtDW.is_MarketLoginState = IN_day_login;
+                    rtDW.is_MarketTimeState = IN_day_login;
                     output.status = LOGIN_TIME;
                 }
                 else
                 {
                     if (isDuringNightLoginTime() != 0U)
                     {
-                        rtDW.is_MarketLoginState = IN_night_login;
+                        rtDW.is_MarketTimeState = IN_night_login;
                         output.status = LOGIN_TIME;
                     }
                 }
@@ -154,7 +154,7 @@ void MarketLoginState::step()
             case IN_night_login:
                 if (input.now_mins == input.night_logout_mins)
                 {
-                    rtDW.is_MarketLoginState = IN_night_logout;
+                    rtDW.is_MarketTimeState = IN_night_logout;
                     output.status = LOGOUT_TIME;
                 }
                 break;
@@ -162,14 +162,14 @@ void MarketLoginState::step()
             default:
                 if ((strcmp(input.loginTime, "night") != 0) && (input.now_mins == input.day_login_mins))
                 {
-                    rtDW.is_MarketLoginState = IN_day_login;
+                    rtDW.is_MarketTimeState = IN_day_login;
                     output.status = LOGIN_TIME;
                 }
                 else
                 {
                     if ((strcmp(input.loginTime, "night") == 0) && (input.now_mins == input.night_login_mins))
                     {
-                        rtDW.is_MarketLoginState = IN_night_login;
+                        rtDW.is_MarketTimeState = IN_night_login;
                         output.status = LOGIN_TIME;
                     }
                 }
@@ -178,7 +178,7 @@ void MarketLoginState::step()
     }
 }
 
-void MarketLoginState::update(void)
+void MarketTimeState::update(void)
 {
     time_t now = {0};
     struct tm *timenow = NULL;
@@ -194,7 +194,7 @@ void MarketLoginState::update(void)
     }
 }
 
-void MarketLoginState::initialize()
+void MarketTimeState::initialize()
 {
     auto& jsonCfg = utils::JsonConfig::getInstance();
 
@@ -221,17 +221,17 @@ void MarketLoginState::initialize()
     strcpy(input.loginTime, timeStr.c_str());
 }
 
-MarketLoginState::MarketLoginState()
+MarketTimeState::MarketTimeState()
 {
     initialize();
 }
 
-MarketLoginState::~MarketLoginState()
+MarketTimeState::~MarketTimeState()
 {
     ;
 }
 
-ERROR_STATUS * MarketLoginState::getRTM()
+ERROR_STATUS * MarketTimeState::getRTM()
 {
     return (&rtM);
 }

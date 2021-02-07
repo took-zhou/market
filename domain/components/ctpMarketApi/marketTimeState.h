@@ -4,7 +4,7 @@
 #include <string.h>
 #include "common/self/basetype.h"
 
-enum LOGIN_STATE
+enum MARKET_TIME_STATE
 {
     LOGIN_TIME = 1,
     LOGOUT_TIME = 2
@@ -12,8 +12,8 @@ enum LOGIN_STATE
 
 typedef struct
 {
-    U8 is_active_MarketLoginState;
-    U8 is_MarketLoginState;
+    U8 is_active_MarketTimeState;
+    U8 is_MarketTimeState;
 } DW;
 
 typedef struct
@@ -29,7 +29,7 @@ typedef struct
 
 typedef struct
 {
-    LOGIN_STATE status;
+    MARKET_TIME_STATE status;
 } STATE_OUTPUT;
 
 typedef struct
@@ -37,7 +37,7 @@ typedef struct
     const S8 * volatile errorStatus;
 }ERROR_STATUS;
 
-class MarketLoginState
+class MarketTimeState
 {
 public:
     PARAM_INPUT input;
@@ -53,9 +53,9 @@ public:
     // model update function
     void update(void);
 
-    MarketLoginState();
+    MarketTimeState();
 
-    ~MarketLoginState();
+    ~MarketTimeState();
 
     ERROR_STATUS * getRTM();
 

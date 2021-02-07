@@ -53,7 +53,6 @@ void MarketSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin, CThos
 
 void MarketSpi::OnRspUserLogout(CThostFtdcUserLogoutField *pUserLogout, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
-    reConnect = 0;
     CThostFtdcRspInfoField *field = new CThostFtdcRspInfoField;
     memcpy(field, pRspInfo, sizeof(CThostFtdcRspInfoField));
 
@@ -66,7 +65,6 @@ void MarketSpi::OnRspUserLogout(CThostFtdcUserLogoutField *pUserLogout, CThostFt
 
 void MarketSpi::OnRspUserLogout(void)
 {
-    reConnect = 0;
     CThostFtdcRspInfoField *field = new CThostFtdcRspInfoField;
     field->ErrorID = 0;
     strcpy(field->ErrorMsg, "force logout");

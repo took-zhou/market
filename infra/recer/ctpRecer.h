@@ -13,7 +13,6 @@ struct CtpRecer;
 
 class MarketSpi : public CThostFtdcMdSpi
 {
-
 public:
     MarketSpi(){};
     MarketSpi(const MarketSpi&) = delete;
