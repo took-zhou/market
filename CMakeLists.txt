@@ -8,8 +8,8 @@ file(GLOB_RECURSE maket_source
 
 add_library(marketlib STATIC ${maket_source})
 target_link_libraries(marketlib 
-    thostmduserapi_se_6.3.15
-    thosttraderapi_se_6.3.15
+    thostmduserapi_se_6.5.1
+    thosttraderapi_se_6.5.1
     commonlib
     mysqlclient
     zmq
