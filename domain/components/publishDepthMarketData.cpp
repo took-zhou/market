@@ -105,7 +105,7 @@ void publishData::once(void)
         }
         if (keywordList.find("BidVolume1") != end(keywordList))
         {
-            auto bidVolume1 = iter->mutable_ask_volume1();
+            auto bidVolume1 = iter->mutable_bid_volume1();
             bidVolume1->set_value(tickData->datafield[i].BidVolume1);
         }
         if (keywordList.find("AskPrice1") != end(keywordList))
