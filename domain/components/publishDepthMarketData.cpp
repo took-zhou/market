@@ -200,7 +200,7 @@ void publishData::publishToStrategy(void)
                 thread_uniqueness_cnt = 0;
                 break;
             }
-            sleep(interval);
+            usleep(interval);
         }
     }
 }
@@ -219,9 +219,9 @@ void publishData::insertDataToTickDataPool(CThostFtdcDepthMarketDataField * pD)
     ik = pthread_mutex_unlock(&(tickData->sm_mutex));
 }
 
-void publishData::setInterval(int _interval)
+void publishData::setInterval(float _interval)
 {
-    interval = _interval;
+    interval = (U32)(_interval*1000000);
 }
 
 void publishData::setStartStopIndication(market_strategy::TickStartStopIndication_MessageType _indication)

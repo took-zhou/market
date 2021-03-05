@@ -85,7 +85,7 @@ void StrategyEvent::TickSubscribeReqHandle(MsgStruct& msg)
     auto& marketSer = MarketService::getInstance();
     marketSer.ROLE(publishData).buildInstrumentList(insVec);
     marketSer.ROLE(publishData).buildKeywordList(keywordVec);
-    marketSer.ROLE(publishData).setInterval(std::atoi(reqInfo.interval().c_str()));
+    marketSer.ROLE(publishData).setInterval(float(std::atof(reqInfo.interval().c_str())));
 
     if (marketSer.ROLE(Market).ROLE(CtpMarketApi).marketApi != nullptr)
     {

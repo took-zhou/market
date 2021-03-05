@@ -61,13 +61,14 @@ public:
 
     deepTickData *tickData;
     void setStartStopIndication(market_strategy::TickStartStopIndication_MessageType _indication);
-    void setInterval(int _interval);
+    void setInterval(float _interval);
 
 private:
     std::set<std::string> keywordList;
     std::set<tickDataPool, tickDataPoolSortCriterion> instrumentList;
     market_strategy::TickStartStopIndication_MessageType indication = market_strategy::TickStartStopIndication_MessageType_reserve;
-    int interval = 0;
+    // 单位us
+    U32 interval = 0;
     int thread_uniqueness_cnt = 0;
 };
 
