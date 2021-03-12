@@ -35,6 +35,7 @@ marketData::marketData()
 
 bool marketData::isValidTickData(CThostFtdcDepthMarketDataField * pD)
 {
+    bool ret = false;
     string tickTime = string(pD->UpdateTime);
     vector<string> timeVec = utils::splitString(tickTime,  ":");
     int tickSecond = atoi(timeVec[0].c_str())*60*60 + atoi(timeVec[1].c_str())*60 + atoi(timeVec[2].c_str());
@@ -46,8 +47,10 @@ bool marketData::isValidTickData(CThostFtdcDepthMarketDataField * pD)
 
     if (abs(tickSecond - nowSecond) <= 60*3)
     {
-        return true;
+        ret = true;
     }
+
+    return ret;
 }
 
 bool marketData::insertInsExchPair(const std::string &ins, const std::string &exch)

@@ -136,10 +136,3 @@ void MarketSpi::OnRtnForQuoteRsp(CThostFtdcForQuoteRspField *pForQuoteRsp)
     msgStruct.ctpMsg = field;
     ctpMsgChan << msgStruct;
 }
-
-bool CtpRecer::init(){
-    auto& marketSpi = MarketSpi::getInstance();
-    ctpMdSpi = &marketSpi;
-    marketSpi.init(this);
-    return true;
-};

@@ -14,17 +14,6 @@ struct CtpRecer;
 class MarketSpi : public CThostFtdcMdSpi
 {
 public:
-    MarketSpi(){};
-    MarketSpi(const MarketSpi&) = delete;
-    MarketSpi& operator=(const MarketSpi&) = delete;
-    static MarketSpi& getInstance()
-    {
-        static MarketSpi instance;
-        return instance;
-    }
-
-public:
-
     ~MarketSpi() {}
      void OnFrontConnected();
 
@@ -64,8 +53,9 @@ public:
 
 struct CtpRecer
 {
-    bool init();
-    CThostFtdcMdSpi*  ctpMdSpi{nullptr};
+    bool init(){
+        return true;
+    };
 };
 
 #endif /* WORKSPACE_TRADER_INFRA_CTPRECER_H_ */

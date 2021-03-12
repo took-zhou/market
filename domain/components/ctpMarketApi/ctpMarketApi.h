@@ -14,6 +14,7 @@
 
 #include "common/self/dci/Role.h"
 #include "market/domain/components/ctpMarketApi/marketTimeState.h"
+#include "market/infra/recer/ctpRecer.h"
 #include "common/extern/ctp/inc/ThostFtdcMdApi.h"
 #include "common/self/utils.h"
 
@@ -111,7 +112,7 @@ public:
     USE_ROLE(MarketTimeState);
 private:
     std::string instrumentFrom;
-
+    MarketSpi *marketSpi;
     MARKET_LOGIN_STATE login_state = LOGOUT_STATE;
 };
 

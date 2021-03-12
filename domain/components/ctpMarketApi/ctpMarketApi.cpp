@@ -35,6 +35,7 @@ const char* CtpMarketBaseApi::GetApiVersion()
 
 void CtpMarketBaseApi::Release()
 {
+    // 释放UserApi
     if (_m_pApi)
     {
         _m_pApi->RegisterSpi(NULL);
@@ -250,8 +251,8 @@ bool CtpMarketApi::init()
     utils::creatFolder(conPath);
     marketApi->CreateFtdcMdApi(conPath.c_str());
 
-    auto& marketSpi = MarketSpi::getInstance();
-    marketApi->RegisterSpi(&marketSpi);
+    marketSpi = new MarketSpi();
+    marketApi->RegisterSpi(marketSpi);
 
     std::string frontaddr = jsonCfg.getConfig("market","FrontMdAddr").get<std::string>();
     marketApi->RegisterFront(const_cast<char *>(frontaddr.c_str()));
@@ -316,8 +317,12 @@ bool CtpMarketApi::release()
     delete marketApi;
     marketApi = nullptr;
 
-    auto& marketSpi = MarketSpi::getInstance();
-    marketSpi.reConnect = 0;
+    // 释放UserSpi实例
+    if (marketSpi)
+    {
+        delete marketSpi;
+        marketSpi = NULL;
+    }
 }
 
 void CtpMarketApi::login()
@@ -331,17 +336,16 @@ void CtpMarketApi::login()
     login_state = LOGIN_STATE;
 }
 
-void logOutReqTimeOutFunc(void)
-{
-    auto& marketSpi = MarketSpi::getInstance();
-    marketSpi.OnRspUserLogout();
-}
-
 // ctp market登出有异常，做特殊处理
 void CtpMarketApi::logout()
 {
     INFO_LOG("logout time, is going to logout.");
     marketApi->ReqUserLogout();
+
+    auto logOutReqTimeOutFunc = [&]()
+    {
+        marketSpi->OnRspUserLogout();
+    };
 
     auto& timerPool = TimeoutTimerPool::getInstance();
     timerPool.addTimer(MARKET_LOGOUT_TIMER, logOutReqTimeOutFunc, MARKET_LOGOUT_TIMEOUT);
