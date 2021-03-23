@@ -39,8 +39,8 @@ void CtpMarketBaseApi::Release()
     if (_m_pApi)
     {
         _m_pApi->RegisterSpi(NULL);
-        _m_pApi->Release();
-        _m_pApi = NULL;
+        //delete _m_pApi;
+        //_m_pApi = nullptr;
     }
 
     return;

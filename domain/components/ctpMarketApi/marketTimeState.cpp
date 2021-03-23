@@ -207,7 +207,7 @@ void MarketTimeState::initialize()
 
     timeStr = jsonCfg.getConfig("market","DayLogoutTime").get<std::string>();
     timeVec= utils::splitString(timeStr,  ":");
-    input.day_logout_mins= atoi(timeVec[0].c_str())*60 + atoi(timeVec[1].c_str());
+    input.day_logout_mins= atoi(timeVec[0].c_str())*60 + atoi(timeVec[1].c_str()) + 1;
 
     timeStr = jsonCfg.getConfig("market","NightLoginTime").get<std::string>();
     timeVec = utils::splitString(timeStr,  ":");
@@ -215,7 +215,7 @@ void MarketTimeState::initialize()
 
     timeStr = jsonCfg.getConfig("market","NightLogoutTime").get<std::string>();
     timeVec = utils::splitString(timeStr,  ":");
-    input.night_logout_mins= atoi(timeVec[0].c_str())*60 + atoi(timeVec[1].c_str());
+    input.night_logout_mins= atoi(timeVec[0].c_str())*60 + atoi(timeVec[1].c_str()) + 1;
 
     timeStr = jsonCfg.getConfig("market","LoginTime").get<std::string>();
     strcpy(input.loginTime, timeStr.c_str());
