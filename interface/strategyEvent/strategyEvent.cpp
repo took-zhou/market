@@ -90,17 +90,18 @@ void StrategyEvent::TickSubscribeReqHandle(MsgStruct& msg)
     if (marketSer.ROLE(Market).ROLE(CtpMarketApi).marketApi != nullptr)
     {
         marketSer.ROLE(Market).ROLE(CtpMarketApi).marketApi->SubscribeMarketData(insVec);
-        // 开启发布线程
-        auto publishDataFuc = [&](){
-            marketSer.ROLE(publishData).publishToStrategy();
-        };
-
-        std::thread(publishDataFuc).detach();
     }
     else
     {
-        ERROR_LOG("marketApi is nullptr.");
+        WARNING_LOG("not during login time, wait login time to subscribe new instruments");
     }
+
+    // 开启发布线程
+    auto publishDataFuc = [&](){
+        marketSer.ROLE(publishData).publishToStrategy();
+    };
+
+    std::thread(publishDataFuc).detach();
 }
 
 void StrategyEvent::TickStartStopIndicationHandle(MsgStruct& msg)
