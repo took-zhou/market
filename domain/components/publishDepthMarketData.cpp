@@ -71,7 +71,7 @@ publishData::publishData()
     INFO_LOG("init share message address ok.");
 }
 
-void publishData::once(void)
+void publishData::once_from_datafield(void)
 {
     char timeArray[100] = {0};
     market_strategy::message tick;
@@ -173,6 +173,98 @@ void publishData::once(void)
     recerSender.ROLE(Sender).ROLE(ProxySender).send("market_strategy.TickData", tickStr.c_str());
 }
 
+void publishData::once_from_dataflow(CThostFtdcDepthMarketDataField *pD)
+{
+    char timeArray[100] = {0};
+    market_strategy::message tick;
+    auto tick_data = tick.mutable_tick_data();
+
+    getLocalTime(timeArray);
+    tick_data->set_time_point(timeArray);
+
+
+    auto iter = tick_data->add_tick_list();
+    iter->set_state(market_strategy::TickData_TickState_active);
+    iter->set_instrument_id(pD->InstrumentID);
+
+    if (keywordList.find("LastPrice") != end(keywordList))
+    {
+        auto lastPrice = iter->mutable_last_price();
+        lastPrice->set_value(std::to_string(max2zero(pD->LastPrice)));
+    }
+    if (keywordList.find("BidPrice1") != end(keywordList))
+    {
+        auto bidPrice1 = iter->mutable_bid_price1();
+        bidPrice1->set_value(std::to_string(max2zero(pD->BidPrice1)));
+    }
+    if (keywordList.find("BidVolume1") != end(keywordList))
+    {
+        auto bidVolume1 = iter->mutable_bid_volume1();
+        bidVolume1->set_value(pD->BidVolume1);
+    }
+    if (keywordList.find("AskPrice1") != end(keywordList))
+    {
+        auto askPrice1 = iter->mutable_ask_price1();
+        askPrice1->set_value(std::to_string(max2zero(pD->AskPrice1)));
+    }
+    if (keywordList.find("AskVolume1") != end(keywordList))
+    {
+        auto askVolume1 = iter->mutable_ask_volume1();
+        askVolume1->set_value(pD->AskVolume1);
+    }
+    if (keywordList.find("Turnover") != end(keywordList))
+    {
+        auto turnOver = iter->mutable_turnover();
+        turnOver->set_value(pD->Turnover);
+    }
+    if (keywordList.find("OpenInterest") != end(keywordList))
+    {
+        auto openInterest = iter->mutable_open_interest();
+        openInterest->set_value(pD->OpenInterest);
+    }
+    if (keywordList.find("UpperLimitPrice") != end(keywordList))
+    {
+        auto upperLimitPrice = iter->mutable_upper_limit_price();
+        upperLimitPrice->set_value(std::to_string(max2zero(pD->UpperLimitPrice)));
+    }
+    if (keywordList.find("LowerLimitPrice") != end(keywordList))
+    {
+        auto lowerLimitPrice = iter->mutable_lower_limit_price();
+        lowerLimitPrice->set_value(std::to_string(max2zero(pD->LowerLimitPrice)));
+    }
+    if (keywordList.find("OpenPrice") != end(keywordList))
+    {
+        auto openPrice = iter->mutable_open_price();
+        openPrice->set_value(std::to_string(max2zero(pD->OpenPrice)));
+    }
+    if (keywordList.find("PreSettlementPrice") != end(keywordList))
+    {
+        auto preSettleMentPrice = iter->mutable_pre_settlement_price();
+        preSettleMentPrice->set_value(std::to_string(max2zero(pD->PreSettlementPrice)));
+    }
+    if (keywordList.find("PreClosePrice") != end(keywordList))
+    {
+        auto preClosePrice = iter->mutable_pre_close_price();
+        preClosePrice->set_value(std::to_string(max2zero(pD->PreClosePrice)));
+    }
+    if (keywordList.find("PreOpenInterest") != end(keywordList))
+    {
+        auto preOpenInterest = iter->mutable_pre_open_interest();
+        preOpenInterest->set_value(pD->PreOpenInterest);
+    }
+    if (keywordList.find("Volume") != end(keywordList))
+    {
+        auto volume = iter->mutable_volume();
+        volume->set_value(pD->Volume);
+    }
+
+    std::string tickStr;
+    tick.SerializeToString(&tickStr);
+
+    auto& recerSender = RecerSender::getInstance();
+    recerSender.ROLE(Sender).ROLE(ProxySender).send("market_strategy.TickData", tickStr.c_str());
+}
+
 void publishData::publishToStrategy(void)
 {
     if (thread_uniqueness_cnt++ == 0)
@@ -185,7 +277,7 @@ void publishData::publishToStrategy(void)
                 auto& marketSer = MarketService::getInstance();
                 if (marketSer.ROLE(Market).ROLE(CtpMarketApi).getMarketLoginState() == LOGIN_STATE)
                 {
-                    once();
+                    once_from_datafield();
                 }
             }
             else if (indication == market_strategy::TickStartStopIndication_MessageType_stop)
@@ -203,6 +295,30 @@ void publishData::publishToStrategy(void)
             }
             usleep(interval);
         }
+    }
+}
+
+void publishData::directForwardDataToStrategy(CThostFtdcDepthMarketDataField * pD)
+{
+    if (indication == market_strategy::TickStartStopIndication_MessageType_start)
+    {
+        auto& marketSer = MarketService::getInstance();
+        if (marketSer.ROLE(Market).ROLE(CtpMarketApi).getMarketLoginState() == LOGIN_STATE)
+        {
+            once_from_dataflow(pD);
+        }
+    }
+    else if (indication == market_strategy::TickStartStopIndication_MessageType_stop)
+    {
+        INFO_LOG("publishToStrategy is stopping.");
+    }
+    else if (indication == market_strategy::TickStartStopIndication_MessageType_finish)
+    {
+        INFO_LOG("is going to exit publishToStrategy thread.");
+        indication = market_strategy::TickStartStopIndication_MessageType_reserve;
+        directforward = false;
+        keywordList.clear();
+        instrumentList.clear();
     }
 }
 
@@ -226,6 +342,16 @@ void publishData::insertDataToTickDataPool(CThostFtdcDepthMarketDataField * pD)
 void publishData::setInterval(float _interval)
 {
     interval = (U32)(_interval*1000000);
+}
+
+void publishData::setDirectForwardingFlag(bool flag)
+{
+    directforward = flag;
+}
+
+bool publishData::isDirectForwarding(void)
+{
+    return directforward;
 }
 
 void publishData::setStartStopIndication(market_strategy::TickStartStopIndication_MessageType _indication)

@@ -62,13 +62,17 @@ void CtpEvent::DeepMarktDataHandle(MsgStruct& msg)
     auto deepdata = (CThostFtdcDepthMarketDataField*)msg.ctpMsg;
     auto& marketSer = MarketService::getInstance();
 
-    if (reqInstrumentFrom != "trader")
+    if (reqInstrumentFrom == "trader")
     {
-        marketSer.ROLE(publishData).insertDataToTickDataPool(deepdata);
+        marketSer.ROLE(loadData).LoadDepthMarketDataToCsv(deepdata);
+    }
+    else if (marketSer.ROLE(publishData).isDirectForwarding() == true)
+    {
+        marketSer.ROLE(publishData).directForwardDataToStrategy(deepdata);
     }
     else
     {
-        marketSer.ROLE(loadData).LoadDepthMarketDataToCsv(deepdata);
+        marketSer.ROLE(publishData).insertDataToTickDataPool(deepdata);
     }
 
     delete deepdata;

@@ -55,13 +55,17 @@ public:
     std::vector<utils::InstrumtntID> getInstrumentList(void);
 
     void insertDataToTickDataPool(CThostFtdcDepthMarketDataField *pD);
+    void directForwardDataToStrategy(CThostFtdcDepthMarketDataField *pD);
     // 传输给策略端
     void publishToStrategy(void);
-    void once(void);
+    void once_from_datafield(void);
+    void once_from_dataflow(CThostFtdcDepthMarketDataField *pD);
 
     deepTickData *tickData;
     void setStartStopIndication(market_strategy::TickStartStopIndication_MessageType _indication);
     void setInterval(float _interval);
+    void setDirectForwardingFlag(bool flag);
+    bool isDirectForwarding(void);
 
 private:
     std::set<std::string> keywordList;
@@ -69,6 +73,7 @@ private:
     market_strategy::TickStartStopIndication_MessageType indication = market_strategy::TickStartStopIndication_MessageType_reserve;
     // 单位us
     U32 interval = 0;
+    bool directforward = false;
     int thread_uniqueness_cnt = 0;
 };
 

@@ -85,7 +85,21 @@ void StrategyEvent::TickSubscribeReqHandle(MsgStruct& msg)
     auto& marketSer = MarketService::getInstance();
     marketSer.ROLE(publishData).buildInstrumentList(insVec);
     marketSer.ROLE(publishData).buildKeywordList(keywordVec);
-    marketSer.ROLE(publishData).setInterval(float(std::atof(reqInfo.interval().c_str())));
+
+    if (reqInfo.interval() == "origin")
+    {
+        marketSer.ROLE(publishData).setDirectForwardingFlag(true);
+    }
+    else
+    {
+        marketSer.ROLE(publishData).setInterval(float(std::atof(reqInfo.interval().c_str())));
+        marketSer.ROLE(publishData).setDirectForwardingFlag(false);
+        // 开启发布线程
+        auto publishDataFuc = [&](){
+            marketSer.ROLE(publishData).publishToStrategy();
+        };
+        std::thread(publishDataFuc).detach();
+    }
 
     if (marketSer.ROLE(Market).ROLE(CtpMarketApi).marketApi != nullptr)
     {
@@ -95,13 +109,6 @@ void StrategyEvent::TickSubscribeReqHandle(MsgStruct& msg)
     {
         WARNING_LOG("not during login time, wait login time to subscribe new instruments");
     }
-
-    // 开启发布线程
-    auto publishDataFuc = [&](){
-        marketSer.ROLE(publishData).publishToStrategy();
-    };
-
-    std::thread(publishDataFuc).detach();
 }
 
 void StrategyEvent::TickStartStopIndicationHandle(MsgStruct& msg)
