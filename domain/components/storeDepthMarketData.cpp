@@ -35,54 +35,19 @@ loadData::loadData()
 
 void loadData::FormDepthMarketData2Stringflow(CThostFtdcDepthMarketDataField * pD)
 {
-    char TradingDay[27];
-    utils::gbk2utf8(pD->TradingDay,TradingDay,sizeof(TradingDay));
     ///合约代码 TThostFtdcInstrumentIDType char[31]
     char InstrumentID[93];
     utils::gbk2utf8(pD->InstrumentID,InstrumentID,sizeof(InstrumentID));
-    ///交易所代码 TThostFtdcExchangeIDType char[9]
-    char ExchangeID[27];
-    utils::gbk2utf8(pD->ExchangeID,ExchangeID,sizeof(ExchangeID));
-    ///合约在交易所的代码 TThostFtdcExchangeInstIDType char[31]
-    char ExchangeInstID[93];
-    utils::gbk2utf8(pD->ExchangeInstID,ExchangeInstID,sizeof(ExchangeInstID));
-    ///最新价 TThostFtdcPriceType double
-    double LastPrice = max2zero(pD->LastPrice);
-    ///上次结算价 TThostFtdcPriceType double
-    double PreSettlementPrice = max2zero(pD->PreSettlementPrice);
-    ///昨收盘 TThostFtdcPriceType double
-    double PreClosePrice = max2zero(pD->PreClosePrice);
-    ///昨持仓量 TThostFtdcLargeVolumeType double
-    double PreOpenInterest = max2zero(pD->PreOpenInterest);
-    ///今开盘 TThostFtdcPriceType double
-    double OpenPrice = max2zero(pD->OpenPrice);
-    ///最高价 TThostFtdcPriceType double
-    double HighestPrice = max2zero(pD->HighestPrice);
-    ///最低价 TThostFtdcPriceType double
-    double LowestPrice = max2zero(pD->LowestPrice);
-    ///数量 TThostFtdcVolumeType int
-    int Volume = pD->Volume;
-    ///成交金额 TThostFtdcMoneyType double
-    double Turnover = max2zero(pD->Turnover);
-    ///持仓量 TThostFtdcLargeVolumeType double
-    double OpenInterest = max2zero(pD->OpenInterest);
-    ///今收盘 TThostFtdcPriceType double
-    double ClosePrice = max2zero(pD->ClosePrice);
-    ///本次结算价 TThostFtdcPriceType double
-    double SettlementPrice = max2zero(pD->SettlementPrice);
-    ///涨停板价 TThostFtdcPriceType double
-    double UpperLimitPrice = max2zero(pD->UpperLimitPrice);
-    ///跌停板价 TThostFtdcPriceType double
-    double LowerLimitPrice = max2zero(pD->LowerLimitPrice);
-    ///昨虚实度 TThostFtdcRatioType double
-    double PreDelta = max2zero(pD->PreDelta);
-    ///今虚实度 TThostFtdcRatioType double
-    double CurrDelta = max2zero(pD->CurrDelta);
+    ///交易日期
+    char TradingDay[27];
+    utils::gbk2utf8(pD->TradingDay,TradingDay,sizeof(TradingDay));
     ///最后修改时间 TThostFtdcTimeType char[9]
     char UpdateTime[27];
     utils::gbk2utf8(pD->UpdateTime,UpdateTime,sizeof(UpdateTime));
     ///最后修改毫秒 TThostFtdcMillisecType int
     int UpdateMillisec = pD->UpdateMillisec;
+    ///最新价 TThostFtdcPriceType double
+    double LastPrice = max2zero(pD->LastPrice);
     ///申买价一 TThostFtdcPriceType double
     double BidPrice1 = max2zero(pD->BidPrice1);
     ///申买量一 TThostFtdcVolumeType int
@@ -91,59 +56,28 @@ void loadData::FormDepthMarketData2Stringflow(CThostFtdcDepthMarketDataField * p
     double AskPrice1 = max2zero(pD->AskPrice1);
     ///申卖量一 TThostFtdcVolumeType int
     int AskVolume1 = pD->AskVolume1;
-    ///申买价二 TThostFtdcPriceType double
-    double BidPrice2 = max2zero(pD->BidPrice2);
-    ///申买量二 TThostFtdcVolumeType int
-    int BidVolume2 = pD->BidVolume2;
-    ///申卖价二 TThostFtdcPriceType double
-    double AskPrice2 = max2zero(pD->AskPrice2);
-    ///申卖量二 TThostFtdcVolumeType int
-    int AskVolume2 = pD->AskVolume2;
-    ///申买价三 TThostFtdcPriceType double
-    double BidPrice3 = max2zero(pD->BidPrice3);
-    ///申买量三 TThostFtdcVolumeType int
-    int BidVolume3 = pD->BidVolume3;
-    ///申卖价三 TThostFtdcPriceType double
-    double AskPrice3 = max2zero(pD->AskPrice3);
-    ///申卖量三 TThostFtdcVolumeType int
-    int AskVolume3 = pD->AskVolume3;
-    ///申买价四 TThostFtdcPriceType double
-    double BidPrice4 = max2zero(pD->BidPrice4);
-    ///申买量四 TThostFtdcVolumeType int
-    int BidVolume4 = pD->BidVolume4;
-    ///申卖价四 TThostFtdcPriceType double
-    double AskPrice4 = max2zero(pD->AskPrice4);
-    ///申卖量四 TThostFtdcVolumeType int
-    int AskVolume4 = pD->AskVolume4;
-    ///申买价五 TThostFtdcPriceType double
-    double BidPrice5 = max2zero(pD->BidPrice5);
-    ///申买量五 TThostFtdcVolumeType int
-    int BidVolume5 = pD->BidVolume5;
-    ///申卖价五 TThostFtdcPriceType double
-    double AskPrice5 = max2zero(pD->AskPrice5);
-    ///申卖量五 TThostFtdcVolumeType int
-    int AskVolume5 = pD->AskVolume5;
-    ///当日均价 TThostFtdcPriceType double
-    double AveragePrice = max2zero(pD->AveragePrice);
-    ///业务日期 TThostFtdcDateType char[9]
-    char ActionDay[27];
-    utils::gbk2utf8(pD->ActionDay,ActionDay,sizeof(ActionDay));
-    ///时间戳，默认2020-01-01 00:00:00
-    long timestamp = 946656000;
-    getLocalTime(timestamp);
-    sprintf(dataflow,"'%s','%s','%s','%s', %.2lf,%.2lf,%.2lf,%.2lf,%.2lf,%.2lf,%.2lf, %d, %.2lf,%.2lf,\
-    %.2lf,%.2lf,%.2lf,%.2lf,%.2lf,%.2lf,'%s',%d,%.2lf,%d,%.2lf,%d, %.2lf,%d,%.2lf,%d, %.2lf,%d,%.2lf,%d,\
-    %.2lf,%d,%.2lf,%d, %.2lf,%d,%.2lf,%d, %.2lf,'%s', %ld",TradingDay,InstrumentID,ExchangeID,ExchangeInstID,\
-    LastPrice,PreSettlementPrice,PreClosePrice,PreOpenInterest,OpenPrice,HighestPrice,LowestPrice,\
-    Volume,\
-    Turnover,OpenInterest,ClosePrice,SettlementPrice,UpperLimitPrice,LowerLimitPrice,PreDelta,CurrDelta,\
-    UpdateTime,UpdateMillisec,\
-    BidPrice1,BidVolume1,AskPrice1,AskVolume1,\
-    BidPrice2,BidVolume2,AskPrice2,AskVolume2,\
-    BidPrice3,BidVolume3,AskPrice3,AskVolume3,\
-    BidPrice4,BidVolume4,AskPrice4,AskVolume4,\
-    BidPrice5,BidVolume5,AskPrice5,AskVolume5,\
-    AveragePrice,ActionDay,timestamp);
+    ///数量 TThostFtdcVolumeType int
+    int Volume = pD->Volume;
+    ///成交金额 TThostFtdcMoneyType double
+    double Turnover = max2zero(pD->Turnover);
+    ///持仓量 TThostFtdcLargeVolumeType double
+    double OpenInterest = max2zero(pD->OpenInterest);
+    ///涨停板价 TThostFtdcPriceType double
+    double UpperLimitPrice = max2zero(pD->UpperLimitPrice);
+    ///跌停板价 TThostFtdcPriceType double
+    double LowerLimitPrice = max2zero(pD->LowerLimitPrice);
+    ///今开盘 TThostFtdcPriceType double
+    double OpenPrice = max2zero(pD->OpenPrice);
+    ///上次结算价 TThostFtdcPriceType double
+    double PreSettlementPrice = max2zero(pD->PreSettlementPrice);
+    ///昨收盘 TThostFtdcPriceType double
+    double PreClosePrice = max2zero(pD->PreClosePrice);
+    ///昨持仓量 TThostFtdcLargeVolumeType double
+    double PreOpenInterest = max2zero(pD->PreOpenInterest);
+
+    sprintf(dataflow,"%s,%s,%s.%d,%.6lf,%.6lf,%d,%.6lf,%d,%d,%.6lf,%.6lf,%.6lf,%.6lf,%.6lf,%.6lf,%.6lf,%.5lf",\
+    InstrumentID,TradingDay,UpdateTime,UpdateMillisec,LastPrice,BidPrice1,BidVolume1,AskPrice1,AskVolume1,Volume,Turnover,OpenInterest,\
+    UpperLimitPrice,LowerLimitPrice,OpenPrice,PreSettlementPrice,PreClosePrice,PreOpenInterest);
 }
 
 void loadData::LoadDepthMarketDataToCsv(CThostFtdcDepthMarketDataField * pD)
@@ -153,6 +87,12 @@ void loadData::LoadDepthMarketDataToCsv(CThostFtdcDepthMarketDataField * pD)
     char InstrumentID[93];
     char ExchangeID[27];
     U8 existFlag = 1;
+
+    utils::gbk2utf8(pD->InstrumentID,InstrumentID,sizeof(InstrumentID));//合约代码
+    if (InstrumentID[2] == 'e' && InstrumentID[3] == 'f' && InstrumentID[4] == 'p')
+    {
+        return;
+    }
 
     if (isValidTickData(pD) == false)
     {
@@ -164,7 +104,6 @@ void loadData::LoadDepthMarketDataToCsv(CThostFtdcDepthMarketDataField * pD)
         mkdir(history_tick_folder.c_str(), S_IRWXU);
     }
 
-    utils::gbk2utf8(pD->InstrumentID,InstrumentID,sizeof(InstrumentID));//合约代码
     sprintf(csvpath,"%s/%s.csv",history_tick_folder.c_str(), InstrumentID);//合成存储路径
 
     FormDepthMarketData2Stringflow(pD);
@@ -179,9 +118,9 @@ void loadData::LoadDepthMarketDataToCsv(CThostFtdcDepthMarketDataField * pD)
     {
         if( existFlag == 0 )
         {
-            out<< titleflow << "\n";
+            out<< titleflow << "\r\r\n";
         }
-        out<< dataflow << "\n";
+        out<< dataflow << "\r\r\n";
     }
     else
     {

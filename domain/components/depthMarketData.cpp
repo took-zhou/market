@@ -35,17 +35,21 @@ marketData::marketData()
 
 bool marketData::isValidTickData(CThostFtdcDepthMarketDataField * pD)
 {
+    tm tick_tm;
     bool ret = false;
-    string tickTime = string(pD->UpdateTime);
-    vector<string> timeVec = utils::splitString(tickTime,  ":");
-    int tickSecond = atoi(timeVec[0].c_str())*60*60 + atoi(timeVec[1].c_str())*60 + atoi(timeVec[2].c_str());
+    char UpdateTime[27];
+
+    utils::gbk2utf8(pD->UpdateTime,UpdateTime,sizeof(UpdateTime));
+    strptime(UpdateTime, "%H:%M:%S", &tick_tm);
+
+    int tickMinite = tick_tm.tm_hour*60 + tick_tm.tm_min;
     //system time
     time_t now_time = time(NULL);
     //local time
     tm* local_time = localtime(&now_time);
-    int nowSecond = local_time->tm_hour*60*60 + local_time->tm_min*60 + local_time->tm_sec;
+    int nowMinite = local_time->tm_hour*60 + local_time->tm_min;
 
-    if (abs(tickSecond - nowSecond) <= 60*3)
+    if (abs(tickMinite - nowMinite) <= 3)
     {
         ret = true;
     }

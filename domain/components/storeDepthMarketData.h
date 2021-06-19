@@ -23,17 +23,7 @@ public:
 private:
     std::string history_tick_folder;
     char dataflow[1000];
-    char titleflow[640]={"TradingDay,InstrumentID,ExchangeID,ExchangeInstID,\
-        LastPrice,PreSettlementPrice,PreClosePrice,PreOpenInterest,OpenPrice,HighestPrice,LowestPrice,\
-        Volume,\
-        Turnover,OpenInterest,ClosePrice,SettlementPrice,UpperLimitPrice,LowerLimitPrice,PreDelta,CurrDelta,\
-        UpdateTime,UpdateMillisec,\
-        BidPrice1,BidVolume1,AskPrice1,AskVolume1,\
-        BidPrice2,BidVolume2,AskPrice2,AskVolume2,\
-        BidPrice3,BidVolume3,AskPrice3,AskVolume3,\
-        BidPrice4,BidVolume4,AskPrice4,AskVolume4,\
-        BidPrice5,BidVolume5,AskPrice5,AskVolume5,\
-        AveragePrice,ActionDay,timestamp"};
+    char titleflow[320]={"InstrumentID,TradingDay,UpdateTime,LastPrice,BidPrice1,BidVolume1,AskPrice1,AskVolume1,Volume,Turnover,OpenInterest,UpperLimitPrice,LowerLimitPrice,OpenPrice,PreSettlementPrice,PreClosePrice,PreOpenInterest"};
 };
 
 #endif
