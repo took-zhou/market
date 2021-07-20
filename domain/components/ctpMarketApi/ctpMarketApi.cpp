@@ -51,6 +51,11 @@ void CtpMarketBaseApi::Init()
     _m_pApi->Init();
     std::string semName = "market_init";
     globalSem.addOrderSem(semName);
+    contract_case_map["CZCE"] = true;
+    contract_case_map["DCE"] = false;
+    contract_case_map["INE"] = false;
+    contract_case_map["CFFEX"] = true;
+    contract_case_map["SHFE"] = false;
     INFO_LOG("m_pApi->Init send ok!");
     return;
 }
@@ -120,8 +125,17 @@ int CtpMarketBaseApi::SubscribeMarketData(std::vector<utils::InstrumtntID> const
     {
         if (md_InstrumentIDs.instrumentIDs.find(nameVec[i]) == end(md_InstrumentIDs.instrumentIDs))
         {
-            ppInstrumentID2[md_num] = const_cast<char *>(nameVec[i].ins.c_str());
             md_InstrumentIDs.instrumentIDs.insert(nameVec[i]);
+            string temp_ins = nameVec[i].ins;
+            if (contract_case_map[nameVec[i].exch] == true)
+            {
+                transform(temp_ins.begin(), temp_ins.end(), temp_ins.begin(), ::toupper);
+            }
+            else
+            {
+                transform(temp_ins.begin(), temp_ins.end(), temp_ins.begin(), ::tolower);
+            }
+            ppInstrumentID2[md_num] = const_cast<char *>(temp_ins.c_str());
             md_num++;
         }
     }
@@ -167,8 +181,17 @@ int CtpMarketBaseApi::UnSubscribeMarketData(std::vector<utils::InstrumtntID> con
     {
         if (md_InstrumentIDs.instrumentIDs.find(nameVec[i]) != end(md_InstrumentIDs.instrumentIDs))
         {
-            ppInstrumentID2[md_num] = const_cast<char *>(nameVec[i].ins.c_str());
             md_InstrumentIDs.instrumentIDs.erase(nameVec[i]);
+            string temp_ins = nameVec[i].ins;
+            if (contract_case_map[nameVec[i].exch] == true)
+            {
+                transform(temp_ins.begin(), temp_ins.end(), temp_ins.begin(), ::toupper);
+            }
+            else
+            {
+                transform(temp_ins.begin(), temp_ins.end(), temp_ins.begin(), ::tolower);
+            }
+            ppInstrumentID2[md_num] = const_cast<char *>(temp_ins.c_str());
             md_num++;
         }
     }

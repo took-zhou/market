@@ -89,7 +89,10 @@ void publishData::once_from_datafield(void)
         {
             auto iter = tick_data->add_tick_list();
             iter->set_state(market_strategy::TickData_TickState_active);
-            iter->set_instrument_id(tickData->datafield[instrument_iter->index].InstrumentID);
+
+            string temp_ins = tickData->datafield[instrument_iter->index].InstrumentID;
+            transform(temp_ins.begin(), temp_ins.end(), temp_ins.begin(), ::tolower);
+            iter->set_instrument_id(temp_ins);
 
             if (keywordList.find("LastPrice") != end(keywordList))
             {
@@ -182,10 +185,12 @@ void publishData::once_from_dataflow(CThostFtdcDepthMarketDataField *pD)
     getLocalTime(timeArray);
     tick_data->set_time_point(timeArray);
 
-
     auto iter = tick_data->add_tick_list();
     iter->set_state(market_strategy::TickData_TickState_active);
-    iter->set_instrument_id(pD->InstrumentID);
+
+    string temp_ins = pD->InstrumentID;
+    transform(temp_ins.begin(), temp_ins.end(), temp_ins.begin(), ::tolower);
+    iter->set_instrument_id(temp_ins);
 
     if (keywordList.find("LastPrice") != end(keywordList))
     {

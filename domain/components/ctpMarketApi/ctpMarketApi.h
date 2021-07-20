@@ -11,6 +11,7 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <map>
 
 #include "common/self/dci/Role.h"
 #include "market/domain/components/ctpMarketApi/marketTimeState.h"
@@ -67,6 +68,8 @@ public:
     int ReqUserLogout(void);
 
     MD_InstrumentIDs md_InstrumentIDs;
+
+    std::map<std::string, bool> contract_case_map;
 
 private:
     CThostFtdcMdApi* _m_pApi;

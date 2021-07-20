@@ -86,7 +86,7 @@ void StrategyEvent::TickSubscribeReqHandle(MsgStruct& msg)
     marketSer.ROLE(publishData).buildInstrumentList(insVec);
     marketSer.ROLE(publishData).buildKeywordList(keywordVec);
 
-    if (reqInfo.interval() == "origin")
+    if (reqInfo.interval() == "raw")
     {
         marketSer.ROLE(publishData).setDirectForwardingFlag(true);
     }
