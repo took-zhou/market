@@ -20,6 +20,7 @@
 
 #include "common/self/semaphorePart.h"
 extern GlobalSem globalSem;
+CThostFtdcMdApi* _m_pApi;
 
 CThostFtdcMdApi* CtpMarketBaseApi::CreateFtdcMdApi(const char *pszFlowPath)
 {
@@ -36,13 +37,9 @@ const char* CtpMarketBaseApi::GetApiVersion()
 void CtpMarketBaseApi::Release()
 {
     // 释放UserApi
-    if (_m_pApi)
-    {
-        _m_pApi->RegisterSpi(NULL);
-        //delete _m_pApi;
-        //_m_pApi = nullptr;
-    }
-
+    _m_pApi->Release();
+    pthread_mutex_destroy(&(md_InstrumentIDs.sm_mutex));
+    md_InstrumentIDs.instrumentIDs.clear();
     return;
 }
 
@@ -51,11 +48,8 @@ void CtpMarketBaseApi::Init()
     _m_pApi->Init();
     std::string semName = "market_init";
     globalSem.addOrderSem(semName);
-    contract_case_map["CZCE"] = true;
-    contract_case_map["DCE"] = false;
-    contract_case_map["INE"] = false;
-    contract_case_map["CFFEX"] = true;
-    contract_case_map["SHFE"] = false;
+    md_InstrumentIDs.instrumentIDs.clear();
+    pthread_mutex_init(&(md_InstrumentIDs.sm_mutex), NULL);  
     INFO_LOG("m_pApi->Init send ok!");
     return;
 }
@@ -118,24 +112,15 @@ int CtpMarketBaseApi::SubscribeMarketData(std::vector<utils::InstrumtntID> const
         return result;
     }
 
-    int ik = pthread_mutex_lock(&md_InstrumentIDs.sm_mutex);
+    int ik = pthread_mutex_lock(&(md_InstrumentIDs.sm_mutex));
     char **ppInstrumentID2 = new char*[5000];
 
     for (int i = 0; i < nameVec.size(); i++)
     {
         if (md_InstrumentIDs.instrumentIDs.find(nameVec[i]) == end(md_InstrumentIDs.instrumentIDs))
         {
+            ppInstrumentID2[md_num] = const_cast<char *>(nameVec[i].ins.c_str());
             md_InstrumentIDs.instrumentIDs.insert(nameVec[i]);
-            string temp_ins = nameVec[i].ins;
-            if (contract_case_map[nameVec[i].exch] == true)
-            {
-                transform(temp_ins.begin(), temp_ins.end(), temp_ins.begin(), ::toupper);
-            }
-            else
-            {
-                transform(temp_ins.begin(), temp_ins.end(), temp_ins.begin(), ::tolower);
-            }
-            ppInstrumentID2[md_num] = const_cast<char *>(temp_ins.c_str());
             md_num++;
         }
     }
@@ -158,7 +143,7 @@ int CtpMarketBaseApi::SubscribeMarketData(std::vector<utils::InstrumtntID> const
     }
 
     delete[] ppInstrumentID2;
-    ik = pthread_mutex_unlock(&md_InstrumentIDs.sm_mutex);
+    ik = pthread_mutex_unlock(&(md_InstrumentIDs.sm_mutex));
 
     return result;
 }
@@ -174,24 +159,15 @@ int CtpMarketBaseApi::UnSubscribeMarketData(std::vector<utils::InstrumtntID> con
         return result;
     }
 
-    int ik = pthread_mutex_lock(&md_InstrumentIDs.sm_mutex);
+    int ik = pthread_mutex_lock(&(md_InstrumentIDs.sm_mutex));
     char **ppInstrumentID2 = new char*[5000];
 
     for (int i = 0; i < nameVec.size(); i++)
     {
         if (md_InstrumentIDs.instrumentIDs.find(nameVec[i]) != end(md_InstrumentIDs.instrumentIDs))
         {
+            ppInstrumentID2[md_num] = const_cast<char *>(nameVec[i].ins.c_str());
             md_InstrumentIDs.instrumentIDs.erase(nameVec[i]);
-            string temp_ins = nameVec[i].ins;
-            if (contract_case_map[nameVec[i].exch] == true)
-            {
-                transform(temp_ins.begin(), temp_ins.end(), temp_ins.begin(), ::toupper);
-            }
-            else
-            {
-                transform(temp_ins.begin(), temp_ins.end(), temp_ins.begin(), ::tolower);
-            }
-            ppInstrumentID2[md_num] = const_cast<char *>(temp_ins.c_str());
             md_num++;
         }
     }
@@ -214,7 +190,7 @@ int CtpMarketBaseApi::UnSubscribeMarketData(std::vector<utils::InstrumtntID> con
     }
 
     delete[] ppInstrumentID2;
-    ik = pthread_mutex_unlock(&md_InstrumentIDs.sm_mutex);
+    ik = pthread_mutex_unlock(&(md_InstrumentIDs.sm_mutex));
 
     return result;
 }
@@ -273,6 +249,7 @@ bool CtpMarketApi::init()
     const std::string conPath = jsonCfg.getConfig("market","ConRelativePath").get<std::string>();
     utils::creatFolder(conPath);
     marketApi->CreateFtdcMdApi(conPath.c_str());
+    INFO_LOG("ctp version: %s", marketApi->GetApiVersion());
 
     marketSpi = new MarketSpi();
     marketApi->RegisterSpi(marketSpi);
@@ -287,6 +264,7 @@ bool CtpMarketApi::init()
     globalSem.waitSemBySemName(semName);
     globalSem.delOrderSem(semName);
 
+    sleep(1);
     INFO_LOG("market init ok.");
 }
 

@@ -28,7 +28,7 @@ bool ZmqBase::init()
     std::string netStr = jsonCfg.getConfig("market", "SubAddPort").get<std::string>();
     int result = zmq_connect(receiver, netStr.c_str());
     sleep(WAITTIME_FOR_ZMQ_INIT);
-    INFO_LOG("result = %d",result);
+    INFO_LOG("zmq_connect receiver result = %d",result);
     if(result != 0)
     {
         ERROR_LOG("receiver connect to %s failed",netStr.c_str());
@@ -37,7 +37,7 @@ bool ZmqBase::init()
     netStr = jsonCfg.getConfig("market", "PubAddPort").get<std::string>();
 
     result = zmq_connect(publisher, netStr.c_str());
-    INFO_LOG("result = %d",result);
+    INFO_LOG("zmq_connect publisher result = %d",result);
     if(result != 0)
     {
         ERROR_LOG("publisher connect to %s failed",netStr.c_str());

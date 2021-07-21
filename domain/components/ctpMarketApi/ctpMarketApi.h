@@ -11,7 +11,6 @@
 #include <set>
 #include <string>
 #include <vector>
-#include <map>
 
 #include "common/self/dci/Role.h"
 #include "market/domain/components/ctpMarketApi/marketTimeState.h"
@@ -29,7 +28,7 @@ class CtpMarketBaseApi
 {
 public:
     CtpMarketBaseApi() {};
-    CtpMarketBaseApi(CThostFtdcMdApi* _m_pApi):_m_pApi(_m_pApi) {};
+    CtpMarketBaseApi(CThostFtdcMdApi* _m_pApi) {};
 
     CThostFtdcMdApi *CreateFtdcMdApi(const char *pszFlowPath = "");
 
@@ -68,11 +67,7 @@ public:
     int ReqUserLogout(void);
 
     MD_InstrumentIDs md_InstrumentIDs;
-
-    std::map<std::string, bool> contract_case_map;
-
 private:
-    CThostFtdcMdApi* _m_pApi;
     int nRequestID = 0;
 };
 
