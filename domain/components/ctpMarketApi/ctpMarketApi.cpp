@@ -209,9 +209,9 @@ int CtpMarketBaseApi::ReqUserLogin()
 {
     CThostFtdcReqUserLoginField reqUserLogin = {0};;
     auto& jsonCfg = utils::JsonConfig::getInstance();
-    const std::string userID = jsonCfg.getConfig("market","UserID").get<std::string>();
-    const std::string brokerID = jsonCfg.getConfig("market","BrokerID").get<std::string>();
-    const std::string passWord = jsonCfg.getConfig("market","Password").get<std::string>();
+    const std::string userID = jsonCfg.getConfig("common","UserID").get<std::string>();
+    const std::string brokerID = jsonCfg.getConfig("common","BrokerID").get<std::string>();
+    const std::string passWord = jsonCfg.getConfig("common","Password").get<std::string>();
     strcpy(reqUserLogin.BrokerID, brokerID.c_str());
     strcpy(reqUserLogin.UserID, userID.c_str());
     strcpy(reqUserLogin.Password, passWord.c_str());
@@ -228,8 +228,8 @@ int CtpMarketBaseApi::ReqUserLogout()
 {
     CThostFtdcUserLogoutField reqUserLogout = {0};
     auto& jsonCfg = utils::JsonConfig::getInstance();
-    const std::string userID = jsonCfg.getConfig("market","UserID").get<std::string>();
-    const std::string brokerID = jsonCfg.getConfig("market","BrokerID").get<std::string>();
+    const std::string userID = jsonCfg.getConfig("common","UserID").get<std::string>();
+    const std::string brokerID = jsonCfg.getConfig("common","BrokerID").get<std::string>();
     strcpy(reqUserLogout.UserID, userID.c_str());
     strcpy(reqUserLogout.BrokerID, brokerID.c_str());
 
@@ -254,7 +254,7 @@ bool CtpMarketApi::init()
     marketSpi = new MarketSpi();
     marketApi->RegisterSpi(marketSpi);
 
-    std::string frontaddr = jsonCfg.getConfig("market","FrontMdAddr").get<std::string>();
+    std::string frontaddr = jsonCfg.getConfig("common", "FrontMdAddr").get<std::string>();
     marketApi->RegisterFront(const_cast<char *>(frontaddr.c_str()));
 
     marketApi->Init();

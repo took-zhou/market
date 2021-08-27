@@ -201,22 +201,21 @@ void MarketTimeState::initialize()
     string modeStr = jsonCfg.getConfig("market","LoginMode").get<std::string>();
     strcpy(input.loginMode, modeStr.c_str());
 
-    string timeStr = jsonCfg.getConfig("market","DayLoginTime").get<std::string>();
-    vector<string> timeVec = utils::splitString(timeStr,  ":");
-    input.day_login_mins = atoi(timeVec[0].c_str())*60 + atoi(timeVec[1].c_str());
+    string timeStr = jsonCfg.getConfig("market","LogInTimeList").get<std::string>();
+    vector<string> timeDurationSplited = utils::splitString(timeStr, ";");
+    vector<string> dayTimeStrSplit = utils::splitString(timeDurationSplited[0], "-");
+    vector<string> nightTimeStrSplit = utils::splitString(timeDurationSplited[1], "-");
+    vector<string> dayStartStrSplit = utils::splitString(dayTimeStrSplit[0], ":");
+    vector<string> dayEndStrSplit = utils::splitString(dayTimeStrSplit[1], ":");
+    vector<string> nightStartStrSplit = utils::splitString(nightTimeStrSplit[0], ":");
+    vector<string> nightEndStrSplit = utils::splitString(nightTimeStrSplit[1], ":");
 
-    timeStr = jsonCfg.getConfig("market","DayLogoutTime").get<std::string>();
-    timeVec= utils::splitString(timeStr,  ":");
-    input.day_logout_mins= atoi(timeVec[0].c_str())*60 + atoi(timeVec[1].c_str()) + 1;
+    input.day_login_mins = atoi(dayStartStrSplit[0].c_str())*60 + atoi(dayStartStrSplit[1].c_str());
+    input.day_logout_mins = atoi(dayEndStrSplit[0].c_str())*60 + atoi(dayEndStrSplit[1].c_str());
+    input.night_login_mins = atoi(nightStartStrSplit[0].c_str())*60 + atoi(nightStartStrSplit[1].c_str());
+    input.night_logout_mins = atoi(nightEndStrSplit[0].c_str())*60 + atoi(nightEndStrSplit[1].c_str());
 
-    timeStr = jsonCfg.getConfig("market","NightLoginTime").get<std::string>();
-    timeVec = utils::splitString(timeStr,  ":");
-    input.night_login_mins= atoi(timeVec[0].c_str())*60 + atoi(timeVec[1].c_str());
-
-    timeStr = jsonCfg.getConfig("market","NightLogoutTime").get<std::string>();
-    timeVec = utils::splitString(timeStr,  ":");
-    input.night_logout_mins= atoi(timeVec[0].c_str())*60 + atoi(timeVec[1].c_str()) + 1;
-
+    INFO_LOG("%d %d %d %d", input.day_login_mins, input.day_logout_mins, input.night_login_mins, input.night_logout_mins);
     timeStr = jsonCfg.getConfig("market","LoginTime").get<std::string>();
     strcpy(input.loginTime, timeStr.c_str());
 }
