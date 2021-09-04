@@ -12,11 +12,13 @@
 
 #include "market/domain/components/ctpMarketApi/ctpMarketApi.h"
 #include "market/domain/components/ctpMarketApi/marketTimeState.h"
+#include "market/domain/components/publishMarketState.h"
 #include "common/self/dci/Role.h"
 #include "common/extern/log/log.h"
 
 struct Market: CtpMarketApi
              , MarketTimeState
+             , publishState
 {
     bool init()
     {
@@ -34,11 +36,19 @@ struct Market: CtpMarketApi
         INFO_LOG("ctpMarketLogInOutFuc prepare ok");
         std::thread(ctpMarketLogInOutFuc).detach();
 
+        auto publishMarketStateFuc = [&](){
+            ROLE(publishState).publish();
+        };
+
+        INFO_LOG("publishMarketStateFuc prepare ok");
+        std::thread(publishMarketStateFuc).detach();
+
         return true;
     }
 
     IMPL_ROLE(CtpMarketApi);
     IMPL_ROLE(MarketTimeState);
+    IMPL_ROLE(publishState);
 };
 
 

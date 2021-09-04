@@ -395,10 +395,15 @@ void publishData::buildInstrumentList(const string keyname, std::vector<utils::I
         {
             tickDataPool tempData;
             tempData.id = nameVec[i];
-            if (instrumentList.find(tempData) == end(instrumentList))
+            auto pos = instrumentList.find(tempData);
+            if (pos == end(instrumentList))
             {
                 tempData.index = instrumentList.size();
                 instrumentList.insert(tempData);
+            }
+            else
+            {
+                tempData.index = pos->index;
             }
             tempControl.instrumentList.insert(tempData);
         }
@@ -420,4 +425,24 @@ std::vector<utils::InstrumtntID> publishData::getInstrumentList(void)
     }
 
     return instrument_vector;
+}
+
+void publishData::updatePublishInstrumentInfo(void)
+{
+    instrumentList.clear();
+    std::map<string, publishControl>::iterator iter;
+    U32 index_count = 0;
+    for (iter = publishCtrlMap.begin(); iter != publishCtrlMap.end(); iter++)
+    {
+
+        auto iter2 = iter->second.instrumentList.begin();
+        while (iter2 != iter->second.instrumentList.end())
+        {
+            iter2->index = index_count;
+            instrumentList.insert(*iter2);
+
+            index_count++;
+            iter2++;
+        }
+    }
 }

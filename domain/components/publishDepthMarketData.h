@@ -18,7 +18,7 @@
 struct tickDataPool
 {
     utils::InstrumtntID id;
-    int index;
+    mutable U32 index;
 };
 
 struct tickDataPoolSortCriterion
@@ -76,6 +76,8 @@ public:
     void setStartStopIndication(const std::string keyname, market_strategy::TickStartStopIndication_MessageType _indication);
     void setInterval(const std::string keyname, float _interval);
     void setDirectForwardingFlag(const std::string keyname, bool flag);
+
+    void updatePublishInstrumentInfo(void);
 private:
     std::set<tickDataPool, tickDataPoolSortCriterion> instrumentList;
     std::map<std::string, publishControl> publishCtrlMap;

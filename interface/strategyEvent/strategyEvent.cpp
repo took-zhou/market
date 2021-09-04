@@ -75,6 +75,15 @@ void StrategyEvent::TickSubscribeReqHandle(MsgStruct& msg)
         {
             insId.exch = "CZCE";
         }
+        else if (reqInfo.instrument_info_list(i).exchange_id() == market_strategy::InstrumentInfo_ExchangeId_CFFEX)
+        {
+            insId.exch = "CFFEX";
+        }
+        else if (reqInfo.instrument_info_list(i).exchange_id() == market_strategy::InstrumentInfo_ExchangeId_INE)
+        {
+            insId.exch = "INE";
+        }
+        
         insVec.push_back(insId);
         mapkeyname = mapkeyname + insId.ins;
     }
