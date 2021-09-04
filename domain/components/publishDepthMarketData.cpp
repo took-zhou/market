@@ -71,7 +71,7 @@ publishData::publishData()
     INFO_LOG("init share message address ok.");
 }
 
-void publishData::once_from_datafield(void)
+void publishData::once_from_datafield(std::map<std::string, publishControl>::iterator pc)
 {
     char timeArray[100] = {0};
     market_strategy::message tick;
@@ -82,8 +82,8 @@ void publishData::once_from_datafield(void)
 
     int ik = pthread_mutex_lock(&(tickData->sm_mutex));
 
-    auto instrument_iter = instrumentList.begin();
-    while (instrument_iter != instrumentList.end())
+    auto instrument_iter = pc->second.instrumentList.begin();
+    while (instrument_iter != pc->second.instrumentList.end())
     {
         if (instrument_iter->id.ins == string(tickData->datafield[instrument_iter->index].InstrumentID))
         {
@@ -91,72 +91,72 @@ void publishData::once_from_datafield(void)
             iter->set_state(market_strategy::TickData_TickState_active);
             iter->set_instrument_id(tickData->datafield[instrument_iter->index].InstrumentID);
 
-            if (keywordList.find("LastPrice") != end(keywordList))
+            if (pc->second.keywordList.find("LastPrice") != end(pc->second.keywordList))
             {
                 auto lastPrice = iter->mutable_last_price();
                 lastPrice->set_value(std::to_string(max2zero(tickData->datafield[instrument_iter->index].LastPrice)));
             }
-            if (keywordList.find("BidPrice1") != end(keywordList))
+            if (pc->second.keywordList.find("BidPrice1") != end(pc->second.keywordList))
             {
                 auto bidPrice1 = iter->mutable_bid_price1();
                 bidPrice1->set_value(std::to_string(max2zero(tickData->datafield[instrument_iter->index].BidPrice1)));
             }
-            if (keywordList.find("BidVolume1") != end(keywordList))
+            if (pc->second.keywordList.find("BidVolume1") != end(pc->second.keywordList))
             {
                 auto bidVolume1 = iter->mutable_bid_volume1();
                 bidVolume1->set_value(tickData->datafield[instrument_iter->index].BidVolume1);
             }
-            if (keywordList.find("AskPrice1") != end(keywordList))
+            if (pc->second.keywordList.find("AskPrice1") != end(pc->second.keywordList))
             {
                 auto askPrice1 = iter->mutable_ask_price1();
                 askPrice1->set_value(std::to_string(max2zero(tickData->datafield[instrument_iter->index].AskPrice1)));
             }
-            if (keywordList.find("AskVolume1") != end(keywordList))
+            if (pc->second.keywordList.find("AskVolume1") != end(pc->second.keywordList))
             {
                 auto askVolume1 = iter->mutable_ask_volume1();
                 askVolume1->set_value(tickData->datafield[instrument_iter->index].AskVolume1);
             }
-            if (keywordList.find("Turnover") != end(keywordList))
+            if (pc->second.keywordList.find("Turnover") != end(pc->second.keywordList))
             {
                 auto turnOver = iter->mutable_turnover();
                 turnOver->set_value(tickData->datafield[instrument_iter->index].Turnover);
             }
-            if (keywordList.find("OpenInterest") != end(keywordList))
+            if (pc->second.keywordList.find("OpenInterest") != end(pc->second.keywordList))
             {
                 auto openInterest = iter->mutable_open_interest();
                 openInterest->set_value(tickData->datafield[instrument_iter->index].OpenInterest);
             }
-            if (keywordList.find("UpperLimitPrice") != end(keywordList))
+            if (pc->second.keywordList.find("UpperLimitPrice") != end(pc->second.keywordList))
             {
                 auto upperLimitPrice = iter->mutable_upper_limit_price();
                 upperLimitPrice->set_value(std::to_string(max2zero(tickData->datafield[instrument_iter->index].UpperLimitPrice)));
             }
-            if (keywordList.find("LowerLimitPrice") != end(keywordList))
+            if (pc->second.keywordList.find("LowerLimitPrice") != end(pc->second.keywordList))
             {
                 auto lowerLimitPrice = iter->mutable_lower_limit_price();
                 lowerLimitPrice->set_value(std::to_string(max2zero(tickData->datafield[instrument_iter->index].LowerLimitPrice)));
             }
-            if (keywordList.find("OpenPrice") != end(keywordList))
+            if (pc->second.keywordList.find("OpenPrice") != end(pc->second.keywordList))
             {
                 auto openPrice = iter->mutable_open_price();
                 openPrice->set_value(std::to_string(max2zero(tickData->datafield[instrument_iter->index].OpenPrice)));
             }
-            if (keywordList.find("PreSettlementPrice") != end(keywordList))
+            if (pc->second.keywordList.find("PreSettlementPrice") != end(pc->second.keywordList))
             {
                 auto preSettleMentPrice = iter->mutable_pre_settlement_price();
                 preSettleMentPrice->set_value(std::to_string(max2zero(tickData->datafield[instrument_iter->index].PreSettlementPrice)));
             }
-            if (keywordList.find("PreClosePrice") != end(keywordList))
+            if (pc->second.keywordList.find("PreClosePrice") != end(pc->second.keywordList))
             {
                 auto preClosePrice = iter->mutable_pre_close_price();
                 preClosePrice->set_value(std::to_string(max2zero(tickData->datafield[instrument_iter->index].PreClosePrice)));
             }
-            if (keywordList.find("PreOpenInterest") != end(keywordList))
+            if (pc->second.keywordList.find("PreOpenInterest") != end(pc->second.keywordList))
             {
                 auto preOpenInterest = iter->mutable_pre_open_interest();
                 preOpenInterest->set_value(tickData->datafield[instrument_iter->index].PreOpenInterest);
             }
-            if (keywordList.find("Volume") != end(keywordList))
+            if (pc->second.keywordList.find("Volume") != end(pc->second.keywordList))
             {
                 auto volume = iter->mutable_volume();
                 volume->set_value(tickData->datafield[instrument_iter->index].Volume);
@@ -170,10 +170,12 @@ void publishData::once_from_datafield(void)
     tick.SerializeToString(&tickStr);
 
     auto& recerSender = RecerSender::getInstance();
-    recerSender.ROLE(Sender).ROLE(ProxySender).send("market_strategy.TickData", tickStr.c_str());
+    char temp_topic[100];
+    sprintf(temp_topic, "market_strategy.TickData.%s", pc->first.c_str());
+    recerSender.ROLE(Sender).ROLE(ProxySender).send(temp_topic, tickStr.c_str());
 }
 
-void publishData::once_from_dataflow(CThostFtdcDepthMarketDataField *pD)
+void publishData::once_from_dataflow(std::map<std::string, publishControl>::iterator pc, CThostFtdcDepthMarketDataField *pD)
 {
     char timeArray[100] = {0};
     market_strategy::message tick;
@@ -186,72 +188,72 @@ void publishData::once_from_dataflow(CThostFtdcDepthMarketDataField *pD)
     iter->set_state(market_strategy::TickData_TickState_active);
     iter->set_instrument_id(pD->InstrumentID);
 
-    if (keywordList.find("LastPrice") != end(keywordList))
+    if (pc->second.keywordList.find("LastPrice") != end(pc->second.keywordList))
     {
         auto lastPrice = iter->mutable_last_price();
         lastPrice->set_value(std::to_string(max2zero(pD->LastPrice)));
     }
-    if (keywordList.find("BidPrice1") != end(keywordList))
+    if (pc->second.keywordList.find("BidPrice1") != end(pc->second.keywordList))
     {
         auto bidPrice1 = iter->mutable_bid_price1();
         bidPrice1->set_value(std::to_string(max2zero(pD->BidPrice1)));
     }
-    if (keywordList.find("BidVolume1") != end(keywordList))
+    if (pc->second.keywordList.find("BidVolume1") != end(pc->second.keywordList))
     {
         auto bidVolume1 = iter->mutable_bid_volume1();
         bidVolume1->set_value(pD->BidVolume1);
     }
-    if (keywordList.find("AskPrice1") != end(keywordList))
+    if (pc->second.keywordList.find("AskPrice1") != end(pc->second.keywordList))
     {
         auto askPrice1 = iter->mutable_ask_price1();
         askPrice1->set_value(std::to_string(max2zero(pD->AskPrice1)));
     }
-    if (keywordList.find("AskVolume1") != end(keywordList))
+    if (pc->second.keywordList.find("AskVolume1") != end(pc->second.keywordList))
     {
         auto askVolume1 = iter->mutable_ask_volume1();
         askVolume1->set_value(pD->AskVolume1);
     }
-    if (keywordList.find("Turnover") != end(keywordList))
+    if (pc->second.keywordList.find("Turnover") != end(pc->second.keywordList))
     {
         auto turnOver = iter->mutable_turnover();
         turnOver->set_value(pD->Turnover);
     }
-    if (keywordList.find("OpenInterest") != end(keywordList))
+    if (pc->second.keywordList.find("OpenInterest") != end(pc->second.keywordList))
     {
         auto openInterest = iter->mutable_open_interest();
         openInterest->set_value(pD->OpenInterest);
     }
-    if (keywordList.find("UpperLimitPrice") != end(keywordList))
+    if (pc->second.keywordList.find("UpperLimitPrice") != end(pc->second.keywordList))
     {
         auto upperLimitPrice = iter->mutable_upper_limit_price();
         upperLimitPrice->set_value(std::to_string(max2zero(pD->UpperLimitPrice)));
     }
-    if (keywordList.find("LowerLimitPrice") != end(keywordList))
+    if (pc->second.keywordList.find("LowerLimitPrice") != end(pc->second.keywordList))
     {
         auto lowerLimitPrice = iter->mutable_lower_limit_price();
         lowerLimitPrice->set_value(std::to_string(max2zero(pD->LowerLimitPrice)));
     }
-    if (keywordList.find("OpenPrice") != end(keywordList))
+    if (pc->second.keywordList.find("OpenPrice") != end(pc->second.keywordList))
     {
         auto openPrice = iter->mutable_open_price();
         openPrice->set_value(std::to_string(max2zero(pD->OpenPrice)));
     }
-    if (keywordList.find("PreSettlementPrice") != end(keywordList))
+    if (pc->second.keywordList.find("PreSettlementPrice") != end(pc->second.keywordList))
     {
         auto preSettleMentPrice = iter->mutable_pre_settlement_price();
         preSettleMentPrice->set_value(std::to_string(max2zero(pD->PreSettlementPrice)));
     }
-    if (keywordList.find("PreClosePrice") != end(keywordList))
+    if (pc->second.keywordList.find("PreClosePrice") != end(pc->second.keywordList))
     {
         auto preClosePrice = iter->mutable_pre_close_price();
         preClosePrice->set_value(std::to_string(max2zero(pD->PreClosePrice)));
     }
-    if (keywordList.find("PreOpenInterest") != end(keywordList))
+    if (pc->second.keywordList.find("PreOpenInterest") != end(pc->second.keywordList))
     {
         auto preOpenInterest = iter->mutable_pre_open_interest();
         preOpenInterest->set_value(pD->PreOpenInterest);
     }
-    if (keywordList.find("Volume") != end(keywordList))
+    if (pc->second.keywordList.find("Volume") != end(pc->second.keywordList))
     {
         auto volume = iter->mutable_volume();
         volume->set_value(pD->Volume);
@@ -261,63 +263,64 @@ void publishData::once_from_dataflow(CThostFtdcDepthMarketDataField *pD)
     tick.SerializeToString(&tickStr);
 
     auto& recerSender = RecerSender::getInstance();
-    recerSender.ROLE(Sender).ROLE(ProxySender).send("market_strategy.TickData", tickStr.c_str());
+    char temp_topic[200];
+    sprintf(temp_topic, "market_strategy.TickData.%s", pD->InstrumentID);
+    recerSender.ROLE(Sender).ROLE(ProxySender).send(temp_topic, tickStr.c_str());
 }
 
-void publishData::publishToStrategy(void)
+void publishData::publishToStrategy(const string keyname)
 {
-    if (thread_uniqueness_cnt++ == 0)
+    std::map<string, publishControl>::iterator iter = publishCtrlMap.find(keyname);
+    if (iter != publishCtrlMap.end() && iter->second.thread_uniqueness_cnt++ == 0)
     {
         INFO_LOG("publishDataFuc prepare ok");
         while (1)
         {
-            if (indication == market_strategy::TickStartStopIndication_MessageType_start)
+            if (iter->second.indication == market_strategy::TickStartStopIndication_MessageType_start)
             {
                 auto& marketSer = MarketService::getInstance();
                 if (marketSer.ROLE(Market).ROLE(CtpMarketApi).getMarketLoginState() == LOGIN_STATE)
                 {
-                    once_from_datafield();
+                    once_from_datafield(iter);
                 }
             }
-            else if (indication == market_strategy::TickStartStopIndication_MessageType_stop)
+            else if (iter->second.indication == market_strategy::TickStartStopIndication_MessageType_stop)
             {
                 INFO_LOG("publishToStrategy is stopping.");
             }
-            else if (indication == market_strategy::TickStartStopIndication_MessageType_finish)
+            else if (iter->second.indication == market_strategy::TickStartStopIndication_MessageType_finish)
             {
                 INFO_LOG("is going to exit publishToStrategy thread.");
-                indication = market_strategy::TickStartStopIndication_MessageType_reserve;
-                keywordList.clear();
-                instrumentList.clear();
-                thread_uniqueness_cnt = 0;
+                publishCtrlMap.erase(iter);
                 break;
             }
-            usleep(interval);
+            usleep(iter->second.interval);
         }
     }
 }
 
 void publishData::directForwardDataToStrategy(CThostFtdcDepthMarketDataField * pD)
 {
-    if (indication == market_strategy::TickStartStopIndication_MessageType_start)
+    std::map<string, publishControl>::iterator iter = publishCtrlMap.find(pD->InstrumentID);
+    if (iter != publishCtrlMap.end() && iter->second.directforward == true)
     {
-        auto& marketSer = MarketService::getInstance();
-        if (marketSer.ROLE(Market).ROLE(CtpMarketApi).getMarketLoginState() == LOGIN_STATE)
+        if (iter->second.indication == market_strategy::TickStartStopIndication_MessageType_start)
         {
-            once_from_dataflow(pD);
+            auto& marketSer = MarketService::getInstance();
+            if (marketSer.ROLE(Market).ROLE(CtpMarketApi).getMarketLoginState() == LOGIN_STATE)
+            {
+                once_from_dataflow(iter, pD);
+            }
         }
-    }
-    else if (indication == market_strategy::TickStartStopIndication_MessageType_stop)
-    {
-        INFO_LOG("publishToStrategy is stopping.");
-    }
-    else if (indication == market_strategy::TickStartStopIndication_MessageType_finish)
-    {
-        INFO_LOG("is going to exit publishToStrategy thread.");
-        indication = market_strategy::TickStartStopIndication_MessageType_reserve;
-        directforward = false;
-        keywordList.clear();
-        instrumentList.clear();
+        else if (iter->second.indication == market_strategy::TickStartStopIndication_MessageType_stop)
+        {
+            INFO_LOG("publishToStrategy is stopping.");
+        }
+        else if (iter->second.indication == market_strategy::TickStartStopIndication_MessageType_finish)
+        {
+            INFO_LOG("is going to exit publishToStrategy thread.");
+            publishCtrlMap.erase(iter);
+        }
     }
 }
 
@@ -338,63 +341,71 @@ void publishData::insertDataToTickDataPool(CThostFtdcDepthMarketDataField * pD)
     ik = pthread_mutex_unlock(&(tickData->sm_mutex));
 }
 
-void publishData::setInterval(float _interval)
+void publishData::setInterval(const std::string keyname, float _interval)
 {
-    interval = (U32)(_interval*1000000);
-}
-
-void publishData::setDirectForwardingFlag(bool flag)
-{
-    directforward = flag;
-}
-
-bool publishData::isDirectForwarding(void)
-{
-    return directforward;
-}
-
-void publishData::setStartStopIndication(market_strategy::TickStartStopIndication_MessageType _indication)
-{
-    indication = _indication;
-}
-
-void publishData::buildKeywordList(std::vector<std::string> &keyword)
-{
-    for (int i = 0; i < keyword.size(); i++)
+    std::map<string, publishControl>::iterator iter = publishCtrlMap.find(keyname);
+    if (iter != publishCtrlMap.end())
     {
-        if (keywordList.find(keyword[i]) == end(keywordList))
+        iter->second.interval = (U32)(_interval*1000000);
+    }
+}
+
+void publishData::setDirectForwardingFlag(const std::string keyname, bool flag)
+{
+    std::map<string, publishControl>::iterator iter = publishCtrlMap.find(keyname);
+    if (iter != publishCtrlMap.end())
+    {
+        iter->second.directforward = flag;
+    }
+}
+
+void publishData::setStartStopIndication(const std::string keyname, market_strategy::TickStartStopIndication_MessageType _indication)
+{
+    std::map<string, publishControl>::iterator iter = publishCtrlMap.find(keyname);
+    if (iter != publishCtrlMap.end())
+    {
+        iter->second.indication = _indication;
+    }
+    else
+    {
+        ERROR_LOG("Please first send tickdatareq action, keyname: %s.", keyname.c_str());
+    }
+}
+
+void publishData::buildKeywordList(const string keyname, std::vector<std::string> &keyword)
+{
+    std::map<string, publishControl>::iterator iter = publishCtrlMap.find(keyname);
+    if (iter != publishCtrlMap.end())
+    {
+        iter->second.keywordList.clear();
+        for (int i = 0; i < keyword.size(); i++)
         {
-            keywordList.insert(keyword[i]);
+            iter->second.keywordList.insert(keyword[i]);
         }
     }
 }
 
-void publishData::buildInstrumentList(std::vector<utils::InstrumtntID> const &nameVec)
+void publishData::buildInstrumentList(const string keyname, std::vector<utils::InstrumtntID> const &nameVec)
 {
-    for (int i = 0; i < nameVec.size(); i++)
+    std::map<string, publishControl>::iterator iter = publishCtrlMap.find(keyname);
+    if (iter == publishCtrlMap.end())
     {
-        tickDataPool tempData;
-        tempData.id = nameVec[i];
-        if (instrumentList.find(tempData) == end(instrumentList))
+        publishControl tempControl;
+        for (int i = 0; i < nameVec.size(); i++)
         {
-            tempData.index = instrumentList.size();
-            instrumentList.insert(tempData);
+            tickDataPool tempData;
+            tempData.id = nameVec[i];
+            if (instrumentList.find(tempData) == end(instrumentList))
+            {
+                tempData.index = instrumentList.size();
+                instrumentList.insert(tempData);
+            }
+            tempControl.instrumentList.insert(tempData);
         }
-    }
-}
 
-std::vector<std::string> publishData::getKeywordList(void)
-{
-    std::vector<std::string> keyword_vector;
-    keyword_vector.clear();
-    auto iter = keywordList.begin();
-    while (iter != keywordList.end())
-    {
-        keyword_vector.push_back(*iter);
-        iter++;
+        INFO_LOG("insert keyname: %s", keyname.c_str());
+        publishCtrlMap.insert(make_pair(keyname, tempControl));
     }
-
-    return keyword_vector;
 }
 
 std::vector<utils::InstrumtntID> publishData::getInstrumentList(void)

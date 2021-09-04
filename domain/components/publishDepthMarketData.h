@@ -44,37 +44,41 @@ struct deepTickData
     CThostFtdcDepthMarketDataField datafield[MARKET_BUF_SIZE];
 };
 
-struct publishData :public marketData{
-public:
-    publishData();
-    ~publishData() {};
-    void buildKeywordList(std::vector<std::string> &keyword);
-    void buildInstrumentList(std::vector<utils::InstrumtntID> const &nameVec);
-
-    std::vector<std::string> getKeywordList(void);
-    std::vector<utils::InstrumtntID> getInstrumentList(void);
-
-    void insertDataToTickDataPool(CThostFtdcDepthMarketDataField *pD);
-    void directForwardDataToStrategy(CThostFtdcDepthMarketDataField *pD);
-    // 传输给策略端
-    void publishToStrategy(void);
-    void once_from_datafield(void);
-    void once_from_dataflow(CThostFtdcDepthMarketDataField *pD);
-
-    deepTickData *tickData;
-    void setStartStopIndication(market_strategy::TickStartStopIndication_MessageType _indication);
-    void setInterval(float _interval);
-    void setDirectForwardingFlag(bool flag);
-    bool isDirectForwarding(void);
-
-private:
-    std::set<std::string> keywordList;
+struct publishControl
+{
     std::set<tickDataPool, tickDataPoolSortCriterion> instrumentList;
+    std::set<std::string> keywordList;
     market_strategy::TickStartStopIndication_MessageType indication = market_strategy::TickStartStopIndication_MessageType_reserve;
     // 单位us
     U32 interval = 0;
     bool directforward = false;
     int thread_uniqueness_cnt = 0;
+};
+
+struct publishData :public marketData{
+public:
+    publishData();
+    ~publishData() {};
+
+    std::vector<utils::InstrumtntID> getInstrumentList(void);
+
+    // 直接传输到策略端
+    void directForwardDataToStrategy(CThostFtdcDepthMarketDataField *pD);
+    void once_from_dataflow(std::map<std::string, publishControl>::iterator pc, CThostFtdcDepthMarketDataField *pD);
+    // 先暂存共享内存，再传输给策略端
+    void publishToStrategy(const std::string keyname);
+    void once_from_datafield(std::map<std::string, publishControl>::iterator pc);
+    void insertDataToTickDataPool(CThostFtdcDepthMarketDataField *pD);
+
+    deepTickData *tickData;
+    void buildKeywordList(const std::string keyname, std::vector<std::string> &keyword);
+    void buildInstrumentList(const std::string keyname, std::vector<utils::InstrumtntID> const &nameVec);
+    void setStartStopIndication(const std::string keyname, market_strategy::TickStartStopIndication_MessageType _indication);
+    void setInterval(const std::string keyname, float _interval);
+    void setDirectForwardingFlag(const std::string keyname, bool flag);
+private:
+    std::set<tickDataPool, tickDataPoolSortCriterion> instrumentList;
+    std::map<std::string, publishControl> publishCtrlMap;
 };
 
 #endif

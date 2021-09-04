@@ -51,6 +51,7 @@ void StrategyEvent::TickSubscribeReqHandle(MsgStruct& msg)
 {
     vector<string> keywordVec;
     vector<utils::InstrumtntID> insVec;
+    string mapkeyname = "";
     insVec.clear();
     keywordVec.clear();
 
@@ -75,6 +76,7 @@ void StrategyEvent::TickSubscribeReqHandle(MsgStruct& msg)
             insId.exch = "CZCE";
         }
         insVec.push_back(insId);
+        mapkeyname = mapkeyname + insId.ins;
     }
 
     for (int i = 0; i < reqInfo.keyword_size(); i++)
@@ -83,22 +85,22 @@ void StrategyEvent::TickSubscribeReqHandle(MsgStruct& msg)
     }
 
     auto& marketSer = MarketService::getInstance();
-    marketSer.ROLE(publishData).buildInstrumentList(insVec);
-    marketSer.ROLE(publishData).buildKeywordList(keywordVec);
+    marketSer.ROLE(publishData).buildInstrumentList(mapkeyname, insVec);
+    marketSer.ROLE(publishData).buildKeywordList(mapkeyname, keywordVec);
 
     if (reqInfo.interval() == "raw")
     {
-        marketSer.ROLE(publishData).setDirectForwardingFlag(true);
+        marketSer.ROLE(publishData).setDirectForwardingFlag(mapkeyname, true);
     }
     else
     {
-        marketSer.ROLE(publishData).setInterval(float(std::atof(reqInfo.interval().c_str())));
-        marketSer.ROLE(publishData).setDirectForwardingFlag(false);
-        // 开启发布线程
-        auto publishDataFuc = [&](){
-            marketSer.ROLE(publishData).publishToStrategy();
+        marketSer.ROLE(publishData).setInterval(mapkeyname, float(std::atof(reqInfo.interval().c_str())));
+        marketSer.ROLE(publishData).setDirectForwardingFlag(mapkeyname, false);
+        //  开启发布线程
+        auto publishDataFuc = [&](const string name){
+            marketSer.ROLE(publishData).publishToStrategy(name);
         };
-        std::thread(publishDataFuc).detach();
+        std::thread(publishDataFuc, mapkeyname).detach();
     }
 
     if (marketSer.ROLE(Market).ROLE(CtpMarketApi).marketApi != nullptr)
@@ -113,10 +115,16 @@ void StrategyEvent::TickSubscribeReqHandle(MsgStruct& msg)
 
 void StrategyEvent::TickStartStopIndicationHandle(MsgStruct& msg)
 {
+    string mapkeyname = "";
     market_strategy::message _indication;
     _indication.ParseFromString(msg.pbMsg);
     auto indication = _indication.tick_start_stop_indication();
 
+    for (int i = 0; i < indication.instrument_info_list_size(); i++)
+    {
+        mapkeyname = mapkeyname + indication.instrument_info_list(i).instrument_id();
+    }
+
     auto& marketSer = MarketService::getInstance();
-    marketSer.ROLE(publishData).setStartStopIndication(indication.type());
+    marketSer.ROLE(publishData).setStartStopIndication(mapkeyname, indication.type());
 }

@@ -66,12 +66,9 @@ void CtpEvent::DeepMarktDataHandle(MsgStruct& msg)
     {
         marketSer.ROLE(loadData).LoadDepthMarketDataToCsv(deepdata);
     }
-    else if (marketSer.ROLE(publishData).isDirectForwarding() == true)
-    {
-        marketSer.ROLE(publishData).directForwardDataToStrategy(deepdata);
-    }
     else
     {
+        marketSer.ROLE(publishData).directForwardDataToStrategy(deepdata);
         marketSer.ROLE(publishData).insertDataToTickDataPool(deepdata);
     }
 
