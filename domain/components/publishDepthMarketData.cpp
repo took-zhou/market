@@ -427,6 +427,27 @@ std::vector<utils::InstrumtntID> publishData::getInstrumentList(void)
     return instrument_vector;
 }
 
+std::vector<std::vector<utils::InstrumtntID>> publishData::getPublishList(void)
+{
+    std::vector<std::vector<utils::InstrumtntID>> temp_vec;
+    temp_vec.clear();
+    std::map<string, publishControl>::iterator iter;
+    
+    for (iter = publishCtrlMap.begin(); iter != publishCtrlMap.end(); iter++)
+    {
+        std::vector<utils::InstrumtntID> instrument_vector;
+        instrument_vector.clear();
+        auto iter2 = iter->second.instrumentList.begin();
+        while (iter2 != iter->second.instrumentList.end())
+        {
+            instrument_vector.push_back(iter2->id);
+        }
+        temp_vec.push_back(instrument_vector);
+    }
+
+    return temp_vec;
+}
+
 void publishData::updatePublishInstrumentInfo(void)
 {
     instrumentList.clear();

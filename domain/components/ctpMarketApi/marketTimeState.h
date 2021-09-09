@@ -10,6 +10,15 @@ enum MARKET_TIME_STATE
     LOGOUT_TIME = 2
 };
 
+enum LOGIN_STATE
+{
+    IN_day_login = 1,
+    IN_day_logout =2,
+    IN_init_sts = 3,
+    IN_night_login = 4,
+    IN_night_logout = 5
+};
+
 typedef struct
 {
     U8 is_active_MarketTimeState;
@@ -59,9 +68,8 @@ public:
 
     ERROR_STATUS * getRTM();
 
-private:
     DW rtDW = {0};
-
+private:
     ERROR_STATUS rtM;
 
     // private member function(s) for subsystem '<Root>'
@@ -70,7 +78,7 @@ private:
     U32 isDuringDayLoginTime(void);
     U32 isDuringNightLoginTime(void);
     void determineLoginMode(void);
-  };
+};
 
 
 #endif

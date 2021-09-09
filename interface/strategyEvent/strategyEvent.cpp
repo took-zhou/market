@@ -63,27 +63,7 @@ void StrategyEvent::TickSubscribeReqHandle(MsgStruct& msg)
     {
         utils::InstrumtntID insId;
         insId.ins = reqInfo.instrument_info_list(i).instrument_id();
-        if (reqInfo.instrument_info_list(i).exchange_id() == market_strategy::InstrumentInfo_ExchangeId_DCE)
-        {
-            insId.exch = "DCE";
-        }
-        else if (reqInfo.instrument_info_list(i).exchange_id() == market_strategy::InstrumentInfo_ExchangeId_SHFE)
-        {
-            insId.exch = "SHFE";
-        }
-        else if (reqInfo.instrument_info_list(i).exchange_id() == market_strategy::InstrumentInfo_ExchangeId_CZCE)
-        {
-            insId.exch = "CZCE";
-        }
-        else if (reqInfo.instrument_info_list(i).exchange_id() == market_strategy::InstrumentInfo_ExchangeId_CFFEX)
-        {
-            insId.exch = "CFFEX";
-        }
-        else if (reqInfo.instrument_info_list(i).exchange_id() == market_strategy::InstrumentInfo_ExchangeId_INE)
-        {
-            insId.exch = "INE";
-        }
-        
+        insId.exch = reqInfo.instrument_info_list(i).exchange_id();
         insVec.push_back(insId);
         mapkeyname = mapkeyname + insId.ins;
     }

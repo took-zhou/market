@@ -12,11 +12,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#define IN_day_login                   ((U8)1U)
-#define IN_day_logout                  ((U8)2U)
-#define IN_init_sts                    ((U8)3U)
-#define IN_night_login                 ((U8)4U)
-#define IN_night_logout                ((U8)5U)
+
 
 U32 MarketTimeState::isDuringDayLogoutTime(void)
 {
