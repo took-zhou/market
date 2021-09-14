@@ -432,7 +432,7 @@ std::vector<std::vector<utils::InstrumtntID>> publishData::getPublishList(void)
     std::vector<std::vector<utils::InstrumtntID>> temp_vec;
     temp_vec.clear();
     std::map<string, publishControl>::iterator iter;
-    
+
     for (iter = publishCtrlMap.begin(); iter != publishCtrlMap.end(); iter++)
     {
         std::vector<utils::InstrumtntID> instrument_vector;
@@ -441,6 +441,7 @@ std::vector<std::vector<utils::InstrumtntID>> publishData::getPublishList(void)
         while (iter2 != iter->second.instrumentList.end())
         {
             instrument_vector.push_back(iter2->id);
+            iter2++;
         }
         temp_vec.push_back(instrument_vector);
     }

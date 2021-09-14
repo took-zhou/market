@@ -135,6 +135,7 @@ void CtpEvent::LogoutInfoHandle(MsgStruct& msg)
             marketSer.ROLE(loadData).ClassifyContractFiles();
         }
         marketSer.ROLE(publishData).updatePublishInstrumentInfo();
+        marketSer.ROLE(publishState).publish();
 
         marketSer.ROLE(Market).release();
         delete (CThostFtdcRspInfoField*)ctpMsg;
