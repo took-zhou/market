@@ -27,7 +27,6 @@
 
 using namespace std;
 
-
 marketData::marketData()
 {
     md_Instrument_Exhange.clear();
@@ -103,17 +102,16 @@ std::string marketData::findExchange(std::string ins)
 
 bool marketData::getLocalTime(char *t_arr)
 {
-    //system time
-    time_t now_time = time(NULL);
-    //local time
-    tm* local_time = localtime(&now_time);
-    sprintf(t_arr, "%d-%02d-%02d-%02d:%02d:%02d.000",
-        local_time->tm_year + 1900,
-        local_time->tm_mon + 1,
-        local_time->tm_mday,
-        local_time->tm_hour,
-        local_time->tm_min,
-        local_time->tm_sec);
+    struct timeval curTime;
+    gettimeofday(&curTime, NULL);
+    int milli = curTime.tv_usec / 1000;
+
+    char buffer[80] = {0};
+    struct tm nowTime;
+    localtime_r(&curTime.tv_sec, &nowTime);//把得到的值存入临时分配的内存中，线程安全
+    strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", &nowTime);
+
+    sprintf(t_arr, "%s.%03d", buffer, milli);
 }
 
 bool marketData::getLocalTime(long &stamp)
