@@ -93,73 +93,59 @@ void publishData::once_from_datafield(std::map<std::string, publishControl>::ite
 
             if (pc->second.keywordList.find("LastPrice") != end(pc->second.keywordList))
             {
-                auto lastPrice = iter->mutable_last_price();
-                lastPrice->set_value(std::to_string(max2zero(tickData->datafield[instrument_iter->index].LastPrice)));
+                iter->set_last_price(std::to_string(max2zero(tickData->datafield[instrument_iter->index].LastPrice)));
             }
             if (pc->second.keywordList.find("BidPrice1") != end(pc->second.keywordList))
             {
-                auto bidPrice1 = iter->mutable_bid_price1();
-                bidPrice1->set_value(std::to_string(max2zero(tickData->datafield[instrument_iter->index].BidPrice1)));
+                iter->set_bid_price1(std::to_string(max2zero(tickData->datafield[instrument_iter->index].BidPrice1)));
             }
             if (pc->second.keywordList.find("BidVolume1") != end(pc->second.keywordList))
             {
-                auto bidVolume1 = iter->mutable_bid_volume1();
-                bidVolume1->set_value(tickData->datafield[instrument_iter->index].BidVolume1);
+                iter->set_bid_volume1(tickData->datafield[instrument_iter->index].BidVolume1);
             }
             if (pc->second.keywordList.find("AskPrice1") != end(pc->second.keywordList))
             {
-                auto askPrice1 = iter->mutable_ask_price1();
-                askPrice1->set_value(std::to_string(max2zero(tickData->datafield[instrument_iter->index].AskPrice1)));
+                iter->set_ask_price1(std::to_string(max2zero(tickData->datafield[instrument_iter->index].AskPrice1)));
             }
             if (pc->second.keywordList.find("AskVolume1") != end(pc->second.keywordList))
             {
-                auto askVolume1 = iter->mutable_ask_volume1();
-                askVolume1->set_value(tickData->datafield[instrument_iter->index].AskVolume1);
+                iter->set_ask_volume1(tickData->datafield[instrument_iter->index].AskVolume1);
             }
             if (pc->second.keywordList.find("Turnover") != end(pc->second.keywordList))
             {
-                auto turnOver = iter->mutable_turnover();
-                turnOver->set_value(tickData->datafield[instrument_iter->index].Turnover);
+                iter->set_turnover(tickData->datafield[instrument_iter->index].Turnover);
             }
             if (pc->second.keywordList.find("OpenInterest") != end(pc->second.keywordList))
             {
-                auto openInterest = iter->mutable_open_interest();
-                openInterest->set_value(tickData->datafield[instrument_iter->index].OpenInterest);
+                iter->set_open_interest(tickData->datafield[instrument_iter->index].OpenInterest);
             }
             if (pc->second.keywordList.find("UpperLimitPrice") != end(pc->second.keywordList))
             {
-                auto upperLimitPrice = iter->mutable_upper_limit_price();
-                upperLimitPrice->set_value(std::to_string(max2zero(tickData->datafield[instrument_iter->index].UpperLimitPrice)));
+                iter->set_upper_limit_price(std::to_string(max2zero(tickData->datafield[instrument_iter->index].UpperLimitPrice)));
             }
             if (pc->second.keywordList.find("LowerLimitPrice") != end(pc->second.keywordList))
             {
-                auto lowerLimitPrice = iter->mutable_lower_limit_price();
-                lowerLimitPrice->set_value(std::to_string(max2zero(tickData->datafield[instrument_iter->index].LowerLimitPrice)));
+                iter->set_lower_limit_price(std::to_string(max2zero(tickData->datafield[instrument_iter->index].LowerLimitPrice)));
             }
             if (pc->second.keywordList.find("OpenPrice") != end(pc->second.keywordList))
             {
-                auto openPrice = iter->mutable_open_price();
-                openPrice->set_value(std::to_string(max2zero(tickData->datafield[instrument_iter->index].OpenPrice)));
+                iter->set_open_price(std::to_string(max2zero(tickData->datafield[instrument_iter->index].OpenPrice)));
             }
             if (pc->second.keywordList.find("PreSettlementPrice") != end(pc->second.keywordList))
             {
-                auto preSettleMentPrice = iter->mutable_pre_settlement_price();
-                preSettleMentPrice->set_value(std::to_string(max2zero(tickData->datafield[instrument_iter->index].PreSettlementPrice)));
+                iter->set_pre_settlement_price(std::to_string(max2zero(tickData->datafield[instrument_iter->index].PreSettlementPrice)));
             }
             if (pc->second.keywordList.find("PreClosePrice") != end(pc->second.keywordList))
             {
-                auto preClosePrice = iter->mutable_pre_close_price();
-                preClosePrice->set_value(std::to_string(max2zero(tickData->datafield[instrument_iter->index].PreClosePrice)));
+                iter->set_pre_close_price(std::to_string(max2zero(tickData->datafield[instrument_iter->index].PreClosePrice)));
             }
             if (pc->second.keywordList.find("PreOpenInterest") != end(pc->second.keywordList))
             {
-                auto preOpenInterest = iter->mutable_pre_open_interest();
-                preOpenInterest->set_value(tickData->datafield[instrument_iter->index].PreOpenInterest);
+                iter->set_pre_open_interest(tickData->datafield[instrument_iter->index].PreOpenInterest);
             }
             if (pc->second.keywordList.find("Volume") != end(pc->second.keywordList))
             {
-                auto volume = iter->mutable_volume();
-                volume->set_value(tickData->datafield[instrument_iter->index].Volume);
+                iter->set_volume(tickData->datafield[instrument_iter->index].Volume);
             }
         }
 
@@ -190,73 +176,59 @@ void publishData::once_from_dataflow(std::map<std::string, publishControl>::iter
 
     if (pc->second.keywordList.find("LastPrice") != end(pc->second.keywordList))
     {
-        auto lastPrice = iter->mutable_last_price();
-        lastPrice->set_value(std::to_string(max2zero(pD->LastPrice)));
+        iter->set_last_price(std::to_string(max2zero(pD->LastPrice)));
     }
     if (pc->second.keywordList.find("BidPrice1") != end(pc->second.keywordList))
     {
-        auto bidPrice1 = iter->mutable_bid_price1();
-        bidPrice1->set_value(std::to_string(max2zero(pD->BidPrice1)));
+        iter->set_bid_price1(std::to_string(max2zero(pD->BidPrice1)));
     }
     if (pc->second.keywordList.find("BidVolume1") != end(pc->second.keywordList))
     {
-        auto bidVolume1 = iter->mutable_bid_volume1();
-        bidVolume1->set_value(pD->BidVolume1);
+        iter->set_bid_volume1(pD->BidVolume1);
     }
     if (pc->second.keywordList.find("AskPrice1") != end(pc->second.keywordList))
     {
-        auto askPrice1 = iter->mutable_ask_price1();
-        askPrice1->set_value(std::to_string(max2zero(pD->AskPrice1)));
+        iter->set_ask_price1(std::to_string(max2zero(pD->AskPrice1)));
     }
     if (pc->second.keywordList.find("AskVolume1") != end(pc->second.keywordList))
     {
-        auto askVolume1 = iter->mutable_ask_volume1();
-        askVolume1->set_value(pD->AskVolume1);
+        iter->set_ask_volume1(pD->AskVolume1);
     }
     if (pc->second.keywordList.find("Turnover") != end(pc->second.keywordList))
     {
-        auto turnOver = iter->mutable_turnover();
-        turnOver->set_value(pD->Turnover);
+        iter->set_turnover(pD->Turnover);
     }
     if (pc->second.keywordList.find("OpenInterest") != end(pc->second.keywordList))
     {
-        auto openInterest = iter->mutable_open_interest();
-        openInterest->set_value(pD->OpenInterest);
+        iter->set_open_interest(pD->OpenInterest);
     }
     if (pc->second.keywordList.find("UpperLimitPrice") != end(pc->second.keywordList))
     {
-        auto upperLimitPrice = iter->mutable_upper_limit_price();
-        upperLimitPrice->set_value(std::to_string(max2zero(pD->UpperLimitPrice)));
+        iter->set_upper_limit_price(std::to_string(max2zero(pD->UpperLimitPrice)));
     }
     if (pc->second.keywordList.find("LowerLimitPrice") != end(pc->second.keywordList))
     {
-        auto lowerLimitPrice = iter->mutable_lower_limit_price();
-        lowerLimitPrice->set_value(std::to_string(max2zero(pD->LowerLimitPrice)));
+        iter->set_lower_limit_price(std::to_string(max2zero(pD->LowerLimitPrice)));
     }
     if (pc->second.keywordList.find("OpenPrice") != end(pc->second.keywordList))
     {
-        auto openPrice = iter->mutable_open_price();
-        openPrice->set_value(std::to_string(max2zero(pD->OpenPrice)));
+        iter->set_open_price(std::to_string(max2zero(pD->OpenPrice)));
     }
     if (pc->second.keywordList.find("PreSettlementPrice") != end(pc->second.keywordList))
     {
-        auto preSettleMentPrice = iter->mutable_pre_settlement_price();
-        preSettleMentPrice->set_value(std::to_string(max2zero(pD->PreSettlementPrice)));
+        iter->set_pre_settlement_price(std::to_string(max2zero(pD->PreSettlementPrice)));
     }
     if (pc->second.keywordList.find("PreClosePrice") != end(pc->second.keywordList))
     {
-        auto preClosePrice = iter->mutable_pre_close_price();
-        preClosePrice->set_value(std::to_string(max2zero(pD->PreClosePrice)));
+        iter->set_pre_close_price(std::to_string(max2zero(pD->PreClosePrice)));
     }
     if (pc->second.keywordList.find("PreOpenInterest") != end(pc->second.keywordList))
     {
-        auto preOpenInterest = iter->mutable_pre_open_interest();
-        preOpenInterest->set_value(pD->PreOpenInterest);
+        iter->set_pre_open_interest(pD->PreOpenInterest);
     }
     if (pc->second.keywordList.find("Volume") != end(pc->second.keywordList))
     {
-        auto volume = iter->mutable_volume();
-        volume->set_value(pD->Volume);
+        iter->set_volume(pD->Volume);
     }
 
     std::string tickStr;

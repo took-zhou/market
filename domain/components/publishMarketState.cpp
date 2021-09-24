@@ -3,6 +3,7 @@
 #include "market/infra/recerSender.h"
 #include "market/domain/marketService.h"
 #include "market/domain/components/ctpMarketApi/marketTimeState.h"
+#include "common/extern/log/log.h"
 
 #include <unistd.h>
 
@@ -45,6 +46,7 @@ void publishState::publish(void)
                 recerSender.ROLE(Sender).ROLE(ProxySender).send("market_strategy.TickMaketClose", tickStr.c_str());
                 sleep(1);
             }
+            INFO_LOG("Publish makret close state.");
         }
         else
         {
