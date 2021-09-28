@@ -61,16 +61,15 @@ bool MarketEvent::run()
                 ERROR_LOG(" invalid msg, session is [%s], msgName is [%s]",msg.sessionName.c_str(), msg.msgName.c_str());
                 continue;
             }
-            auto eventFunc = [this, msg]
+
+            if(sessionFuncMap.find(msg.sessionName) != sessionFuncMap.end())
             {
-                if(sessionFuncMap.find(msg.sessionName) != sessionFuncMap.end())
-                {
-                    sessionFuncMap[msg.sessionName](msg);
-                    return;
-                }
-                ERROR_LOG("can not find[%s] in sessionFuncMap",msg.sessionName.c_str());
-            };
-            std::thread(eventFunc).detach();
+                sessionFuncMap[msg.sessionName](msg);
+            }
+            else
+            {
+                ERROR_LOG("can not find[%s] in sessionFuncMap", msg.sessionName.c_str());
+            }
         }
     };
     INFO_LOG("proxyRecRun prepare ok");
@@ -90,6 +89,10 @@ bool MarketEvent::run()
             if(sessionFuncMap.find(msg.sessionName) != sessionFuncMap.end())
             {
                 sessionFuncMap[msg.sessionName](msg);
+            }
+            else
+            {
+                ERROR_LOG("can not find[%s] in sessionFuncMap", msg.sessionName.c_str());
             }
         }
     };

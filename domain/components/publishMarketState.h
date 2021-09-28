@@ -6,8 +6,6 @@ public:
     publishState();
     void publish(void);
     ~publishState() {};
-private:
-    unsigned int publish_count = 0;
 };
 
 #endif

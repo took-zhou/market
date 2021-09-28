@@ -105,6 +105,7 @@ void CtpEvent::LoginInfoHandle(MsgStruct& msg)
         {
             marketSer.ROLE(Market).ROLE(CtpMarketApi).reqInstrumentsFromStrategy();
         }
+        marketSer.ROLE(publishState).publish();
 
         std::string semName = "market_login";
         globalSem.postSemBySemName(semName);

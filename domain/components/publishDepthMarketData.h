@@ -61,7 +61,7 @@ public:
     ~publishData() {};
 
     std::vector<utils::InstrumtntID> getInstrumentList(void);
-    std::vector<std::vector<utils::InstrumtntID>> getPublishList(void);
+    std::vector<std::string> getKeyNameList(void);
 
     // 直接传输到策略端
     void directForwardDataToStrategy(CThostFtdcDepthMarketDataField *pD);

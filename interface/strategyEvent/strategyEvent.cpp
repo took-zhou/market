@@ -65,8 +65,9 @@ void StrategyEvent::TickSubscribeReqHandle(MsgStruct& msg)
         insId.ins = reqInfo.instrument_info_list(i).instrument_id();
         insId.exch = reqInfo.instrument_info_list(i).exchange_id();
         insVec.push_back(insId);
-        mapkeyname = mapkeyname + insId.ins;
     }
+
+    mapkeyname = reqInfo.process_random_id();
 
     for (int i = 0; i < reqInfo.keyword_size(); i++)
     {
@@ -109,11 +110,7 @@ void StrategyEvent::TickStartStopIndicationHandle(MsgStruct& msg)
     _indication.ParseFromString(msg.pbMsg);
     auto indication = _indication.tick_start_stop_indication();
 
-    for (int i = 0; i < indication.instrument_info_list_size(); i++)
-    {
-        mapkeyname = mapkeyname + indication.instrument_info_list(i).instrument_id();
-    }
-
+    mapkeyname = indication.process_ramdon_id();
     auto& marketSer = MarketService::getInstance();
     marketSer.ROLE(publishData).setStartStopIndication(mapkeyname, indication.type());
 }

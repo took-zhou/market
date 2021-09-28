@@ -235,9 +235,8 @@ void publishData::once_from_dataflow(std::map<std::string, publishControl>::iter
     tick.SerializeToString(&tickStr);
 
     auto& recerSender = RecerSender::getInstance();
-    char temp_topic[200];
-    sprintf(temp_topic, "market_strategy.TickData.%s", pD->InstrumentID);
-    recerSender.ROLE(Sender).ROLE(ProxySender).send(temp_topic, tickStr.c_str());
+    string topic = "market_strategy.TickData." + pc->first;
+    recerSender.ROLE(Sender).ROLE(ProxySender).send(topic.c_str(), tickStr.c_str());
 }
 
 void publishData::publishToStrategy(const string keyname)
@@ -273,26 +272,37 @@ void publishData::publishToStrategy(const string keyname)
 
 void publishData::directForwardDataToStrategy(CThostFtdcDepthMarketDataField * pD)
 {
-    std::map<string, publishControl>::iterator iter = publishCtrlMap.find(pD->InstrumentID);
-    if (iter != publishCtrlMap.end() && iter->second.directforward == true)
+    tickDataPool tempData;
+    tempData.id.ins = pD->InstrumentID;
+    std::map<std::string, publishControl>::iterator saveit;
+    std::map<std::string, publishControl>::iterator mapit = publishCtrlMap.begin();
+    while (mapit  != publishCtrlMap.end())
     {
-        if (iter->second.indication == market_strategy::TickStartStopIndication_MessageType_start)
+        auto pos = mapit->second.instrumentList.find(tempData);
+        if (pos != end(mapit->second.instrumentList) && mapit->second.directforward == true)
         {
-            auto& marketSer = MarketService::getInstance();
-            if (marketSer.ROLE(Market).ROLE(CtpMarketApi).getMarketLoginState() == LOGIN_STATE)
+            if (mapit->second.indication == market_strategy::TickStartStopIndication_MessageType_start)
             {
-                once_from_dataflow(iter, pD);
+                auto& marketSer = MarketService::getInstance();
+                if (marketSer.ROLE(Market).ROLE(CtpMarketApi).getMarketLoginState() == LOGIN_STATE)
+                {
+                    once_from_dataflow(mapit, pD);
+                }
+            }
+            else if (mapit->second.indication == market_strategy::TickStartStopIndication_MessageType_stop)
+            {
+                INFO_LOG("publishToStrategy is stopping.");
+            }
+            else if (mapit->second.indication == market_strategy::TickStartStopIndication_MessageType_finish)
+            {
+                saveit = mapit;
+                mapit++;
+                publishCtrlMap.erase(saveit);
+                INFO_LOG("is going to exit publishToStrategy thread.");
+                continue;
             }
         }
-        else if (iter->second.indication == market_strategy::TickStartStopIndication_MessageType_stop)
-        {
-            INFO_LOG("publishToStrategy is stopping.");
-        }
-        else if (iter->second.indication == market_strategy::TickStartStopIndication_MessageType_finish)
-        {
-            INFO_LOG("is going to exit publishToStrategy thread.");
-            publishCtrlMap.erase(iter);
-        }
+        mapit++;
     }
 }
 
@@ -399,23 +409,15 @@ std::vector<utils::InstrumtntID> publishData::getInstrumentList(void)
     return instrument_vector;
 }
 
-std::vector<std::vector<utils::InstrumtntID>> publishData::getPublishList(void)
+std::vector<std::string> publishData::getKeyNameList(void)
 {
-    std::vector<std::vector<utils::InstrumtntID>> temp_vec;
+    std::vector<std::string> temp_vec;
     temp_vec.clear();
     std::map<string, publishControl>::iterator iter;
 
     for (iter = publishCtrlMap.begin(); iter != publishCtrlMap.end(); iter++)
     {
-        std::vector<utils::InstrumtntID> instrument_vector;
-        instrument_vector.clear();
-        auto iter2 = iter->second.instrumentList.begin();
-        while (iter2 != iter->second.instrumentList.end())
-        {
-            instrument_vector.push_back(iter2->id);
-            iter2++;
-        }
-        temp_vec.push_back(instrument_vector);
+        temp_vec.push_back(iter->first);
     }
 
     return temp_vec;
