@@ -110,7 +110,7 @@ void StrategyEvent::TickStartStopIndicationHandle(MsgStruct& msg)
     _indication.ParseFromString(msg.pbMsg);
     auto indication = _indication.tick_start_stop_indication();
 
-    mapkeyname = indication.process_ramdon_id();
+    mapkeyname = indication.process_random_id();
     auto& marketSer = MarketService::getInstance();
     marketSer.ROLE(publishData).setStartStopIndication(mapkeyname, indication.type());
 }
