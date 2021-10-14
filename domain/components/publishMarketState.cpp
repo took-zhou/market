@@ -16,7 +16,7 @@ void publishState::publish(void)
 {
     auto& marketSer = MarketService::getInstance();
 
-    auto keyNameList = marketSer.ROLE(publishData).getKeyNameList();
+    auto keyNameList = marketSer.ROLE(controlPara).getKeyNameList();
     for (auto iter = keyNameList.begin(); iter != keyNameList.end(); iter++)
     {
         market_strategy::message tick;

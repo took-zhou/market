@@ -14,9 +14,11 @@
 #include "market/domain/components/storeDepthMarketData.h"
 #include "market/domain/components/publishDepthMarketData.h"
 #include "market/domain/components/publishMarketState.h"
+#include "market/domain/components/controlPara.h"
 
 struct MarketService: Market
                     , loadData
+                    , controlPara
                     , publishData
                     , publishState
 {
@@ -31,6 +33,7 @@ struct MarketService: Market
 
     IMPL_ROLE(Market);
     IMPL_ROLE(loadData);
+    IMPL_ROLE(controlPara);
     IMPL_ROLE(publishData);
     IMPL_ROLE(publishState);
     TimeoutTimerPool& getTimeoutTimerPool();

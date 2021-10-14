@@ -241,15 +241,15 @@ void publishData::once_from_dataflow(std::map<std::string, publishControl>::iter
 
 void publishData::publishToStrategy(const string keyname)
 {
-    std::map<string, publishControl>::iterator iter = publishCtrlMap.find(keyname);
-    if (iter != publishCtrlMap.end() && iter->second.thread_uniqueness_cnt++ == 0)
+    auto& marketSer = MarketService::getInstance();
+    std::map<string, publishControl>::iterator iter = marketSer.ROLE(controlPara).publishCtrlMap.find(keyname);
+    if (iter != marketSer.ROLE(controlPara).publishCtrlMap.end() && iter->second.thread_uniqueness_cnt++ == 0)
     {
         INFO_LOG("publishDataFuc prepare ok");
         while (1)
         {
             if (iter->second.indication == market_strategy::TickStartStopIndication_MessageType_start)
             {
-                auto& marketSer = MarketService::getInstance();
                 if (marketSer.ROLE(Market).ROLE(CtpMarketApi).getMarketLoginState() == LOGIN_STATE)
                 {
                     once_from_datafield(iter);
@@ -261,8 +261,8 @@ void publishData::publishToStrategy(const string keyname)
             }
             else if (iter->second.indication == market_strategy::TickStartStopIndication_MessageType_finish)
             {
-                INFO_LOG("is going to exit publishToStrategy thread.");
-                publishCtrlMap.erase(iter);
+                INFO_LOG("%s is going to exit publishToStrategy thread.", iter->first.c_str());
+                marketSer.ROLE(controlPara).publishCtrlMap.erase(iter);
                 break;
             }
             usleep(iter->second.interval);
@@ -272,11 +272,12 @@ void publishData::publishToStrategy(const string keyname)
 
 void publishData::directForwardDataToStrategy(CThostFtdcDepthMarketDataField * pD)
 {
+    auto& marketSer = MarketService::getInstance();
     tickDataPool tempData;
     tempData.id.ins = pD->InstrumentID;
     std::map<std::string, publishControl>::iterator saveit;
-    std::map<std::string, publishControl>::iterator mapit = publishCtrlMap.begin();
-    while (mapit  != publishCtrlMap.end())
+    std::map<std::string, publishControl>::iterator mapit = marketSer.ROLE(controlPara).publishCtrlMap.begin();
+    while (mapit != marketSer.ROLE(controlPara).publishCtrlMap.end())
     {
         auto pos = mapit->second.instrumentList.find(tempData);
         if (pos != end(mapit->second.instrumentList) && mapit->second.directforward == true)
@@ -297,8 +298,8 @@ void publishData::directForwardDataToStrategy(CThostFtdcDepthMarketDataField * p
             {
                 saveit = mapit;
                 mapit++;
-                publishCtrlMap.erase(saveit);
-                INFO_LOG("is going to exit publishToStrategy thread.");
+                INFO_LOG("%s is going to exit publishToStrategy thread.", saveit->first.c_str());
+                marketSer.ROLE(controlPara).publishCtrlMap.erase(saveit);
                 continue;
             }
         }
@@ -312,8 +313,9 @@ void publishData::insertDataToTickDataPool(CThostFtdcDepthMarketDataField * pD)
     tickDataPool tempData;
     tempData.id.ins = string(pD->InstrumentID);
 
-    auto iter = instrumentList.find(tempData);
-    if (iter != instrumentList.end())
+    auto& marketSer = MarketService::getInstance();
+    auto iter = marketSer.ROLE(controlPara).instrumentList.find(tempData);
+    if (iter != marketSer.ROLE(controlPara).instrumentList.end())
     {
         if (isValidTickData(pD) == true)
         {
@@ -321,124 +323,4 @@ void publishData::insertDataToTickDataPool(CThostFtdcDepthMarketDataField * pD)
         }
     }
     ik = pthread_mutex_unlock(&(tickData->sm_mutex));
-}
-
-void publishData::setInterval(const std::string keyname, float _interval)
-{
-    std::map<string, publishControl>::iterator iter = publishCtrlMap.find(keyname);
-    if (iter != publishCtrlMap.end())
-    {
-        iter->second.interval = (U32)(_interval*1000000);
-    }
-}
-
-void publishData::setDirectForwardingFlag(const std::string keyname, bool flag)
-{
-    std::map<string, publishControl>::iterator iter = publishCtrlMap.find(keyname);
-    if (iter != publishCtrlMap.end())
-    {
-        iter->second.directforward = flag;
-    }
-}
-
-void publishData::setStartStopIndication(const std::string keyname, market_strategy::TickStartStopIndication_MessageType _indication)
-{
-    std::map<string, publishControl>::iterator iter = publishCtrlMap.find(keyname);
-    if (iter != publishCtrlMap.end())
-    {
-        iter->second.indication = _indication;
-    }
-    else
-    {
-        ERROR_LOG("Please first send tickdatareq action, keyname: %s.", keyname.c_str());
-    }
-}
-
-void publishData::buildKeywordList(const string keyname, std::vector<std::string> &keyword)
-{
-    std::map<string, publishControl>::iterator iter = publishCtrlMap.find(keyname);
-    if (iter != publishCtrlMap.end())
-    {
-        iter->second.keywordList.clear();
-        for (int i = 0; i < keyword.size(); i++)
-        {
-            iter->second.keywordList.insert(keyword[i]);
-        }
-    }
-}
-
-void publishData::buildInstrumentList(const string keyname, std::vector<utils::InstrumtntID> const &nameVec)
-{
-    std::map<string, publishControl>::iterator iter = publishCtrlMap.find(keyname);
-    if (iter == publishCtrlMap.end())
-    {
-        publishControl tempControl;
-        for (int i = 0; i < nameVec.size(); i++)
-        {
-            tickDataPool tempData;
-            tempData.id = nameVec[i];
-            auto pos = instrumentList.find(tempData);
-            if (pos == end(instrumentList))
-            {
-                tempData.index = instrumentList.size();
-                instrumentList.insert(tempData);
-            }
-            else
-            {
-                tempData.index = pos->index;
-            }
-            tempControl.instrumentList.insert(tempData);
-        }
-
-        INFO_LOG("insert keyname: %s", keyname.c_str());
-        publishCtrlMap.insert(make_pair(keyname, tempControl));
-    }
-}
-
-std::vector<utils::InstrumtntID> publishData::getInstrumentList(void)
-{
-    std::vector<utils::InstrumtntID> instrument_vector;
-    instrument_vector.clear();
-    auto iter = instrumentList.begin();
-    while (iter != instrumentList.end())
-    {
-        instrument_vector.push_back(iter->id);
-        iter++;
-    }
-
-    return instrument_vector;
-}
-
-std::vector<std::string> publishData::getKeyNameList(void)
-{
-    std::vector<std::string> temp_vec;
-    temp_vec.clear();
-    std::map<string, publishControl>::iterator iter;
-
-    for (iter = publishCtrlMap.begin(); iter != publishCtrlMap.end(); iter++)
-    {
-        temp_vec.push_back(iter->first);
-    }
-
-    return temp_vec;
-}
-
-void publishData::updatePublishInstrumentInfo(void)
-{
-    instrumentList.clear();
-    std::map<string, publishControl>::iterator iter;
-    U32 index_count = 0;
-    for (iter = publishCtrlMap.begin(); iter != publishCtrlMap.end(); iter++)
-    {
-
-        auto iter2 = iter->second.instrumentList.begin();
-        while (iter2 != iter->second.instrumentList.end())
-        {
-            iter2->index = index_count;
-            instrumentList.insert(*iter2);
-
-            index_count++;
-            iter2++;
-        }
-    }
 }

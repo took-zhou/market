@@ -298,7 +298,7 @@ int CtpMarketApi::reqInstrumentsFromLocal(void)
 int CtpMarketApi::reqInstrumentsFromStrategy(void)
 {
     auto& marketSer = MarketService::getInstance();
-    auto instrumentVec = marketSer.ROLE(publishData).getInstrumentList();
+    auto instrumentVec = marketSer.ROLE(controlPara).getInstrumentList();
 
     if (instrumentVec.size() != 0)
     {

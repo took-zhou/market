@@ -75,17 +75,17 @@ void StrategyEvent::TickSubscribeReqHandle(MsgStruct& msg)
     }
 
     auto& marketSer = MarketService::getInstance();
-    marketSer.ROLE(publishData).buildInstrumentList(mapkeyname, insVec);
-    marketSer.ROLE(publishData).buildKeywordList(mapkeyname, keywordVec);
+    marketSer.ROLE(controlPara).buildInstrumentList(mapkeyname, insVec);
+    marketSer.ROLE(controlPara).buildKeywordList(mapkeyname, keywordVec);
 
     if (reqInfo.interval() == "raw")
     {
-        marketSer.ROLE(publishData).setDirectForwardingFlag(mapkeyname, true);
+        marketSer.ROLE(controlPara).setDirectForwardingFlag(mapkeyname, true);
     }
     else
     {
-        marketSer.ROLE(publishData).setInterval(mapkeyname, float(std::atof(reqInfo.interval().c_str())));
-        marketSer.ROLE(publishData).setDirectForwardingFlag(mapkeyname, false);
+        marketSer.ROLE(controlPara).setInterval(mapkeyname, float(std::atof(reqInfo.interval().c_str())));
+        marketSer.ROLE(controlPara).setDirectForwardingFlag(mapkeyname, false);
         //  开启发布线程
         auto publishDataFuc = [&](const string name){
             marketSer.ROLE(publishData).publishToStrategy(name);
@@ -101,6 +101,8 @@ void StrategyEvent::TickSubscribeReqHandle(MsgStruct& msg)
     {
         WARNING_LOG("not during login time, wait login time to subscribe new instruments");
     }
+
+    marketSer.ROLE(controlPara).write_to_json();
 }
 
 void StrategyEvent::TickStartStopIndicationHandle(MsgStruct& msg)
@@ -112,5 +114,6 @@ void StrategyEvent::TickStartStopIndicationHandle(MsgStruct& msg)
 
     mapkeyname = indication.process_random_id();
     auto& marketSer = MarketService::getInstance();
-    marketSer.ROLE(publishData).setStartStopIndication(mapkeyname, indication.type());
+    marketSer.ROLE(controlPara).setStartStopIndication(mapkeyname, indication.type());
+    marketSer.ROLE(controlPara).write_to_json();
 }
