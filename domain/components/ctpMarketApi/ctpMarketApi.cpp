@@ -209,9 +209,11 @@ int CtpMarketBaseApi::ReqUserLogin()
 {
     CThostFtdcReqUserLoginField reqUserLogin = {0};;
     auto& jsonCfg = utils::JsonConfig::getInstance();
-    const std::string userID = jsonCfg.getConfig("common","UserID").get<std::string>();
-    const std::string brokerID = jsonCfg.getConfig("common","BrokerID").get<std::string>();
-    const std::string passWord = jsonCfg.getConfig("common","Password").get<std::string>();
+
+    const std::string username = jsonCfg.getConfig("common","user").get<std::string>();
+    const std::string userID = jsonCfg.getDeepConfig("users", username, "UserID");
+    const std::string brokerID = jsonCfg.getDeepConfig("users", username, "BrokerID");
+    const std::string passWord = jsonCfg.getDeepConfig("users", username, "Password");
     strcpy(reqUserLogin.BrokerID, brokerID.c_str());
     strcpy(reqUserLogin.UserID, userID.c_str());
     strcpy(reqUserLogin.Password, passWord.c_str());
@@ -228,8 +230,10 @@ int CtpMarketBaseApi::ReqUserLogout()
 {
     CThostFtdcUserLogoutField reqUserLogout = {0};
     auto& jsonCfg = utils::JsonConfig::getInstance();
-    const std::string userID = jsonCfg.getConfig("common","UserID").get<std::string>();
-    const std::string brokerID = jsonCfg.getConfig("common","BrokerID").get<std::string>();
+
+    const std::string username = jsonCfg.getConfig("common","user").get<std::string>();
+    const std::string userID = jsonCfg.getDeepConfig("users", username, "UserID").get<std::string>();
+    const std::string brokerID = jsonCfg.getDeepConfig("users", username, "BrokerID").get<std::string>();
     strcpy(reqUserLogout.UserID, userID.c_str());
     strcpy(reqUserLogout.BrokerID, brokerID.c_str());
 
@@ -254,7 +258,9 @@ bool CtpMarketApi::init()
     marketSpi = new MarketSpi();
     marketApi->RegisterSpi(marketSpi);
 
-    std::string frontaddr = jsonCfg.getConfig("common", "FrontMdAddr").get<std::string>();
+    const std::string username = jsonCfg.getConfig("common","user").get<std::string>();
+    std::string frontaddr = jsonCfg.getDeepConfig("users", username, "FrontMdAddr").get<std::string>();
+
     marketApi->RegisterFront(const_cast<char *>(frontaddr.c_str()));
 
     marketApi->Init();

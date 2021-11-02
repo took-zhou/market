@@ -21,7 +21,7 @@ controlPara::controlPara(void)
     {
         utils::creatFile(json_path);
     }
-    else
+    else if(utils::getFileSize(json_path) > 0)
     {
         load_from_json();
     }
