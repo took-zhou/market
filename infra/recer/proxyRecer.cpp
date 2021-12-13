@@ -22,6 +22,7 @@ bool ProxyRecer::init()
     // market_strategy
     topicList.push_back("market_strategy.TickSubscribeReq");
     topicList.push_back("market_strategy.TickStartStopIndication");
+    topicList.push_back("market_strategy.ActiveSafetyRsp");
 
     // market_market
     topicList.push_back("market_market.HeartBeat");

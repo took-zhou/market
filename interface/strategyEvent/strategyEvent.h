@@ -24,6 +24,9 @@ struct StrategyEvent
     // 发布tick数据进度控制
     void TickStartStopIndicationHandle(MsgStruct& msg);
 
+    // 策略是否运行回复处理
+    void StrategyAliveRspHandle(MsgStruct& msg);
+
     std::map<std::string, std::function<void(MsgStruct& msg)>> msgFuncMap;
 };
 

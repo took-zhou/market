@@ -13,6 +13,8 @@
 #include "market/infra/define.h"
 #include "market/domain/components/ctpMarketApi/ctpMarketApi.h"
 #include "market/domain/marketService.h"
+#include "common/self/semaphorePart.h"
+extern GlobalSem globalSem;
 
 bool StrategyEvent::init()
 {
@@ -27,6 +29,7 @@ void StrategyEvent::regMsgFun()
     msgFuncMap.clear();
     msgFuncMap.insert(std::pair<std::string, std::function<void(MsgStruct& msg)>>("TickSubscribeReq", [this](MsgStruct& msg){TickSubscribeReqHandle(msg);}));
     msgFuncMap.insert(std::pair<std::string, std::function<void(MsgStruct& msg)>>("TickStartStopIndication", [this](MsgStruct& msg){TickStartStopIndicationHandle(msg);}));
+    msgFuncMap.insert(std::pair<std::string, std::function<void(MsgStruct& msg)>>("ActiveSafetyRsp", [this](MsgStruct& msg){StrategyAliveRspHandle(msg);}));
 
     for(auto iter : msgFuncMap)
     {
@@ -116,4 +119,11 @@ void StrategyEvent::TickStartStopIndicationHandle(MsgStruct& msg)
     auto& marketSer = MarketService::getInstance();
     marketSer.ROLE(controlPara).setStartStopIndication(mapkeyname, indication.type());
     marketSer.ROLE(controlPara).write_to_json();
+}
+
+void StrategyEvent::StrategyAliveRspHandle(MsgStruct& msg)
+{
+    std::string semName = "req_alive";
+    globalSem.postSemBySemName(semName);
+    INFO_LOG("post sem of [%s]", semName.c_str());
 }

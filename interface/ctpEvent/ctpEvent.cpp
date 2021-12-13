@@ -107,18 +107,6 @@ void CtpEvent::LoginInfoHandle(MsgStruct& msg)
         }
         marketSer.ROLE(publishState).publish();
 
-        std::map<std::string, publishControl>::iterator mapit = marketSer.ROLE(controlPara).publishCtrlMap.begin();
-        while (mapit  != marketSer.ROLE(controlPara).publishCtrlMap.end() && mapit->second.directforward == false)
-        {
-            mapit->second.thread_uniqueness_cnt = 0;
-            //  开启发布线程
-            auto publishDataFuc = [&](const string name){
-                marketSer.ROLE(publishData).publishToStrategy(name);
-            };
-            std::thread(publishDataFuc, mapit->first).detach();
-            mapit++;
-        }
-
         std::string semName = "market_login";
         globalSem.postSemBySemName(semName);
         INFO_LOG("post sem of [%s]", semName.c_str());

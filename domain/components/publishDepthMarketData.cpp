@@ -263,6 +263,7 @@ void publishData::publishToStrategy(const string keyname)
             {
                 INFO_LOG("%s is going to exit publishToStrategy thread.", iter->first.c_str());
                 marketSer.ROLE(controlPara).publishCtrlMap.erase(iter);
+                marketSer.ROLE(controlPara).write_to_json();
                 break;
             }
             usleep(iter->second.interval);
@@ -300,6 +301,7 @@ void publishData::directForwardDataToStrategy(CThostFtdcDepthMarketDataField * p
                 mapit++;
                 INFO_LOG("%s is going to exit publishToStrategy thread.", saveit->first.c_str());
                 marketSer.ROLE(controlPara).publishCtrlMap.erase(saveit);
+                marketSer.ROLE(controlPara).write_to_json();
                 continue;
             }
         }
