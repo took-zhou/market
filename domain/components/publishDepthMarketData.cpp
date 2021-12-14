@@ -163,6 +163,11 @@ void publishData::once_from_datafield(std::map<std::string, publishControl>::ite
 
 void publishData::once_from_dataflow(std::map<std::string, publishControl>::iterator pc, CThostFtdcDepthMarketDataField *pD)
 {
+    if (isValidTickData(pD) == false)
+    {
+        return;
+    }
+
     char timeArray[100] = {0};
     market_strategy::message tick;
     auto tick_data = tick.mutable_tick_data();

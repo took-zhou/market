@@ -68,6 +68,7 @@ void activeSafety::req_alive()
         globalSem.delOrderSem(semName);
 
         timerPool.killTimerByName(STRATEGY_ALIVE_CHECK_TIMER);
+        sleep(1);
     }
 
     marketSer.ROLE(controlPara).write_to_json();
