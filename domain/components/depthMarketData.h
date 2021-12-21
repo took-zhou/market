@@ -23,6 +23,7 @@ public:
     bool getLocalTime(long &stamp);
 private:
     std::map<std::string, std::string> md_Instrument_Exhange;
+    bool printNetworkDelay = false;
 };
 
 #endif

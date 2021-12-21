@@ -12,8 +12,6 @@
 #include <string.h>
 #include <unistd.h>
 
-
-
 U32 MarketTimeState::isDuringDayLogoutTime(void)
 {
     U32 out;

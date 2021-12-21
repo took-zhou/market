@@ -29,6 +29,17 @@ using namespace std;
 
 marketData::marketData()
 {
+    auto& jsonCfg = utils::JsonConfig::getInstance();
+    string isPrint = jsonCfg.getConfig("common","PrintNetworkDelay").get<std::string>();
+    if (strcmp(isPrint.c_str(), "yes") == 0)
+    {
+        printNetworkDelay = true;
+    }
+    else
+    {
+        printNetworkDelay = false;
+    }
+
     md_Instrument_Exhange.clear();
 }
 
@@ -41,14 +52,20 @@ bool marketData::isValidTickData(CThostFtdcDepthMarketDataField * pD)
     utils::gbk2utf8(pD->UpdateTime,UpdateTime,sizeof(UpdateTime));
     strptime(UpdateTime, "%H:%M:%S", &tick_tm);
 
-    int tickMinite = tick_tm.tm_hour*60 + tick_tm.tm_min;
+    int tickSecond = tick_tm.tm_hour*60*60 + tick_tm.tm_min*60 + tick_tm.tm_sec;
     //system time
     time_t now_time = time(NULL);
     //local time
     tm* local_time = localtime(&now_time);
-    int nowMinite = local_time->tm_hour*60 + local_time->tm_min;
+    int nowSecond = local_time->tm_hour*60*60 + local_time->tm_min*60 + local_time->tm_sec;
 
-    if (abs(tickMinite - nowMinite) <= 3)
+    int delaySecond = nowSecond - tickSecond;
+    if (printNetworkDelay == true && delaySecond != 0)
+    {
+        INFO_LOG("%s delaySecond %d", pD->InstrumentID, delaySecond);
+    }
+
+    if (delaySecond <= 180 && delaySecond >= -180)
     {
         ret = true;
     }
