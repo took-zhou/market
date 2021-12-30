@@ -44,6 +44,12 @@ struct MarketService: Market
             ROLE(activeSafety).checkSafety();
         };
         std::thread(checkSafetyFuc).detach();
+
+        // 开启周期发送市场状态线程
+        auto publishStateFuc = [&](){
+            ROLE(publishState).pushlish_cycle();
+        };
+        std::thread(publishStateFuc).detach();
     }
     MarketService(const MarketService&) = delete;
     MarketService& operator=(const MarketService&) = delete;

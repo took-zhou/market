@@ -105,7 +105,7 @@ void CtpEvent::LoginInfoHandle(MsgStruct& msg)
         {
             marketSer.ROLE(Market).ROLE(CtpMarketApi).reqInstrumentsFromStrategy();
         }
-        marketSer.ROLE(publishState).publish();
+        marketSer.ROLE(publishState).publish_event();
 
         std::string semName = "market_login";
         globalSem.postSemBySemName(semName);
@@ -136,7 +136,7 @@ void CtpEvent::LogoutInfoHandle(MsgStruct& msg)
             marketSer.ROLE(loadData).ClassifyContractFiles();
         }
         marketSer.ROLE(controlPara).updatePublishInstrumentInfo();
-        marketSer.ROLE(publishState).publish();
+        marketSer.ROLE(publishState).publish_event();
 
         marketSer.ROLE(Market).release();
         delete (CThostFtdcRspInfoField*)ctpMsg;

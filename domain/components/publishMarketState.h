@@ -4,8 +4,11 @@
 struct publishState{
 public:
     publishState();
-    void publish(void);
+    void publish_event(void);
+    void pushlish_cycle(void);
     ~publishState() {};
+private:
+    void publish_day_closing(void);
 };
 
 #endif
