@@ -106,11 +106,13 @@ void loadData::FormDepthMarketData2Stringflow(CThostFtdcDepthMarketDataField * p
     double PreClosePrice = max2zero(pD->PreClosePrice);
     ///昨持仓量 TThostFtdcLargeVolumeType double
     double PreOpenInterest = max2zero(pD->PreOpenInterest);
+    ///结算价 SettlementPrice double
+    double SettlementPrice = max2zero(pD->SettlementPrice);
 
-    sprintf(dataflow,"%s,%s,%s.%d,%.6lf,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%d,%.6lf,%.6lf,%.6lf,%.6lf,%.6lf,%.6lf,%.6lf,%.5lf",\
+    sprintf(dataflow,"%s,%s,%s.%d,%.6lf,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%d,%.6lf,%.6lf,%.6lf,%.6lf,%.6lf,%.6lf,%.6lf,%.5lf,%.6lf",\
     InstrumentID,TradingDay,UpdateTime,UpdateMillisec,LastPrice,BidPrice1,BidVolume1,AskPrice1,AskVolume1,BidPrice2,BidVolume2,AskPrice2,\
     AskVolume2,BidPrice3,BidVolume3,AskPrice3,AskVolume3,BidPrice4,BidVolume4,AskPrice4,AskVolume4,BidPrice5,BidVolume5,AskPrice5,AskVolume5,\
-    Volume,Turnover,OpenInterest,UpperLimitPrice,LowerLimitPrice,OpenPrice,PreSettlementPrice,PreClosePrice,PreOpenInterest);
+    Volume,Turnover,OpenInterest,UpperLimitPrice,LowerLimitPrice,OpenPrice,PreSettlementPrice,PreClosePrice,PreOpenInterest,SettlementPrice);
 }
 
 void loadData::LoadDepthMarketDataToCsv(CThostFtdcDepthMarketDataField * pD)
