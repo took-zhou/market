@@ -40,6 +40,7 @@ struct publishControl
     // 单位us
     U32 interval = 0;
     bool directforward = false;
+    bool fastmode = false; // 只针对directforward==true有效
     int thread_uniqueness_cnt = 0;
 };
 
@@ -54,7 +55,6 @@ struct controlPara
     std::vector<utils::InstrumtntID> getInstrumentList(void);
     std::vector<std::string> getKeyNameList(void);
 
-    void buildKeywordList(const std::string keyname, std::vector<std::string> &keyword);
     void buildInstrumentList(const std::string keyname, std::vector<utils::InstrumtntID> const &nameVec);
     void setStartStopIndication(const std::string keyname, market_strategy::TickStartStopIndication_MessageType _indication);
     void setInterval(const std::string keyname, float _interval);

@@ -56,6 +56,38 @@ void loadData::FormDepthMarketData2Stringflow(CThostFtdcDepthMarketDataField * p
     double AskPrice1 = max2zero(pD->AskPrice1);
     ///申卖量一 TThostFtdcVolumeType int
     int AskVolume1 = pD->AskVolume1;
+    ///申买价一 TThostFtdcPriceType double
+    double BidPrice2 = max2zero(pD->BidPrice2);
+    ///申买量一 TThostFtdcVolumeType int
+    int BidVolume2 = pD->BidVolume2;
+    ///申卖价一 TThostFtdcPriceType double
+    double AskPrice2 = max2zero(pD->AskPrice2);
+    ///申卖量一 TThostFtdcVolumeType int
+    int AskVolume2 = pD->AskVolume2;
+    ///申买价一 TThostFtdcPriceType double
+    double BidPrice3 = max2zero(pD->BidPrice3);
+    ///申买量一 TThostFtdcVolumeType int
+    int BidVolume3 = pD->BidVolume3;
+    ///申卖价一 TThostFtdcPriceType double
+    double AskPrice3 = max2zero(pD->AskPrice3);
+    ///申卖量一 TThostFtdcVolumeType int
+    int AskVolume3 = pD->AskVolume3;
+    ///申买价一 TThostFtdcPriceType double
+    double BidPrice4 = max2zero(pD->BidPrice4);
+    ///申买量一 TThostFtdcVolumeType int
+    int BidVolume4 = pD->BidVolume4;
+    ///申卖价一 TThostFtdcPriceType double
+    double AskPrice4 = max2zero(pD->AskPrice4);
+    ///申卖量一 TThostFtdcVolumeType int
+    int AskVolume4 = pD->AskVolume4;
+    ///申买价一 TThostFtdcPriceType double
+    double BidPrice5 = max2zero(pD->BidPrice5);
+    ///申买量一 TThostFtdcVolumeType int
+    int BidVolume5 = pD->BidVolume5;
+    ///申卖价一 TThostFtdcPriceType double
+    double AskPrice5 = max2zero(pD->AskPrice5);
+    ///申卖量一 TThostFtdcVolumeType int
+    int AskVolume5 = pD->AskVolume5;
     ///数量 TThostFtdcVolumeType int
     int Volume = pD->Volume;
     ///成交金额 TThostFtdcMoneyType double
@@ -75,9 +107,10 @@ void loadData::FormDepthMarketData2Stringflow(CThostFtdcDepthMarketDataField * p
     ///昨持仓量 TThostFtdcLargeVolumeType double
     double PreOpenInterest = max2zero(pD->PreOpenInterest);
 
-    sprintf(dataflow,"%s,%s,%s.%d,%.6lf,%.6lf,%d,%.6lf,%d,%d,%.6lf,%.6lf,%.6lf,%.6lf,%.6lf,%.6lf,%.6lf,%.5lf",\
-    InstrumentID,TradingDay,UpdateTime,UpdateMillisec,LastPrice,BidPrice1,BidVolume1,AskPrice1,AskVolume1,Volume,Turnover,OpenInterest,\
-    UpperLimitPrice,LowerLimitPrice,OpenPrice,PreSettlementPrice,PreClosePrice,PreOpenInterest);
+    sprintf(dataflow,"%s,%s,%s.%d,%.6lf,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%d,%.6lf,%.6lf,%.6lf,%.6lf,%.6lf,%.6lf,%.6lf,%.5lf",\
+    InstrumentID,TradingDay,UpdateTime,UpdateMillisec,LastPrice,BidPrice1,BidVolume1,AskPrice1,AskVolume1,BidPrice2,BidVolume2,AskPrice2,\
+    AskVolume2,BidPrice3,BidVolume3,AskPrice3,AskVolume3,BidPrice4,BidVolume4,AskPrice4,AskVolume4,BidPrice5,BidVolume5,AskPrice5,AskVolume5,\
+    Volume,Turnover,OpenInterest,UpperLimitPrice,LowerLimitPrice,OpenPrice,PreSettlementPrice,PreClosePrice,PreOpenInterest);
 }
 
 void loadData::LoadDepthMarketDataToCsv(CThostFtdcDepthMarketDataField * pD)

@@ -25,7 +25,7 @@ CThostFtdcMdApi* _m_pApi;
 CThostFtdcMdApi* CtpMarketBaseApi::CreateFtdcMdApi(const char *pszFlowPath)
 {
     INFO_LOG("_m_pApi init ok");
-    _m_pApi = CThostFtdcMdApi::CreateFtdcMdApi(pszFlowPath);
+    _m_pApi = CThostFtdcMdApi::CreateFtdcMdApi(pszFlowPath, true, true);
     return _m_pApi;
 }
 

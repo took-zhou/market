@@ -146,19 +146,6 @@ void controlPara::setStartStopIndication(const std::string keyname, market_strat
     }
 }
 
-void controlPara::buildKeywordList(const std::string keyname, std::vector<std::string> &keyword)
-{
-    std::map<std::string, publishControl>::iterator iter = publishCtrlMap.find(keyname);
-    if (iter != publishCtrlMap.end())
-    {
-        iter->second.keywordList.clear();
-        for (int i = 0; i < keyword.size(); i++)
-        {
-            iter->second.keywordList.insert(keyword[i]);
-        }
-    }
-}
-
 void controlPara::buildInstrumentList(const std::string keyname, std::vector<utils::InstrumtntID> const &nameVec)
 {
     std::map<std::string, publishControl>::iterator iter = publishCtrlMap.find(keyname);

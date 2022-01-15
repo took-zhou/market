@@ -72,14 +72,8 @@ void StrategyEvent::TickSubscribeReqHandle(MsgStruct& msg)
 
     mapkeyname = reqInfo.process_random_id();
 
-    for (int i = 0; i < reqInfo.keyword_size(); i++)
-    {
-        keywordVec.push_back(reqInfo.keyword(i));
-    }
-
     auto& marketSer = MarketService::getInstance();
     marketSer.ROLE(controlPara).buildInstrumentList(mapkeyname, insVec);
-    marketSer.ROLE(controlPara).buildKeywordList(mapkeyname, keywordVec);
 
     if (reqInfo.interval() == "raw")
     {
