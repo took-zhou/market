@@ -65,7 +65,8 @@ bool marketData::isValidTickData(CThostFtdcDepthMarketDataField * pD)
         INFO_LOG("%s delaySecond %d", pD->InstrumentID, delaySecond);
     }
 
-    if (delaySecond <= 180 && delaySecond >= -180)
+    if (delaySecond <= 180 && delaySecond >= -180 && pD->BidVolume1 > 0 && \
+        pD->AskVolume1 > 0 && pD->BidPrice1 > 0.0 && pD->AskPrice1 > 0.0)
     {
         ret = true;
     }
