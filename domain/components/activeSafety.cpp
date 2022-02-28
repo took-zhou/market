@@ -18,6 +18,7 @@ void activeSafety::checkSafety()
 {
     time_t now = {0};
     struct tm *timenow = NULL;
+    static int check_flag = false;
 
     while(1)
     {
@@ -25,10 +26,16 @@ void activeSafety::checkSafety()
         timenow = localtime(&now);//获取当前时间
 
         // 固定在下午6点开始检测
-        if (timenow->tm_hour == 18 && timenow->tm_min == 0)
+        if (timenow->tm_hour == 18 && timenow->tm_min == 0 && check_flag == false)
         {
             req_alive();
+            check_flag = true;
         }
+        else if (timenow->tm_hour == 18 && timenow->tm_min > 0 && check_flag == true)
+        {
+            check_flag = false;
+        }
+
         sleep(1);
     }
 }
@@ -77,7 +84,13 @@ void activeSafety::req_alive()
 void activeSafety::req_alive_timeout(const string keyname)
 {
     auto& marketSer = MarketService::getInstance();
-    marketSer.ROLE(controlPara).setStartStopIndication(keyname, market_strategy::TickStartStopIndication_MessageType_finish);
+    std::map<string, publishControl>::iterator iter = marketSer.ROLE(controlPara).publishCtrlMap.find(keyname);
+    if (iter != marketSer.ROLE(controlPara).publishCtrlMap.end())
+    {
+        INFO_LOG("%s will not subscribe.", iter->first.c_str());
+        marketSer.ROLE(controlPara).publishCtrlMap.erase(iter);
+        marketSer.ROLE(controlPara).write_to_json();
+    }
 
     std::string semName = "req_alive";
     globalSem.postSemBySemName(semName);
