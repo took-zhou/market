@@ -20,7 +20,6 @@ public:
     void handle(MsgStruct& msg);
     void regMsgFun();
     void QryInstrumentRspHandle(MsgStruct& msg);
-    void QryInstrumentRsqHandle(MsgStruct& msg);
     std::map<std::string, std::function<void(MsgStruct& msg)>> msgFuncMap;
 
 private:

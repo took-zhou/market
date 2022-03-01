@@ -28,7 +28,7 @@ bool ProxyRecer::init()
     topicList.push_back("market_market.HeartBeat");
 
     // market_trader
-    topicList.push_back("market_trader.QryInstrumentRsq");
+    topicList.push_back("market_trader.QryInstrumentRsp");
 
     auto& zmqBase = ZmqBase::getInstance();
     for(auto& topic : topicList)
