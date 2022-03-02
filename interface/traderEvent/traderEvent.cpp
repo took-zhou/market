@@ -60,11 +60,14 @@ void TraderEvent::QryInstrumentRspHandle(MsgStruct& msg)
     instrumtntID.exch = rsp.exchange_id();
     instrumtntID.ins = rsp.instrument_id();
 
-    auto& marketSer = MarketService::getInstance();
-    marketSer.ROLE(loadData).insertInsExchPair(instrumtntID.ins, instrumtntID.exch);
-    ins_vec.push_back(instrumtntID);
+    if (instrumtntID.ins.find(" ") == instrumtntID.ins.npos)
+    {
+        auto& marketSer = MarketService::getInstance();
+        marketSer.ROLE(loadData).insertInsExchPair(instrumtntID.ins, instrumtntID.exch);
+        ins_vec.push_back(instrumtntID);
 
-    instrumentCount++;
+        instrumentCount++;
+    }
 
     if (rsp.finish_flag() == true)
     {

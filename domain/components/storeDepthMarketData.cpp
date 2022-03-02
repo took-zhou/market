@@ -234,6 +234,9 @@ bool loadData::MoveContractToFolder(string contractName, string exchangeName)
     }
 
     sprintf(command, "mv %s %s", csvpath, folderpath);
-    system(command);
+    if (system(command) == -1)
+    {
+        ERROR_LOG("%s", command);
+    }
     return true;
 }
