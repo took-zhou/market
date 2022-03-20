@@ -138,3 +138,17 @@ bool marketData::getLocalTime(long &stamp)
     gettimeofday(&tv,NULL);
     stamp = tv.tv_sec;
 }
+
+bool marketData::getAssemblingTime(char *t_arr, CThostFtdcDepthMarketDataField * pD)
+{
+    int y,m,d;
+    time_t now_time = time(NULL);
+    //local time
+    tm* local_time = localtime(&now_time);
+
+    y = 1900+local_time->tm_year;
+    m = 1 + local_time->tm_mon;
+    d = local_time->tm_mday;
+
+    sprintf(t_arr, "%04d-%02d-%02d %s.%d", y, m, d, pD->UpdateTime, pD->UpdateMillisec);
+}

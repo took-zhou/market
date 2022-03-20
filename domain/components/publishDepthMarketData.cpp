@@ -145,7 +145,7 @@ void publishData::once_from_dataflow(std::map<std::string, publishControl>::iter
     market_strategy::message tick;
     auto tick_data = tick.mutable_tick_data();
 
-    getLocalTime(timeArray);
+    getAssemblingTime(timeArray, pD);
     tick_data->set_time_point(timeArray);
 
     auto iter = tick_data->add_tick_list();

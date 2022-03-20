@@ -21,6 +21,7 @@ public:
 
     bool getLocalTime(char *t_arr);
     bool getLocalTime(long &stamp);
+    bool getAssemblingTime(char *t_arr, CThostFtdcDepthMarketDataField * pD);
 private:
     std::map<std::string, std::string> md_Instrument_Exhange;
     bool printNetworkDelay = false;
