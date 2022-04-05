@@ -265,6 +265,9 @@ bool CtpMarketApi::init()
 
     marketApi->Init();
 
+    std::string compile_time = utils::GetCompileTime();
+    INFO_LOG("program last build at %s.", compile_time.c_str());
+
     std::string semName = "market_init";
     /*在这个地方加一个登录登出的优化*/
     globalSem.waitSemBySemName(semName);
