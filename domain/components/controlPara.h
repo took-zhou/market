@@ -35,12 +35,11 @@ public:
 struct publishControl
 {
     std::set<tickDataPool, tickDataPoolSortCriterion> instrumentList;
-    std::set<std::string> keywordList;
     market_strategy::TickStartStopIndication_MessageType indication = market_strategy::TickStartStopIndication_MessageType_reserve;
     // 单位us
     U32 interval = 0;
     bool directforward = false;
-    bool fastmode = false; // 只针对directforward==true有效
+    std::string source = "rawtick"; // 默认 rawtick
     int thread_uniqueness_cnt = 0;
 };
 
@@ -59,6 +58,7 @@ struct controlPara
     void setStartStopIndication(const std::string keyname, market_strategy::TickStartStopIndication_MessageType _indication);
     void setInterval(const std::string keyname, float _interval);
     void setDirectForwardingFlag(const std::string keyname, bool flag);
+    void setSource(const std::string keyname, std::string _source);
 
     void updatePublishInstrumentInfo(void);
 

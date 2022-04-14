@@ -36,6 +36,9 @@ public:
     void insertDataToTickDataPool(CThostFtdcDepthMarketDataField *pD);
 
     deepTickData *tickData;
+private:
+    void once_from_dataflow_select_rawtick(std::map<std::string, publishControl>::iterator pc, CThostFtdcDepthMarketDataField *pD);
+    void once_from_dataflow_select_level1(std::map<std::string, publishControl>::iterator pc, CThostFtdcDepthMarketDataField *pD);
 };
 
 #endif

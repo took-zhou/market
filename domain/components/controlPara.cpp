@@ -47,10 +47,10 @@ bool controlPara::load_from_json(void)
                 tempControl.instrumentList.insert(tempData);
             }
 
-            readData[iter.key()].at("keyword").get_to(tempControl.keywordList);
             readData[iter.key()].at("indication").get_to(tempControl.indication);
             readData[iter.key()].at("interval").get_to(tempControl.interval);
             readData[iter.key()].at("directforward").get_to(tempControl.directforward);
+            readData[iter.key()].at("source").get_to(tempControl.source);
             readData[iter.key()].at("thread_uniqueness_cnt").get_to(tempControl.thread_uniqueness_cnt);
 
             INFO_LOG("load keyname: %s", iter.key().c_str());
@@ -90,9 +90,9 @@ bool controlPara::write_to_json(void)
             ins_iter++;
         }
 
-        one_item["keyword"] = json(mapit->second.keywordList);
         one_item["indication"] = mapit->second.indication;
         one_item["interval"] = mapit->second.interval;
+        one_item["source"] = mapit->second.source;
         one_item["directforward"] = mapit->second.directforward;
         one_item["thread_uniqueness_cnt"] = mapit->second.thread_uniqueness_cnt;
 
@@ -139,6 +139,19 @@ void controlPara::setStartStopIndication(const std::string keyname, market_strat
     if (iter != publishCtrlMap.end())
     {
         iter->second.indication = _indication;
+    }
+    else
+    {
+        ERROR_LOG("Please first send tickdatareq action, keyname: %s.", keyname.c_str());
+    }
+}
+
+void controlPara::setSource(const std::string keyname, std::string _source)
+{
+    std::map<std::string, publishControl>::iterator iter = publishCtrlMap.find(keyname);
+    if (iter != publishCtrlMap.end())
+    {
+        iter->second.source = _source;
     }
     else
     {

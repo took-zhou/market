@@ -78,6 +78,7 @@ void StrategyEvent::TickSubscribeReqHandle(MsgStruct& msg)
     if (reqInfo.interval() == "raw")
     {
         marketSer.ROLE(controlPara).setDirectForwardingFlag(mapkeyname, true);
+        marketSer.ROLE(controlPara).setSource(mapkeyname, reqInfo.source());
     }
     else
     {
