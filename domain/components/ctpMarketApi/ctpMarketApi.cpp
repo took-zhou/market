@@ -266,6 +266,7 @@ bool CtpMarketApi::init()
     marketApi->Init();
 
     std::string compile_time = utils::GetCompileTime();
+    jsonCfg.writeConfig("market", "version", compile_time);
     INFO_LOG("program last build at %s.", compile_time.c_str());
 
     std::string semName = "market_init";
