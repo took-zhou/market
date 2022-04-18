@@ -25,6 +25,11 @@ int main(int argc, char* agrv[])
     LOG_INIT(marketLogPath.c_str(), "marketlog", 6);
     INFO_LOG("TRADE LOG PATH is %s",marketLogPath.c_str());
 
+    // 打印版本信息
+    std::string compile_time = utils::GetCompileTime();
+    jsonCfg.writeConfig("market", "version", compile_time);
+    INFO_LOG("program last build at %s.", compile_time.c_str());
+
     //初始化zmq模块
     auto& zmq = ZmqBase::getInstance();
     while(!zmq.init())
