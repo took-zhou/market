@@ -263,7 +263,7 @@ void publishData::publishToStrategy(const string keyname)
             }
             else if (iter->second.indication == market_strategy::TickStartStopIndication_MessageType_stop)
             {
-                INFO_LOG("publishToStrategy is stopping.");
+                INFO_LOG("%s: publishToStrategy is stopping.", iter->first.c_str());
             }
             else if (iter->second.indication == market_strategy::TickStartStopIndication_MessageType_finish)
             {
@@ -299,7 +299,7 @@ void publishData::directForwardDataToStrategy(CThostFtdcDepthMarketDataField * p
             }
             else if (mapit->second.indication == market_strategy::TickStartStopIndication_MessageType_stop)
             {
-                INFO_LOG("publishToStrategy is stopping.");
+                INFO_LOG("%s: publishToStrategy is stopping.", mapit->first.c_str());
             }
             else if (mapit->second.indication == market_strategy::TickStartStopIndication_MessageType_finish)
             {

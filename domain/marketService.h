@@ -16,12 +16,14 @@
 #include "market/domain/components/publishMarketState.h"
 #include "market/domain/components/controlPara.h"
 #include "market/domain/components/activeSafety.h"
+#include "market/domain/components/publishCloseTime.h"
 
 struct MarketService: Market
                     , loadData
                     , controlPara
                     , publishData
                     , publishState
+                    , publishCloseTime
                     , activeSafety
 {
     MarketService()
@@ -46,10 +48,10 @@ struct MarketService: Market
         std::thread(checkSafetyFuc).detach();
 
         // 开启周期发送市场状态线程
-        auto publishStateFuc = [&](){
-            ROLE(publishState).pushlish_cycle();
+        auto publishCloseTimeFuc = [&](){
+            ROLE(publishCloseTime).publish();
         };
-        std::thread(publishStateFuc).detach();
+        std::thread(publishCloseTimeFuc).detach();
     }
     MarketService(const MarketService&) = delete;
     MarketService& operator=(const MarketService&) = delete;
@@ -64,6 +66,7 @@ struct MarketService: Market
     IMPL_ROLE(controlPara);
     IMPL_ROLE(publishData);
     IMPL_ROLE(publishState);
+    IMPL_ROLE(publishCloseTime);
     IMPL_ROLE(activeSafety);
     TimeoutTimerPool& getTimeoutTimerPool();
 };

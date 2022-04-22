@@ -27,6 +27,8 @@ struct StrategyEvent
     // 策略是否运行回复处理
     void StrategyAliveRspHandle(MsgStruct& msg);
 
+    void TimeLimitReqHandle(MsgStruct& msg);
+
     std::map<std::string, std::function<void(MsgStruct& msg)>> msgFuncMap;
 };
 

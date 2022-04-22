@@ -53,6 +53,14 @@ bool controlPara::load_from_json(void)
             readData[iter.key()].at("source").get_to(tempControl.source);
             readData[iter.key()].at("thread_uniqueness_cnt").get_to(tempControl.thread_uniqueness_cnt);
 
+            for (int i = 0; i < readData[iter.key()]["closeTime"].size(); i++)
+            {
+                CloseTime _time;
+                _time.close_start = readData[iter.key()]["closeTime"][i]["close_start"];
+                _time.close_stop  = readData[iter.key()]["closeTime"][i]["close_stop"];
+                tempControl.closeTimeList.push_back(_time);
+            }
+
             INFO_LOG("load keyname: %s", iter.key().c_str());
             publishCtrlMap.insert(make_pair(iter.key(), tempControl));
         }
@@ -88,6 +96,16 @@ bool controlPara::write_to_json(void)
             ins_exch["index"] = ins_iter->index;
             one_item["instrument"].push_back(ins_exch);
             ins_iter++;
+        }
+
+        auto time_iter = mapit->second.closeTimeList.begin();
+        while (time_iter != mapit->second.closeTimeList.end())
+        {
+            fifo_json close_time;
+            close_time["close_start"] = time_iter->close_start;
+            close_time["close_stop"] = time_iter->close_stop;
+            one_item["closeTime"].push_back(close_time);
+            time_iter++;
         }
 
         one_item["indication"] = mapit->second.indication;
@@ -133,6 +151,15 @@ void controlPara::setDirectForwardingFlag(const std::string keyname, bool flag)
     }
 }
 
+void controlPara::setCloseTimeSendFlag(const std::string keyname, int index, bool flag)
+{
+    std::map<std::string, publishControl>::iterator iter = publishCtrlMap.find(keyname);
+    if (iter != publishCtrlMap.end())
+    {
+        iter->second.closeTimeList[index].send_flag = flag;
+    }
+}
+
 void controlPara::setStartStopIndication(const std::string keyname, market_strategy::TickStartStopIndication_MessageType _indication)
 {
     std::map<std::string, publishControl>::iterator iter = publishCtrlMap.find(keyname);
@@ -152,6 +179,23 @@ void controlPara::setSource(const std::string keyname, std::string _source)
     if (iter != publishCtrlMap.end())
     {
         iter->second.source = _source;
+    }
+    else
+    {
+        ERROR_LOG("Please first send tickdatareq action, keyname: %s.", keyname.c_str());
+    }
+}
+
+void controlPara::buildCloseTimeList(const std::string keyname, std::vector<CloseTime> const &timeVec)
+{
+    std::map<std::string, publishControl>::iterator iter = publishCtrlMap.find(keyname);
+    if (iter != publishCtrlMap.end())
+    {
+        iter->second.closeTimeList.clear();
+        for (int i = 0; i < timeVec.size(); i++)
+        {
+            iter->second.closeTimeList.push_back(timeVec[i]);
+        }
     }
     else
     {

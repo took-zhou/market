@@ -54,59 +54,6 @@ void publishState::publish_event(void)
     INFO_LOG("Publish makret state.");
 }
 
-void publishState::pushlish_cycle(void)
-{
-    time_t now = {0};
-    struct tm *timenow = NULL;
-    static int day_closing_published_flag = false;
-
-    while(1)
-    {
-        time(&now);
-        timenow = localtime(&now);//获取当前时间
-
-        // 固定在14:55发生市场要收盘信号
-        if (timenow->tm_hour == 14 && timenow->tm_min == 55 && day_closing_published_flag == false)
-        {
-            publish_day_closing();
-            day_closing_published_flag = true;
-        }
-
-        if (timenow->tm_hour == 17 && timenow->tm_min == 0)
-        {
-            day_closing_published_flag = false;
-        }
-        sleep(1);
-    }
-}
-
-void publishState::publish_day_closing(void)
-{
-    char date_buff[10];
-    get_trade_data(date_buff);
-
-    auto& marketSer = MarketService::getInstance();
-
-    auto keyNameList = marketSer.ROLE(controlPara).getKeyNameList();
-    for (auto iter = keyNameList.begin(); iter != keyNameList.end(); iter++)
-    {
-        market_strategy::message tick;
-        auto market_state = tick.mutable_market_state();
-
-        market_strategy::TickMarketState_MarketState state = market_strategy::TickMarketState_MarketState_day_closing;
-        market_state->set_market_state(state);
-        market_state->set_date(date_buff);
-
-        std::string tickStr;
-        tick.SerializeToString(&tickStr);
-        auto& recerSender = RecerSender::getInstance();
-        string topic = "market_strategy.TickMarketState." + *iter;
-        recerSender.ROLE(Sender).ROLE(ProxySender).send(topic.c_str(), tickStr.c_str());
-        sleep(1);
-    }
-    INFO_LOG("Publish makret state.");
-}
-
 int publishState::is_leap_year(int y)
 {
     if ((y%4 == 0 && y%100 != 0) || y%400 == 0)

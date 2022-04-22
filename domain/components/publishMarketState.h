@@ -5,7 +5,6 @@ struct publishState{
 public:
     publishState();
     void publish_event(void);
-    void pushlish_cycle(void);
     void get_trade_data(char *);
     ~publishState() {};
 private:
