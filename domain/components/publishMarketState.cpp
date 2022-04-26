@@ -83,7 +83,7 @@ void publishState::get_trade_data(char * buff)
         a[1] = 29;
     }
 
-    if (20 <= local_time->tm_hour && local_time->tm_hour <= 22)
+    if (20 <= local_time->tm_hour && local_time->tm_hour <= 23)
     {
         if (local_time->tm_wday == 5)
         {
