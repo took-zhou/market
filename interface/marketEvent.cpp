@@ -46,8 +46,6 @@ bool MarketEvent::init()
 
 bool MarketEvent::run()
 {
-    INFO_LOG("go into run");
-    co::Scheduler* sched = co::Scheduler::Create();
     auto& recerSender = RecerSender::getInstance();
 
     auto proxyRecRun = [&](){

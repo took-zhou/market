@@ -4,8 +4,6 @@
  *  Created on: 2020.11.13
  *      Author: Administrator
  */
-
-
 #include "market/interface/selfEvent/selfEvent.h"
 #include "common/extern/log/log.h"
 #include "market/infra/define.h"
@@ -47,11 +45,9 @@ void SelfEvent::handle(MsgStruct& msg)
     return;
 }
 
-
 void SelfEvent::HeartBeatHandle(MsgStruct& msg)
 {
     static market_market::message reqMsg;
     reqMsg.ParseFromString(msg.pbMsg);
     utils::printProtoMsg(reqMsg);
-
 }

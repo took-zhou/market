@@ -349,19 +349,13 @@ void CtpMarketApi::logout()
     INFO_LOG("logout time, is going to logout.");
     marketApi->ReqUserLogout();
 
-    auto logOutReqTimeOutFunc = [&]()
+    std::string semName = "market_logout";
+    if (globalSem.waitSemBySemName(semName, 10) != 0)
     {
         marketSpi->OnRspUserLogout();
-    };
-
-    auto& timerPool = TimeoutTimerPool::getInstance();
-    timerPool.addTimer(MARKET_LOGOUT_TIMER, logOutReqTimeOutFunc, MARKET_LOGOUT_TIMEOUT);
-
-    std::string semName = "market_logout";
-    globalSem.waitSemBySemName(semName);
+    }
     globalSem.delOrderSem(semName);
 
-    timerPool.killTimerByName(MARKET_LOGOUT_TIMER);
     login_state = LOGOUT_STATE;
 }
 
