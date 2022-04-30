@@ -42,12 +42,6 @@ public:
 
      void OnRtnForQuoteRsp(CThostFtdcForQuoteRspField *pForQuoteRsp);
 
-     bool init( CtpRecer* _uper){
-         uper = _uper;
-         return true;
-     };
-public:
-     CtpRecer* uper{nullptr};
      int reConnect = 0;
 };
 

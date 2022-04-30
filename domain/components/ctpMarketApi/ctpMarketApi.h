@@ -107,8 +107,11 @@ public:
 
     bool release();
 
+    void set_force_login_control(int command);
+
     USE_ROLE(MarketTimeState);
 private:
+    int force_login_control = 0;
     std::string instrumentFrom;
     MarketSpi *marketSpi;
     MARKET_LOGIN_STATE login_state = LOGOUT_STATE;

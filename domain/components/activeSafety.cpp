@@ -61,20 +61,13 @@ void activeSafety::req_alive()
         string topic = "market_strategy.ActiveSafetyReq." + *iter;
         recerSender.ROLE(Sender).ROLE(ProxySender).send(topic.c_str(), reqStr.c_str());
 
-        auto reqAliveTimeOutFunc = [&]()
-        {
-            req_alive_timeout(*iter);
-        };
-
-        auto& timerPool = TimeoutTimerPool::getInstance();
-        timerPool.addTimer(STRATEGY_ALIVE_CHECK_TIMER, reqAliveTimeOutFunc, STRATEGY_ALIVE_CHECK_TIMEOUT);
-
         std::string semName = "req_alive";
         globalSem.addOrderSem(semName);
-        globalSem.waitSemBySemName(semName);
+        if (globalSem.waitSemBySemName(semName, 1) != 0)
+        {
+            req_alive_timeout(*iter);
+        }
         globalSem.delOrderSem(semName);
-
-        timerPool.killTimerByName(STRATEGY_ALIVE_CHECK_TIMER);
         sleep(1);
     }
 
@@ -87,12 +80,8 @@ void activeSafety::req_alive_timeout(const string keyname)
     std::map<string, publishControl>::iterator iter = marketSer.ROLE(controlPara).publishCtrlMap.find(keyname);
     if (iter != marketSer.ROLE(controlPara).publishCtrlMap.end())
     {
-        INFO_LOG("%s will not subscribe.", iter->first.c_str());
+        INFO_LOG("%s req alive timeout, will not subscribe.", iter->first.c_str());
         marketSer.ROLE(controlPara).publishCtrlMap.erase(iter);
         marketSer.ROLE(controlPara).write_to_json();
     }
-
-    std::string semName = "req_alive";
-    globalSem.postSemBySemName(semName);
-    INFO_LOG("post sem of [%s]", semName.c_str());
 }

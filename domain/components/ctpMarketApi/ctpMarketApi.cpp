@@ -9,6 +9,7 @@
 #include "market/domain/components/ctpMarketApi/ctpMarketApi.h"
 #include "market/domain/marketService.h"
 #include "common/self/protobuf/market-trader.pb.h"
+#include "common/self/protobuf/ctpview-market.pb.h"
 #include "common/extern/log/log.h"
 #include "common/self/fileUtil.h"
 #include "common/self/utils.h"
@@ -349,19 +350,13 @@ void CtpMarketApi::logout()
     INFO_LOG("logout time, is going to logout.");
     marketApi->ReqUserLogout();
 
-    auto logOutReqTimeOutFunc = [&]()
+    std::string semName = "market_logout";
+    if (globalSem.waitSemBySemName(semName, 10) != 0)
     {
         marketSpi->OnRspUserLogout();
-    };
-
-    auto& timerPool = TimeoutTimerPool::getInstance();
-    timerPool.addTimer(MARKET_LOGOUT_TIMER, logOutReqTimeOutFunc, MARKET_LOGOUT_TIMEOUT);
-
-    std::string semName = "market_logout";
-    globalSem.waitSemBySemName(semName);
+    }
     globalSem.delOrderSem(semName);
 
-    timerPool.killTimerByName(MARKET_LOGOUT_TIMER);
     login_state = LOGOUT_STATE;
 }
 
@@ -370,14 +365,21 @@ MARKET_LOGIN_STATE CtpMarketApi::getMarketLoginState(void)
     return login_state;
 }
 
+void CtpMarketApi::set_force_login_control(int command)
+{
+    INFO_LOG("set force control command: %d", command);
+    force_login_control = command;
+}
+
 void CtpMarketApi::runLogInAndLogOutAlg()
 {
     while(1)
     {
-        if (ROLE(MarketTimeState).output.status == LOGIN_TIME && login_state == LOGOUT_STATE)
+        if ((ROLE(MarketTimeState).output.status == LOGIN_TIME || force_login_control == ctpview_market::LoginControl_Command_login) && \
+            login_state == LOGOUT_STATE)
         {
             this->init();
-            if (ROLE(MarketTimeState).output.status == LOGIN_TIME)
+            if (ROLE(MarketTimeState).output.status == LOGIN_TIME || force_login_control == ctpview_market::LoginControl_Command_login)
             {
                 this->login();
             }
@@ -386,7 +388,8 @@ void CtpMarketApi::runLogInAndLogOutAlg()
                 this->release();
             }
         }
-        else if (ROLE(MarketTimeState).output.status == LOGOUT_TIME && login_state == LOGIN_STATE)
+        else if ((ROLE(MarketTimeState).output.status == LOGOUT_TIME || force_login_control == ctpview_market::LoginControl_Command_logout) && \
+            login_state == LOGIN_STATE)
         {
             this->logout();
         }
