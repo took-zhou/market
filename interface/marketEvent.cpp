@@ -25,7 +25,7 @@ void MarketEvent::regSessionFunc()
     sessionFuncMap.insert(std::pair<std::string, std::function<void(MsgStruct msg)>>("market_market",         [this](MsgStruct msg){ROLE(SelfEvent).handle(msg);}));
     sessionFuncMap.insert(std::pair<std::string, std::function<void(MsgStruct msg)>>("interactor_market",     [this](MsgStruct msg){ROLE(InteractEvent).handle(msg);}));
     sessionFuncMap.insert(std::pair<std::string, std::function<void(MsgStruct msg)>>("ctp",                   [this](MsgStruct msg){ROLE(CtpEvent).handle(msg);}));
-
+    sessionFuncMap.insert(std::pair<std::string, std::function<void(MsgStruct msg)>>("ctpview_market",        [this](MsgStruct msg){ROLE(CtpviewEvent).handle(msg);}));
     for(auto iter : sessionFuncMap)
     {
         INFO_LOG("sessionFuncMap[%d] key is [%s]",cnt, iter.first.c_str());
@@ -41,6 +41,7 @@ bool MarketEvent::init()
     ROLE(SelfEvent).init();
     ROLE(InteractEvent).init();
     ROLE(CtpEvent).init();
+    ROLE(CtpviewEvent).init();
     return true;
 }
 

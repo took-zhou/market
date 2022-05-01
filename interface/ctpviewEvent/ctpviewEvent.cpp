@@ -51,7 +51,7 @@ void CtpviewEvent::LoginControlHandle(MsgStruct& msg)
     int command = indication.command();
     auto& marketSer = MarketService::getInstance();
 
-    marketSer.ROLE(Market).ROLE(CtpMarketApi).set_force_login_control(command);
+    marketSer.ROLE(Market).ROLE(MarketTimeState).set_time_state(command);
 }
 
 void CtpviewEvent::CheckStrategyAliveHandle(MsgStruct& msg)

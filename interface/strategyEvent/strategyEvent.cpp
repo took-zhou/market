@@ -68,6 +68,7 @@ void StrategyEvent::TickSubscribeReqHandle(MsgStruct& msg)
         utils::InstrumtntID insId;
         insId.ins = reqInfo.instrument_info_list(i).instrument_id();
         insId.exch = reqInfo.instrument_info_list(i).exchange_id();
+        insId.ticksize = utils::stringToFloat(reqInfo.instrument_info_list(i).ticksize());
         insVec.push_back(insId);
     }
 

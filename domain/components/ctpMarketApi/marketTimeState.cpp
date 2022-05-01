@@ -5,6 +5,7 @@
  *      Author: Administrator
  */
 #include "market/domain/components/ctpMarketApi/marketTimeState.h"
+#include "common/self/protobuf/ctpview-market.pb.h"
 #include "common/self/fileUtil.h"
 #include "common/self/utils.h"
 #include "common/extern/log/log.h"
@@ -184,7 +185,29 @@ void MarketTimeState::update(void)
         input.now_mins= timenow->tm_hour*60 + timenow->tm_min;
 
         step();
+
+        if (time_state != RESERVE)
+        {
+            output.status = time_state;
+        }
+
         sleep(1);
+    }
+}
+
+void MarketTimeState::set_time_state(int command)
+{
+    if (command == ctpview_market::LoginControl_Command_login)
+    {
+        time_state = LOGIN_TIME;
+    }
+    else if (command == ctpview_market::LoginControl_Command_logout)
+    {
+        time_state = LOGOUT_TIME;
+    }
+    else if (command == ctpview_market::LoginControl_Command_reserve)
+    {
+        time_state = RESERVE;
     }
 }
 

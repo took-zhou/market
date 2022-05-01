@@ -203,6 +203,11 @@ void publishData::once_from_dataflow_select_level1(std::map<std::string, publish
         return;
     }
 
+    if (isValidLevel1Data(pc, pD) == false)
+    {
+        return;
+    }
+
     char timeArray[100] = {0};
     market_strategy::message tick;
     auto tick_data = tick.mutable_tick_data();
@@ -331,4 +336,23 @@ void publishData::insertDataToTickDataPool(CThostFtdcDepthMarketDataField * pD)
         }
     }
     ik = pthread_mutex_unlock(&(tickData->sm_mutex));
+}
+
+bool publishData::isValidLevel1Data(std::map<std::string, publishControl>::iterator pc, CThostFtdcDepthMarketDataField *pD)
+{
+    bool ret = false;
+    tickDataPool tempData;
+    tempData.id.ins = pD->InstrumentID;
+
+    auto pos = pc->second.instrumentList.find(tempData);
+    if (pos != end(pc->second.instrumentList))
+    {
+        float ticksize = max2zero(pD->AskPrice1) - max2zero(pD->BidPrice1);
+        if (fabs(ticksize - pos->id.ticksize) < 1e-6 && fabs(ticksize - 0) > 1e-6)
+        {
+            ret = true;
+        }
+    }
+
+    return ret;
 }

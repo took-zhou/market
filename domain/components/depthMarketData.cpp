@@ -62,7 +62,8 @@ bool marketData::isValidTickData(CThostFtdcDepthMarketDataField * pD)
     int delaySecond = nowSecond - tickSecond;
     if (printNetworkDelay == true && delaySecond != 0)
     {
-        INFO_LOG("%s delaySecond %d", pD->InstrumentID, delaySecond);
+        INFO_LOG("%s local time: %02d:%02d:%02d--ctp time: %s delaySecond %d", pD->InstrumentID, local_time->tm_hour, \
+        local_time->tm_min, local_time->tm_sec, pD->UpdateTime, delaySecond);
     }
 
     if (delaySecond <= 180 && delaySecond >= -180 && pD->BidVolume1 > 0 && \
