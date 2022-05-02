@@ -6,6 +6,7 @@
 
 enum MARKET_TIME_STATE
 {
+    RESERVE = 0,
     LOGIN_TIME = 1,
     LOGOUT_TIME = 2
 };
@@ -62,6 +63,8 @@ public:
     // model update function
     void update(void);
 
+    void set_time_state(int command);
+
     MarketTimeState();
 
     ~MarketTimeState();
@@ -78,6 +81,8 @@ private:
     U32 isDuringDayLoginTime(void);
     U32 isDuringNightLoginTime(void);
     void determineLoginMode(void);
+
+    MARKET_TIME_STATE time_state = RESERVE;
 };
 
 

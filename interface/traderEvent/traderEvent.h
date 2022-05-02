@@ -20,10 +20,8 @@ public:
     void handle(MsgStruct& msg);
     void regMsgFun();
     void QryInstrumentRspHandle(MsgStruct& msg);
-    std::map<std::string, std::function<void(MsgStruct& msg)>> msgFuncMap;
 
-private:
-    pthread_mutex_t sm_mutex;
+    std::map<std::string, std::function<void(MsgStruct& msg)>> msgFuncMap;
 };
 
 

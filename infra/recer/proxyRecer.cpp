@@ -30,6 +30,9 @@ bool ProxyRecer::init()
     // market_trader
     topicList.push_back("market_trader.QryInstrumentRsp");
 
+    topicList.push_back("ctpview_market.LoginControl");
+    topicList.push_back("ctpview_market.CheckStrategyAlive");
+
     auto& zmqBase = ZmqBase::getInstance();
     for(auto& topic : topicList)
     {

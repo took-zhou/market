@@ -13,6 +13,7 @@
 #include "market/interface/selfEvent/selfEvent.h"
 #include "market/interface/ctpEvent/ctpEvent.h"
 #include "market/interface/traderEvent/traderEvent.h"
+#include "market/interface/ctpviewEvent/ctpviewEvent.h"
 
 #include "common/self/dci/Role.h"
 #include <map>
@@ -25,6 +26,7 @@ struct MarketEvent : CtpEvent
                    , InteractEvent
                    , TraderEvent
                    , SelfEvent
+                   , CtpviewEvent
 {
     MarketEvent(){};
     MarketEvent(const MarketEvent&) = delete;
@@ -42,6 +44,7 @@ struct MarketEvent : CtpEvent
     IMPL_ROLE(InteractEvent);
     IMPL_ROLE(TraderEvent);
     IMPL_ROLE(SelfEvent);
+    IMPL_ROLE(CtpviewEvent);
     std::map<std::string, std::function<void(MsgStruct msg)>> sessionFuncMap;
 };
 

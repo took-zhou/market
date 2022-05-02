@@ -7,6 +7,7 @@
 #include "common/extern/json/json.h"
 #include "common/extern/json/fifo_map.hpp"
 #include "common/self/fileUtil.h"
+#include "common/self/utils.h"
 
 using namespace nlohmann;
 template<class K, class V, class dummy_compare, class A>
@@ -43,6 +44,7 @@ bool controlPara::load_from_json(void)
                 tickDataPool tempData;
                 tempData.id.exch = readData[iter.key()]["instrument"][i]["id"]["exch"];
                 tempData.id.ins = readData[iter.key()]["instrument"][i]["id"]["ins"];
+                tempData.id.ticksize = utils::stringToFloat(readData[iter.key()]["instrument"][i]["id"]["ticksize"]);
                 tempData.index = readData[iter.key()]["instrument"][i]["index"];
                 tempControl.instrumentList.insert(tempData);
             }
@@ -93,6 +95,7 @@ bool controlPara::write_to_json(void)
             fifo_json ins_exch;
             ins_exch["id"]["exch"] = ins_iter->id.exch;
             ins_exch["id"]["ins"] = ins_iter->id.ins;
+            ins_exch["id"]["ticksize"] = utils::floatToStringConvert(ins_iter->id.ticksize);
             ins_exch["index"] = ins_iter->index;
             one_item["instrument"].push_back(ins_exch);
             ins_iter++;
