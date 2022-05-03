@@ -24,25 +24,24 @@ bool ZmqBase::init()
     context = zmq_ctx_new();
     receiver = zmq_socket(context, ZMQ_SUB);
     publisher = zmq_socket(context, ZMQ_PUB);
-    auto& jsonCfg = utils::JsonConfig::getInstance();
-    std::string netStr = jsonCfg.getConfig("common", "SubAddPort").get<std::string>();
-    int result = zmq_connect(receiver, netStr.c_str());
+
+    int result = zmq_connect(receiver, "tcp://eth0:8100");
     sleep(WAITTIME_FOR_ZMQ_INIT);
     INFO_LOG("zmq_connect receiver result = %d",result);
     if(result != 0)
     {
-        ERROR_LOG("receiver connect to %s failed",netStr.c_str());
+        ERROR_LOG("receiver connect to tcp://eth0:8100 failed");
         return false;
     }
-    netStr = jsonCfg.getConfig("common", "PubAddPort").get<std::string>();
 
-    result = zmq_connect(publisher, netStr.c_str());
-    INFO_LOG("zmq_connect publisher result = %d",result);
+    result = zmq_connect(publisher, "tcp://eth0:5556");
+    INFO_LOG("zmq_connect publisher result = %d", result);
     if(result != 0)
     {
-        ERROR_LOG("publisher connect to %s failed",netStr.c_str());
+        ERROR_LOG("publisher connect to tcp://eth0:5556 failed");
         return false;
     }
+
     INFO_LOG("zmq init ok");
     return true;
 }
