@@ -4,7 +4,6 @@
  *  Created on: 2020.11.13
  *      Author: Administrator
  */
-
 #ifndef WORKSPACE_MARKET_INFRA_ZMQBASE_H_
 #define WORKSPACE_MARKET_INFRA_ZMQBASE_H_
 
