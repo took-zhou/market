@@ -190,7 +190,6 @@ void MarketTimeState::update(void)
         {
             output.status = time_state;
         }
-
         sleep(1);
     }
 }
@@ -207,6 +206,7 @@ void MarketTimeState::set_time_state(int command)
     }
     else if (command == ctpview_market::LoginControl_Command_reserve)
     {
+        rtDW.is_active_MarketTimeState = 0U;
         time_state = RESERVE;
     }
 }
