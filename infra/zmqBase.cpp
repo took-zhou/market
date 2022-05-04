@@ -4,16 +4,16 @@
  *  Created on: 2020.11.13
  *      Author: Administrator
  */
-
-#include "market/infra/zmqBase.h"
-#include "common/self/fileUtil.h"
-#include "common/extern/libzmq/include/zhelpers.h"
-#include "common/extern/log/log.h"
-#include "common/self/basetype.h"
-
 #include <string>
 #include <sstream>
 #include <unistd.h>
+
+#include "market/infra/zmqBase.h"
+#include "common/self/fileUtil.h"
+#include "common/self/utils.h"
+#include "common/extern/libzmq/include/zhelpers.h"
+#include "common/extern/log/log.h"
+#include "common/self/basetype.h"
 
 using json = nlohmann::json;
 
@@ -25,20 +25,24 @@ bool ZmqBase::init()
     receiver = zmq_socket(context, ZMQ_SUB);
     publisher = zmq_socket(context, ZMQ_PUB);
 
-    int result = zmq_connect(receiver, "tcp://eth0:8100");
+    string local_ip;
+    utils::get_local_ip(local_ip);
+    string sub_ipaddport = "tcp://" + local_ip + ":8100";
+    int result = zmq_connect(receiver, sub_ipaddport.c_str());
     sleep(WAITTIME_FOR_ZMQ_INIT);
     INFO_LOG("zmq_connect receiver result = %d",result);
     if(result != 0)
     {
-        ERROR_LOG("receiver connect to tcp://eth0:8100 failed");
+        ERROR_LOG("receiver connect to %s failed", sub_ipaddport.c_str());
         return false;
     }
 
-    result = zmq_connect(publisher, "tcp://eth0:5556");
+    string pub_ipaddport = "tcp://" + local_ip + ":5556";
+    result = zmq_connect(publisher, pub_ipaddport.c_str());
     INFO_LOG("zmq_connect publisher result = %d", result);
     if(result != 0)
     {
-        ERROR_LOG("publisher connect to tcp://eth0:5556 failed");
+        ERROR_LOG("publisher connect to %s failed", pub_ipaddport.c_str());
         return false;
     }
 
@@ -63,5 +67,3 @@ int ZmqBase::PublishMsg(const char* head, const char* msg)
     int ret2 = s_send(publisher, const_cast<char*>(tmpStr.str().c_str()));
     return ret2;
 }
-
-
