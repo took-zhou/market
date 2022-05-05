@@ -66,6 +66,11 @@ void CtpviewEvent::CheckStrategyAliveHandle(MsgStruct& msg)
 
     if (command == "yes")
     {
-        marketSer.ROLE(activeSafety).req_alive();
+        // 开启检测合约是否存活线程
+        auto activeSafetyFunc = [&](){
+            marketSer.ROLE(activeSafety).req_alive();
+        };
+        INFO_LOG("activeSafetyFunc prepare ok");
+        std::thread(activeSafetyFunc).detach();
     }
 }
