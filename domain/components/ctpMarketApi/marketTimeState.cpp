@@ -68,6 +68,7 @@ U32 MarketTimeState::isDuringNightLoginTime(void)
     {
         out = 1U;
     }
+
     return out;
 }
 
@@ -97,7 +98,7 @@ void MarketTimeState::step()
         switch (rtDW.is_MarketTimeState)
         {
             case IN_day_login:
-                if (input.now_mins == input.day_logout_mins)
+                if (input.now_mins == input.day_logout_mins || time_state == LOGOUT_TIME)
                 {
                     rtDW.is_MarketTimeState = IN_day_logout;
                     output.status = LOGOUT_TIME;
@@ -105,14 +106,14 @@ void MarketTimeState::step()
                 break;
 
             case IN_day_logout:
-                if ((strcmp(input.loginTime, "day") != 0) && (input.now_mins == input.night_login_mins))
+                if ((strcmp(input.loginTime, "day") != 0) && (input.now_mins == input.night_login_mins || time_state == LOGIN_TIME))
                 {
                     rtDW.is_MarketTimeState = IN_night_login;
                     output.status = LOGIN_TIME;
                 }
                 else
                 {
-                    if ((strcmp(input.loginTime, "day") == 0) && (input.now_mins == input.day_login_mins))
+                    if ((strcmp(input.loginTime, "day") == 0) && (input.now_mins == input.day_login_mins || time_state == LOGIN_TIME))
                     {
                         rtDW.is_MarketTimeState = IN_day_login;
                         output.status = LOGIN_TIME;
@@ -147,7 +148,7 @@ void MarketTimeState::step()
                 break;
 
             case IN_night_login:
-                if (input.now_mins == input.night_logout_mins)
+                if (input.now_mins == input.night_logout_mins || time_state == LOGOUT_TIME)
                 {
                     rtDW.is_MarketTimeState = IN_night_logout;
                     output.status = LOGOUT_TIME;
@@ -155,14 +156,14 @@ void MarketTimeState::step()
                 break;
 
             default:
-                if ((strcmp(input.loginTime, "night") != 0) && (input.now_mins == input.day_login_mins))
+                if ((strcmp(input.loginTime, "night") != 0) && (input.now_mins == input.day_login_mins || time_state == LOGIN_TIME))
                 {
                     rtDW.is_MarketTimeState = IN_day_login;
                     output.status = LOGIN_TIME;
                 }
                 else
                 {
-                    if ((strcmp(input.loginTime, "night") == 0) && (input.now_mins == input.night_login_mins))
+                    if ((strcmp(input.loginTime, "night") == 0) && (input.now_mins == input.night_login_mins || time_state == LOGIN_TIME))
                     {
                         rtDW.is_MarketTimeState = IN_night_login;
                         output.status = LOGIN_TIME;
@@ -186,10 +187,6 @@ void MarketTimeState::update(void)
 
         step();
 
-        if (time_state != RESERVE)
-        {
-            output.status = time_state;
-        }
         sleep(1);
     }
 }

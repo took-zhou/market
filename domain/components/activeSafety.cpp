@@ -63,7 +63,7 @@ void activeSafety::req_alive()
 
         std::string semName = "req_alive";
         globalSem.addOrderSem(semName);
-        if (globalSem.waitSemBySemName(semName, 1) != 0)
+        if (globalSem.waitSemBySemName(semName, 10) != 0)
         {
             req_alive_timeout(*iter);
         }
@@ -71,6 +71,7 @@ void activeSafety::req_alive()
         sleep(1);
     }
 
+    INFO_LOG("check target alive has finished.");
     marketSer.ROLE(controlPara).write_to_json();
 }
 
