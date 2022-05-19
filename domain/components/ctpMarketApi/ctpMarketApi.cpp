@@ -350,7 +350,7 @@ void CtpMarketApi::logout()
     marketApi->ReqUserLogout();
 
     std::string semName = "market_logout";
-    if (globalSem.waitSemBySemName(semName, 10) != 0)
+    if (globalSem.waitSemBySemName(semName, 3) != 0)
     {
         marketSpi->OnRspUserLogout();
     }

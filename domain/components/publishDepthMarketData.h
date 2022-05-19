@@ -30,8 +30,9 @@ public:
     // 直接传输到策略端
     void directForwardDataToStrategy(CThostFtdcDepthMarketDataField *pD);
     void once_from_dataflow(std::map<std::string, publishControl>::iterator pc, CThostFtdcDepthMarketDataField *pD);
+
     // 先暂存共享内存，再传输给策略端
-    void publishToStrategy(const std::string keyname);
+    void heartbeatDetect();
     void once_from_datafield(std::map<std::string, publishControl>::iterator pc);
     void insertDataToTickDataPool(CThostFtdcDepthMarketDataField *pD);
 

@@ -66,8 +66,7 @@ bool marketData::isValidTickData(CThostFtdcDepthMarketDataField * pD)
         local_time->tm_min, local_time->tm_sec, pD->UpdateTime, delaySecond);
     }
 
-    if (delaySecond <= 180 && delaySecond >= -180 && pD->BidVolume1 > 0 && \
-        pD->AskVolume1 > 0 && pD->BidPrice1 > 0.0 && pD->AskPrice1 > 0.0)
+    if (delaySecond <= 180 && delaySecond >= -180 && (pD->BidPrice1 > 0.0 || pD->AskPrice1 > 0.0))
     {
         ret = true;
     }

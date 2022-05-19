@@ -68,8 +68,11 @@ void CtpEvent::DeepMarktDataHandle(MsgStruct& msg)
     }
     else
     {
-        marketSer.ROLE(publishData).directForwardDataToStrategy(deepdata);
-        marketSer.ROLE(publishData).insertDataToTickDataPool(deepdata);
+        if (block_control == ctpview_market::BlockControl_Command_unblock)
+        {
+            marketSer.ROLE(publishData).directForwardDataToStrategy(deepdata);
+            marketSer.ROLE(publishData).insertDataToTickDataPool(deepdata);
+        }
     }
 
     delete deepdata;
@@ -173,4 +176,10 @@ void CtpEvent::UnSubscribeAllMarketData(void)
     }
 
     INFO_LOG("The number of contracts being unsubscribe is: %d.", instrumentCount);
+}
+
+
+void CtpEvent::set_block_control(ctpview_market::BlockControl_Command command)
+{
+    block_control = command;
 }

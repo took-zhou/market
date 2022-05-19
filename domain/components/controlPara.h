@@ -15,13 +15,6 @@ struct tickDataPool
     mutable U32 index;
 };
 
-struct CloseTime
-{
-    std::string close_start;
-    std::string close_stop;
-    bool send_flag=false;
-};
-
 struct tickDataPoolSortCriterion
 {
 public:
@@ -48,7 +41,7 @@ struct publishControl
     bool directforward = false;
     std::string source = "rawtick"; // 默认 rawtick
     int thread_uniqueness_cnt = 0;
-    std::vector<CloseTime> closeTimeList;
+    U32 heartbeat = 0;
 };
 
 struct controlPara
@@ -67,8 +60,6 @@ struct controlPara
     void setInterval(const std::string keyname, float _interval);
     void setDirectForwardingFlag(const std::string keyname, bool flag);
     void setSource(const std::string keyname, std::string _source);
-    void setCloseTimeSendFlag(const std::string keyname, int index, bool flag);
-    void buildCloseTimeList(const std::string keyname, std::vector<CloseTime> const &timeVec);
 
     void updatePublishInstrumentInfo(void);
 

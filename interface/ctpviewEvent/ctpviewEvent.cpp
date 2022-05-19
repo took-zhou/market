@@ -9,6 +9,7 @@
 #include "market/interface/ctpviewEvent/ctpviewEvent.h"
 #include "market/infra/define.h"
 #include "market/domain/marketService.h"
+#include "market/interface/marketEvent.h"
 
 bool CtpviewEvent::init()
 {
@@ -22,6 +23,7 @@ void CtpviewEvent::regMsgFun()
     msgFuncMap.clear();
     msgFuncMap.insert(std::pair<std::string, std::function<void(MsgStruct& msg)>>("LoginControl", [this](MsgStruct& msg){LoginControlHandle(msg);}));
     msgFuncMap.insert(std::pair<std::string, std::function<void(MsgStruct& msg)>>("CheckStrategyAlive", [this](MsgStruct& msg){CheckStrategyAliveHandle(msg);}));
+    msgFuncMap.insert(std::pair<std::string, std::function<void(MsgStruct& msg)>>("BlockControl", [this](MsgStruct& msg){BlockControlHandle(msg);}));
 
     for(auto iter : msgFuncMap)
     {
@@ -73,4 +75,17 @@ void CtpviewEvent::CheckStrategyAliveHandle(MsgStruct& msg)
         INFO_LOG("activeSafetyFunc prepare ok");
         std::thread(activeSafetyFunc).detach();
     }
+}
+
+void CtpviewEvent::BlockControlHandle(MsgStruct& msg)
+{
+    ctpview_market::message block_control;
+    block_control.ParseFromString(msg.pbMsg);
+    auto indication = block_control.block_control();
+
+    ctpview_market::BlockControl_Command command = indication.command();
+    auto& marketEvent = MarketEvent::getInstance();
+
+    INFO_LOG("set block quotation control: %d", command);
+    marketEvent.ROLE(CtpEvent).set_block_control(command);
 }

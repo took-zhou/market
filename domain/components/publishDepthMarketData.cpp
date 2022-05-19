@@ -132,6 +132,8 @@ void publishData::once_from_datafield(std::map<std::string, publishControl>::ite
     char temp_topic[100];
     sprintf(temp_topic, "market_strategy.TickData.%s", pc->first.c_str());
     recerSender.ROLE(Sender).ROLE(ProxySender).send(temp_topic, tickStr.c_str());
+
+    pc->second.heartbeat = 0;
 }
 
 void publishData::once_from_dataflow(std::map<std::string, publishControl>::iterator pc, CThostFtdcDepthMarketDataField *pD)
@@ -193,6 +195,8 @@ void publishData::once_from_dataflow_select_rawtick(std::map<std::string, publis
     auto& recerSender = RecerSender::getInstance();
     string topic = "market_strategy.TickData." + pc->first;
     recerSender.ROLE(Sender).ROLE(ProxySender).send(topic.c_str(), tickStr.c_str());
+
+    pc->second.heartbeat = 0;
 }
 
 // 无法获取最小变动单位，暂不实现该功能
@@ -248,37 +252,33 @@ void publishData::once_from_dataflow_select_level1(std::map<std::string, publish
     auto& recerSender = RecerSender::getInstance();
     string topic = "market_strategy.TickData." + pc->first;
     recerSender.ROLE(Sender).ROLE(ProxySender).send(topic.c_str(), tickStr.c_str());
+
+    pc->second.heartbeat = 0;
 }
 
-void publishData::publishToStrategy(const string keyname)
+void publishData::heartbeatDetect()
 {
     auto& marketSer = MarketService::getInstance();
-    std::map<string, publishControl>::iterator iter = marketSer.ROLE(controlPara).publishCtrlMap.find(keyname);
-    if (iter != marketSer.ROLE(controlPara).publishCtrlMap.end() && iter->second.thread_uniqueness_cnt++ == 0)
+    std::map<string, publishControl>::iterator iter;
+    while (1)
     {
-        INFO_LOG("publishDataFuc prepare ok");
-        while (1)
+        for (iter = marketSer.ROLE(controlPara).publishCtrlMap.begin(); iter != marketSer.ROLE(controlPara).publishCtrlMap.end(); iter++)
         {
             if (iter->second.indication == market_strategy::TickStartStopIndication_MessageType_start)
             {
                 if (marketSer.ROLE(Market).ROLE(CtpMarketApi).getMarketLoginState() == LOGIN_STATE)
                 {
-                    once_from_datafield(iter);
+                    iter->second.heartbeat++;
+                    if (iter->second.heartbeat >= 60)
+                    {
+                        INFO_LOG("%s heartbeat wait times out, data will be transferred from the shared memory", iter->first.c_str());
+                        once_from_datafield(iter);
+                    }
                 }
             }
-            else if (iter->second.indication == market_strategy::TickStartStopIndication_MessageType_stop)
-            {
-                INFO_LOG("%s: publishToStrategy is stopping.", iter->first.c_str());
-            }
-            else if (iter->second.indication == market_strategy::TickStartStopIndication_MessageType_finish)
-            {
-                INFO_LOG("%s is going to exit publishToStrategy thread.", iter->first.c_str());
-                marketSer.ROLE(controlPara).publishCtrlMap.erase(iter);
-                marketSer.ROLE(controlPara).write_to_json();
-                break;
-            }
-            usleep(iter->second.interval);
         }
+
+        sleep(1);
     }
 }
 

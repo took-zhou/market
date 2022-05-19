@@ -54,7 +54,6 @@ void StrategyEvent::TickSubscribeReqHandle(MsgStruct& msg)
 {
     vector<string> keywordVec;
     vector<utils::InstrumtntID> insVec;
-    vector<CloseTime> closeVec;
     string mapkeyname = "";
     insVec.clear();
     keywordVec.clear();
@@ -72,19 +71,10 @@ void StrategyEvent::TickSubscribeReqHandle(MsgStruct& msg)
         insVec.push_back(insId);
     }
 
-    for (int i = 0; i < reqInfo.close_time_list_size(); i++)
-    {
-        CloseTime _time;
-        _time.close_start = reqInfo.close_time_list(i).close_start();
-        _time.close_stop = reqInfo.close_time_list(i).close_stop();
-        closeVec.push_back(_time);
-    }
-
     mapkeyname = reqInfo.process_random_id();
 
     auto& marketSer = MarketService::getInstance();
     marketSer.ROLE(controlPara).buildInstrumentList(mapkeyname, insVec);
-    marketSer.ROLE(controlPara).buildCloseTimeList(mapkeyname, closeVec);
 
     if (reqInfo.interval() == "raw")
     {
@@ -95,11 +85,6 @@ void StrategyEvent::TickSubscribeReqHandle(MsgStruct& msg)
     {
         marketSer.ROLE(controlPara).setInterval(mapkeyname, float(std::atof(reqInfo.interval().c_str())));
         marketSer.ROLE(controlPara).setDirectForwardingFlag(mapkeyname, false);
-        //  开启发布线程
-        auto publishDataFuc = [&](const string name){
-            marketSer.ROLE(publishData).publishToStrategy(name);
-        };
-        std::thread(publishDataFuc, mapkeyname).detach();
     }
 
     if (marketSer.ROLE(Market).ROLE(CtpMarketApi).marketApi != nullptr)
