@@ -88,7 +88,7 @@ void publishData::once_from_datafield(std::map<std::string, publishControl>::ite
         if (instrument_iter->id.ins == string(tickData->datafield[instrument_iter->index].InstrumentID))
         {
             auto iter = tick_data->add_tick_list();
-            iter->set_state(market_strategy::TickData_TickState_active);
+            iter->set_state(market_strategy::TickData_TickState_inactive);
             iter->set_instrument_id(tickData->datafield[instrument_iter->index].InstrumentID);
             iter->set_last_price(std::to_string(max2zero(tickData->datafield[instrument_iter->index].LastPrice)));
             iter->set_bid_price1(std::to_string(max2zero(tickData->datafield[instrument_iter->index].BidPrice1)));
