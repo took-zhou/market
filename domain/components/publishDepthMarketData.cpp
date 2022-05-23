@@ -271,7 +271,7 @@ void publishData::heartbeatDetect()
                     iter->second.heartbeat++;
                     if (iter->second.heartbeat >= 60)
                     {
-                        INFO_LOG("%s heartbeat wait times out, data will be transferred from the shared memory", iter->first.c_str());
+                        // INFO_LOG("%s heartbeat wait times out, data will be transferred from the shared memory", iter->first.c_str());
                         once_from_datafield(iter);
                     }
                 }
