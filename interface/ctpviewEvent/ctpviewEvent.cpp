@@ -24,6 +24,7 @@ void CtpviewEvent::regMsgFun()
     msgFuncMap.insert(std::pair<std::string, std::function<void(MsgStruct& msg)>>("LoginControl", [this](MsgStruct& msg){LoginControlHandle(msg);}));
     msgFuncMap.insert(std::pair<std::string, std::function<void(MsgStruct& msg)>>("CheckStrategyAlive", [this](MsgStruct& msg){CheckStrategyAliveHandle(msg);}));
     msgFuncMap.insert(std::pair<std::string, std::function<void(MsgStruct& msg)>>("BlockControl", [this](MsgStruct& msg){BlockControlHandle(msg);}));
+    msgFuncMap.insert(std::pair<std::string, std::function<void(MsgStruct& msg)>>("BugInjection", [this](MsgStruct& msg){BugInjectionHandle(msg);}));
 
     for(auto iter : msgFuncMap)
     {
@@ -88,4 +89,23 @@ void CtpviewEvent::BlockControlHandle(MsgStruct& msg)
 
     INFO_LOG("set block quotation control: %d", command);
     marketEvent.ROLE(CtpEvent).set_block_control(command);
+}
+
+void CtpviewEvent::BugInjectionHandle(MsgStruct& msg)
+{
+    ctpview_market::message bug_injection;
+    bug_injection.ParseFromString(msg.pbMsg);
+    auto injection = bug_injection.bug_injection();
+
+    INFO_LOG("%s", msg.pbMsg.c_str());
+    ctpview_market::BugInjection_InjectionType type = injection.type();
+    INFO_LOG("set bug injection type: %d", type);
+
+    if (type == ctpview_market::BugInjection_InjectionType_double_free)
+    {
+        char *ptr = (char *)malloc(1);
+        *ptr = 'a';
+        free(ptr);
+        free(ptr);
+    }
 }

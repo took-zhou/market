@@ -142,6 +142,7 @@ void controlPara::setStartStopIndication(const std::string keyname, market_strat
     if (iter != publishCtrlMap.end())
     {
         iter->second.indication = _indication;
+        INFO_LOG("setStartStopIndication %d.", _indication);
     }
     else
     {

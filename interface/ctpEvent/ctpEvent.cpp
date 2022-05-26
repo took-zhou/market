@@ -84,8 +84,6 @@ void CtpEvent::LoginInfoHandle(MsgStruct& msg)
     TThostFtdcErrorMsgType errormsg;
     utils::gbk2utf8(ctpMsg->ErrorMsg, errormsg, sizeof(errormsg));//报错返回信息
 
-    INFO_LOG("ErrorCode=[%d], ErrorMsg=[%s]", ctpMsg->ErrorID, errormsg);
-
     if (ctpMsg->ErrorID != 0)
     {
         // 端登失败，客户端需进行错误处理
@@ -114,6 +112,8 @@ void CtpEvent::LoginInfoHandle(MsgStruct& msg)
         globalSem.postSemBySemName(semName);
         INFO_LOG("post sem of [%s]", semName.c_str());
     }
+
+    delete (CThostFtdcRspInfoField*)ctpMsg;
 }
 
 void CtpEvent::LogoutInfoHandle(MsgStruct& msg)
@@ -142,12 +142,13 @@ void CtpEvent::LogoutInfoHandle(MsgStruct& msg)
         marketSer.ROLE(publishState).publish_event();
 
         marketSer.ROLE(Market).release();
-        delete (CThostFtdcRspInfoField*)ctpMsg;
 
         std::string semName = "market_logout";
         globalSem.postSemBySemName(semName);
         INFO_LOG("post sem of [%s]", semName.c_str());
     }
+
+    delete (CThostFtdcRspInfoField*)ctpMsg;
 }
 
 void CtpEvent::UnSubscribeAllMarketData(void)

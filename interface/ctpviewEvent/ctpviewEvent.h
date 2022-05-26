@@ -22,6 +22,7 @@ struct CtpviewEvent
     void LoginControlHandle(MsgStruct& msg);
     void CheckStrategyAliveHandle(MsgStruct& msg);
     void BlockControlHandle(MsgStruct& msg);
+    void BugInjectionHandle(MsgStruct& msg);
 
     std::map<std::string, std::function<void(MsgStruct& msg)>> msgFuncMap;
 };

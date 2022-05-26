@@ -18,7 +18,7 @@ extern co_chan<MsgStruct> ctpMsgChan;
 
 void MarketSpi::OnFrontConnected()
 {
-    INFO_LOG("OnFrontConnected():is excuted...");
+    INFO_LOG("OnFrontConnected():is excuted...");
     // 在登出后系统会重新调用OnFrontConnected，这里简单判断并忽略第1次之后的所有调用。
     INFO_LOG("reConnect:%d.", reConnect);
     if (reConnect++ == 0)
@@ -68,6 +68,7 @@ void MarketSpi::OnRspUserLogout(void)
     CThostFtdcRspInfoField *field = new CThostFtdcRspInfoField;
     field->ErrorID = 0;
     strcpy(field->ErrorMsg, "force logout");
+
     MsgStruct msgStruct;
     msgStruct.sessionName = "ctp";
     msgStruct.msgName = "LogoutInfo";

@@ -28,6 +28,8 @@
 #include "market/infra/recerSender.h"
 #include "market/domain/marketService.h"
 
+constexpr U32 HEARTBEAT_WAIT_TIME = 60;
+
 publishData::publishData()
 {
     int shm_id;
@@ -269,7 +271,7 @@ void publishData::heartbeatDetect()
                 if (marketSer.ROLE(Market).ROLE(CtpMarketApi).getMarketLoginState() == LOGIN_STATE)
                 {
                     iter->second.heartbeat++;
-                    if (iter->second.heartbeat >= 60)
+                    if (iter->second.heartbeat >= HEARTBEAT_WAIT_TIME)
                     {
                         // INFO_LOG("%s heartbeat wait times out, data will be transferred from the shared memory", iter->first.c_str());
                         once_from_datafield(iter);
@@ -287,7 +289,6 @@ void publishData::directForwardDataToStrategy(CThostFtdcDepthMarketDataField * p
     auto& marketSer = MarketService::getInstance();
     tickDataPool tempData;
     tempData.id.ins = pD->InstrumentID;
-    std::map<std::string, publishControl>::iterator saveit;
     std::map<std::string, publishControl>::iterator mapit = marketSer.ROLE(controlPara).publishCtrlMap.begin();
     while (mapit != marketSer.ROLE(controlPara).publishCtrlMap.end())
     {
@@ -301,19 +302,6 @@ void publishData::directForwardDataToStrategy(CThostFtdcDepthMarketDataField * p
                 {
                     once_from_dataflow(mapit, pD);
                 }
-            }
-            else if (mapit->second.indication == market_strategy::TickStartStopIndication_MessageType_stop)
-            {
-                INFO_LOG("%s: publishToStrategy is stopping.", mapit->first.c_str());
-            }
-            else if (mapit->second.indication == market_strategy::TickStartStopIndication_MessageType_finish)
-            {
-                saveit = mapit;
-                mapit++;
-                INFO_LOG("%s is going to exit publishToStrategy thread.", saveit->first.c_str());
-                marketSer.ROLE(controlPara).publishCtrlMap.erase(saveit);
-                marketSer.ROLE(controlPara).write_to_json();
-                continue;
             }
         }
         mapit++;
