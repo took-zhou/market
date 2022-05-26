@@ -72,17 +72,10 @@ void activeSafety::req_alive()
     }
 
     INFO_LOG("check target alive has finished.");
-    marketSer.ROLE(controlPara).write_to_json();
 }
 
 void activeSafety::req_alive_timeout(const string keyname)
 {
     auto& marketSer = MarketService::getInstance();
-    std::map<string, publishControl>::iterator iter = marketSer.ROLE(controlPara).publishCtrlMap.find(keyname);
-    if (iter != marketSer.ROLE(controlPara).publishCtrlMap.end())
-    {
-        INFO_LOG("%s req alive timeout, will not subscribe.", iter->first.c_str());
-        marketSer.ROLE(controlPara).publishCtrlMap.erase(iter);
-        marketSer.ROLE(controlPara).write_to_json();
-    }
+    marketSer.ROLE(controlPara).eraseInstrumentList(keyname);
 }

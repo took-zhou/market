@@ -41,12 +41,11 @@ bool controlPara::load_from_json(void)
             publishControl tempControl;
             for (int i = 0; i < readData[iter.key()]["instrument"].size(); i++)
             {
-                tickDataPool tempData;
-                tempData.id.exch = readData[iter.key()]["instrument"][i]["id"]["exch"];
-                tempData.id.ins = readData[iter.key()]["instrument"][i]["id"]["ins"];
-                tempData.id.ticksize = utils::stringToFloat(readData[iter.key()]["instrument"][i]["id"]["ticksize"]);
-                tempData.index = readData[iter.key()]["instrument"][i]["index"];
-                tempControl.instrumentList.insert(tempData);
+                utils::InstrumtntID id;
+                id.exch = readData[iter.key()]["instrument"][i]["exch"];
+                id.ins = readData[iter.key()]["instrument"][i]["ins"];
+                id.ticksize = utils::stringToFloat(readData[iter.key()]["instrument"][i]["ticksize"]);
+                tempControl.instrumentList.insert(id);
             }
 
             readData[iter.key()].at("indication").get_to(tempControl.indication);
@@ -66,9 +65,6 @@ bool controlPara::load_from_json(void)
     }
     outFile.close();
 
-    // 更新InstrumentInfo
-    updatePublishInstrumentInfo();
-
     return ret;
 }
 
@@ -85,10 +81,9 @@ bool controlPara::write_to_json(void)
         while (ins_iter != mapit->second.instrumentList.end())
         {
             fifo_json ins_exch;
-            ins_exch["id"]["exch"] = ins_iter->id.exch;
-            ins_exch["id"]["ins"] = ins_iter->id.ins;
-            ins_exch["id"]["ticksize"] = utils::floatToStringConvert(ins_iter->id.ticksize);
-            ins_exch["index"] = ins_iter->index;
+            ins_exch["exch"] = ins_iter->exch;
+            ins_exch["ins"] = ins_iter->ins;
+            ins_exch["ticksize"] = utils::floatToStringConvert(ins_iter->ticksize);
             one_item["instrument"].push_back(ins_exch);
             ins_iter++;
         }
@@ -125,6 +120,7 @@ void controlPara::setInterval(const std::string keyname, float _interval)
     {
         iter->second.interval = (U32)(_interval*1000000);
     }
+    write_to_json();
 }
 
 void controlPara::setDirectForwardingFlag(const std::string keyname, bool flag)
@@ -134,6 +130,7 @@ void controlPara::setDirectForwardingFlag(const std::string keyname, bool flag)
     {
         iter->second.directforward = flag;
     }
+    write_to_json();
 }
 
 void controlPara::setStartStopIndication(const std::string keyname, market_strategy::TickStartStopIndication_MessageType _indication)
@@ -148,6 +145,7 @@ void controlPara::setStartStopIndication(const std::string keyname, market_strat
     {
         ERROR_LOG("Please first send tickdatareq action, keyname: %s.", keyname.c_str());
     }
+    write_to_json();
 }
 
 void controlPara::setSource(const std::string keyname, std::string _source)
@@ -161,6 +159,7 @@ void controlPara::setSource(const std::string keyname, std::string _source)
     {
         ERROR_LOG("Please first send tickdatareq action, keyname: %s.", keyname.c_str());
     }
+    write_to_json();
 }
 
 void controlPara::buildInstrumentList(const std::string keyname, std::vector<utils::InstrumtntID> const &nameVec)
@@ -171,38 +170,45 @@ void controlPara::buildInstrumentList(const std::string keyname, std::vector<uti
         publishControl tempControl;
         for (int i = 0; i < nameVec.size(); i++)
         {
-            tickDataPool tempData;
-            tempData.id = nameVec[i];
-            auto pos = instrumentList.find(tempData);
-            if (pos == end(instrumentList))
-            {
-                tempData.index = instrumentList.size();
-                instrumentList.insert(tempData);
-            }
-            else
-            {
-                tempData.index = pos->index;
-            }
-            tempControl.instrumentList.insert(tempData);
+            tempControl.instrumentList.insert(nameVec[i]);
         }
 
         INFO_LOG("insert keyname: %s", keyname.c_str());
         publishCtrlMap.insert(make_pair(keyname, tempControl));
     }
+
+    write_to_json();
+}
+
+void controlPara::eraseInstrumentList(const std::string keyname)
+{
+    std::map<string, publishControl>::iterator iter = publishCtrlMap.find(keyname);
+    if (iter != publishCtrlMap.end())
+    {
+        INFO_LOG("%s req alive timeout, will not subscribe.", iter->first.c_str());
+        publishCtrlMap.erase(iter);
+    }
+
+    write_to_json();
 }
 
 std::vector<utils::InstrumtntID> controlPara::getInstrumentList(void)
 {
-    std::vector<utils::InstrumtntID> instrument_vector;
-    instrument_vector.clear();
-    auto iter = instrumentList.begin();
-    while (iter != instrumentList.end())
+    std::vector<utils::InstrumtntID> instrument_vec;
+    instrument_vec.clear();
+    std::map<std::string, publishControl>::iterator iter;
+
+    for (iter = publishCtrlMap.begin(); iter != publishCtrlMap.end(); iter++)
     {
-        instrument_vector.push_back(iter->id);
-        iter++;
+        auto ins_iter = iter->second.instrumentList.begin();
+        while (ins_iter != iter->second.instrumentList.end())
+        {
+            instrument_vec.push_back(*ins_iter);
+            ins_iter++;
+        }
     }
 
-    return instrument_vector;
+    return instrument_vec;
 }
 
 std::vector<std::string> controlPara::getKeyNameList(void)
@@ -217,23 +223,4 @@ std::vector<std::string> controlPara::getKeyNameList(void)
     }
 
     return temp_vec;
-}
-
-void controlPara::updatePublishInstrumentInfo(void)
-{
-    instrumentList.clear();
-    std::map<string, publishControl>::iterator iter;
-    U32 index_count = 0;
-    for (iter = publishCtrlMap.begin(); iter != publishCtrlMap.end(); iter++)
-    {
-        auto iter2 = iter->second.instrumentList.begin();
-        while (iter2 != iter->second.instrumentList.end())
-        {
-            iter2->index = index_count;
-            instrumentList.insert(*iter2);
-
-            index_count++;
-            iter2++;
-        }
-    }
 }

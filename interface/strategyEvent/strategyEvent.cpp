@@ -95,8 +95,6 @@ void StrategyEvent::TickSubscribeReqHandle(MsgStruct& msg)
     {
         WARNING_LOG("not during login time, wait login time to subscribe new instruments");
     }
-
-    marketSer.ROLE(controlPara).write_to_json();
 }
 
 void StrategyEvent::TickStartStopIndicationHandle(MsgStruct& msg)
@@ -109,7 +107,6 @@ void StrategyEvent::TickStartStopIndicationHandle(MsgStruct& msg)
     mapkeyname = indication.process_random_id();
     auto& marketSer = MarketService::getInstance();
     marketSer.ROLE(controlPara).setStartStopIndication(mapkeyname, indication.type());
-    marketSer.ROLE(controlPara).write_to_json();
 }
 
 void StrategyEvent::StrategyAliveRspHandle(MsgStruct& msg)

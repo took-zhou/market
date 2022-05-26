@@ -71,7 +71,6 @@ void CtpEvent::DeepMarktDataHandle(MsgStruct& msg)
         if (block_control == ctpview_market::BlockControl_Command_unblock)
         {
             marketSer.ROLE(publishData).directForwardDataToStrategy(deepdata);
-            marketSer.ROLE(publishData).insertDataToTickDataPool(deepdata);
         }
     }
 
@@ -138,7 +137,7 @@ void CtpEvent::LogoutInfoHandle(MsgStruct& msg)
         {
             marketSer.ROLE(loadData).ClassifyContractFiles();
         }
-        marketSer.ROLE(controlPara).updatePublishInstrumentInfo();
+
         marketSer.ROLE(publishState).publish_event();
 
         marketSer.ROLE(Market).release();

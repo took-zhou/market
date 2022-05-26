@@ -14,14 +14,6 @@
 #include "market/domain/components/depthMarketData.h"
 #include "market/domain/components/controlPara.h"
 
-#define MARKET_BUF_SIZE     100u
-
-struct deepTickData
-{
-    pthread_mutex_t sm_mutex;
-    CThostFtdcDepthMarketDataField datafield[MARKET_BUF_SIZE];
-};
-
 struct publishData :public marketData{
 public:
     publishData();
@@ -31,12 +23,9 @@ public:
     void directForwardDataToStrategy(CThostFtdcDepthMarketDataField *pD);
     void once_from_dataflow(std::map<std::string, publishControl>::iterator pc, CThostFtdcDepthMarketDataField *pD);
 
-    // 先暂存共享内存，再传输给策略端
+    // 超时发送默认数据
     void heartbeatDetect();
-    void once_from_datafield(std::map<std::string, publishControl>::iterator pc);
-    void insertDataToTickDataPool(CThostFtdcDepthMarketDataField *pD);
-
-    deepTickData *tickData;
+    void once_from_default(std::map<std::string, publishControl>::iterator pc);
 private:
     void once_from_dataflow_select_rawtick(std::map<std::string, publishControl>::iterator pc, CThostFtdcDepthMarketDataField *pD);
     void once_from_dataflow_select_level1(std::map<std::string, publishControl>::iterator pc, CThostFtdcDepthMarketDataField *pD);

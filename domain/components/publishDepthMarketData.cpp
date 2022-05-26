@@ -32,110 +32,31 @@ constexpr U32 HEARTBEAT_WAIT_TIME = 60;
 
 publishData::publishData()
 {
-    int shm_id;
-    key_t key;
-    pthread_mutexattr_t attr;
-
-    //Write once, read multiple times, mutex before read, mutex between read and write
-    pthread_mutexattr_init(&attr);
-    pthread_mutexattr_setpshared(&attr, PTHREAD_PROCESS_SHARED);
-
-    //Create a Shared memory area
-    auto& jsonCfg = utils::JsonConfig::getInstance();
-    const std::string sharepath = jsonCfg.getConfig("market","ShareMemoryAddr").get<std::string>();
-    string command = "touch " + sharepath;
-    if(access(sharepath.c_str(), F_OK) == -1)
-    {
-        system(command.c_str());
-    }
-    if(( key = ftok(sharepath.c_str(), 'z')) < 0)
-    {
-        ERROR_LOG("ftok error.");
-        exit(1);
-    }
-
-    if( (shm_id = shmget(key,sizeof(deepTickData),IPC_CREAT|0666)) == -1 )
-    {
-        ERROR_LOG("create shared memory error.");
-        exit(1);
-    }
-
-    tickData = (deepTickData*)shmat(shm_id, NULL, 0);
-    if(  (long)tickData == -1)
-    {
-        ERROR_LOG("attach shared memory error.");
-        exit(1);
-    }
-
-    //Initializes the mutex
-    pthread_mutex_init(&tickData->sm_mutex, &attr);
-
-    INFO_LOG("init share message address ok.");
+    ;
 }
 
-void publishData::once_from_datafield(std::map<std::string, publishControl>::iterator pc)
+void publishData::directForwardDataToStrategy(CThostFtdcDepthMarketDataField * pD)
 {
-    char timeArray[100] = {0};
-    market_strategy::message tick;
-    auto tick_data = tick.mutable_tick_data();
-
-    getLocalTime(timeArray);
-    tick_data->set_time_point(timeArray);
-
-    int ik = pthread_mutex_lock(&(tickData->sm_mutex));
-
-    auto instrument_iter = pc->second.instrumentList.begin();
-    while (instrument_iter != pc->second.instrumentList.end())
+    auto& marketSer = MarketService::getInstance();
+    utils::InstrumtntID tempIns;
+    tempIns.ins = pD->InstrumentID;
+    std::map<std::string, publishControl>::iterator mapit = marketSer.ROLE(controlPara).publishCtrlMap.begin();
+    while (mapit != marketSer.ROLE(controlPara).publishCtrlMap.end())
     {
-        if (instrument_iter->id.ins == string(tickData->datafield[instrument_iter->index].InstrumentID))
+        auto pos = mapit->second.instrumentList.find(tempIns);
+        if (pos != end(mapit->second.instrumentList) && mapit->second.directforward == true)
         {
-            auto iter = tick_data->add_tick_list();
-            iter->set_state(market_strategy::TickData_TickState_inactive);
-            iter->set_instrument_id(tickData->datafield[instrument_iter->index].InstrumentID);
-            iter->set_last_price(std::to_string(max2zero(tickData->datafield[instrument_iter->index].LastPrice)));
-            iter->set_bid_price1(std::to_string(max2zero(tickData->datafield[instrument_iter->index].BidPrice1)));
-            iter->set_bid_volume1(tickData->datafield[instrument_iter->index].BidVolume1);
-            iter->set_ask_price1(std::to_string(max2zero(tickData->datafield[instrument_iter->index].AskPrice1)));
-            iter->set_ask_volume1(tickData->datafield[instrument_iter->index].AskVolume1);
-            // iter->set_bid_price2(std::to_string(max2zero(tickData->datafield[instrument_iter->index].BidPrice2)));
-            // iter->set_bid_volume2(tickData->datafield[instrument_iter->index].BidVolume2);
-            // iter->set_ask_price2(std::to_string(max2zero(tickData->datafield[instrument_iter->index].AskPrice2)));
-            // iter->set_ask_volume2(tickData->datafield[instrument_iter->index].AskVolume2);
-            // iter->set_bid_price3(std::to_string(max2zero(tickData->datafield[instrument_iter->index].BidPrice3)));
-            // iter->set_bid_volume3(tickData->datafield[instrument_iter->index].BidVolume3);
-            // iter->set_ask_price3(std::to_string(max2zero(tickData->datafield[instrument_iter->index].AskPrice3)));
-            // iter->set_ask_volume3(tickData->datafield[instrument_iter->index].AskVolume3);
-            // iter->set_bid_price4(std::to_string(max2zero(tickData->datafield[instrument_iter->index].BidPrice4)));
-            // iter->set_bid_volume4(tickData->datafield[instrument_iter->index].BidVolume4);
-            // iter->set_ask_price4(std::to_string(max2zero(tickData->datafield[instrument_iter->index].AskPrice4)));
-            // iter->set_ask_volume4(tickData->datafield[instrument_iter->index].AskVolume4);
-            // iter->set_bid_price5(std::to_string(max2zero(tickData->datafield[instrument_iter->index].BidPrice5)));
-            // iter->set_bid_volume5(tickData->datafield[instrument_iter->index].BidVolume5);
-            // iter->set_ask_price5(std::to_string(max2zero(tickData->datafield[instrument_iter->index].AskPrice5)));
-            // iter->set_ask_volume5(tickData->datafield[instrument_iter->index].AskVolume5);
-            // iter->set_turnover(tickData->datafield[instrument_iter->index].Turnover);
-            // iter->set_open_interest(tickData->datafield[instrument_iter->index].OpenInterest);
-            // iter->set_upper_limit_price(std::to_string(max2zero(tickData->datafield[instrument_iter->index].UpperLimitPrice)));
-            // iter->set_lower_limit_price(std::to_string(max2zero(tickData->datafield[instrument_iter->index].LowerLimitPrice)));
-            iter->set_open_price(std::to_string(max2zero(tickData->datafield[instrument_iter->index].OpenPrice)));
-            // iter->set_pre_settlement_price(std::to_string(max2zero(tickData->datafield[instrument_iter->index].PreSettlementPrice)));
-            // iter->set_pre_close_price(std::to_string(max2zero(tickData->datafield[instrument_iter->index].PreClosePrice)));
-            // iter->set_pre_open_interest(tickData->datafield[instrument_iter->index].PreOpenInterest);
-            iter->set_volume(tickData->datafield[instrument_iter->index].Volume);
+            if (mapit->second.indication == market_strategy::TickStartStopIndication_MessageType_start)
+            {
+                auto& marketSer = MarketService::getInstance();
+                if (marketSer.ROLE(Market).ROLE(CtpMarketApi).getMarketLoginState() == LOGIN_STATE)
+                {
+                    once_from_dataflow(mapit, pD);
+                }
+            }
         }
-
-        instrument_iter++;
+        mapit++;
     }
-    ik = pthread_mutex_unlock(&(tickData->sm_mutex));
-    std::string tickStr;
-    tick.SerializeToString(&tickStr);
-
-    auto& recerSender = RecerSender::getInstance();
-    char temp_topic[100];
-    sprintf(temp_topic, "market_strategy.TickData.%s", pc->first.c_str());
-    recerSender.ROLE(Sender).ROLE(ProxySender).send(temp_topic, tickStr.c_str());
-
-    pc->second.heartbeat = 0;
 }
 
 void publishData::once_from_dataflow(std::map<std::string, publishControl>::iterator pc, CThostFtdcDepthMarketDataField *pD)
@@ -273,8 +194,8 @@ void publishData::heartbeatDetect()
                     iter->second.heartbeat++;
                     if (iter->second.heartbeat >= HEARTBEAT_WAIT_TIME)
                     {
-                        // INFO_LOG("%s heartbeat wait times out, data will be transferred from the shared memory", iter->first.c_str());
-                        once_from_datafield(iter);
+                        // INFO_LOG("%s heartbeat wait times out, data will be transferred default data", iter->first.c_str());
+                        once_from_default(iter);
                     }
                 }
             }
@@ -284,59 +205,77 @@ void publishData::heartbeatDetect()
     }
 }
 
-void publishData::directForwardDataToStrategy(CThostFtdcDepthMarketDataField * pD)
+void publishData::once_from_default(std::map<std::string, publishControl>::iterator pc)
 {
-    auto& marketSer = MarketService::getInstance();
-    tickDataPool tempData;
-    tempData.id.ins = pD->InstrumentID;
-    std::map<std::string, publishControl>::iterator mapit = marketSer.ROLE(controlPara).publishCtrlMap.begin();
-    while (mapit != marketSer.ROLE(controlPara).publishCtrlMap.end())
-    {
-        auto pos = mapit->second.instrumentList.find(tempData);
-        if (pos != end(mapit->second.instrumentList) && mapit->second.directforward == true)
-        {
-            if (mapit->second.indication == market_strategy::TickStartStopIndication_MessageType_start)
-            {
-                auto& marketSer = MarketService::getInstance();
-                if (marketSer.ROLE(Market).ROLE(CtpMarketApi).getMarketLoginState() == LOGIN_STATE)
-                {
-                    once_from_dataflow(mapit, pD);
-                }
-            }
-        }
-        mapit++;
-    }
-}
+    char timeArray[100] = {0};
+    market_strategy::message tick;
+    auto tick_data = tick.mutable_tick_data();
 
-void publishData::insertDataToTickDataPool(CThostFtdcDepthMarketDataField * pD)
-{
-    int ik = pthread_mutex_lock(&(tickData->sm_mutex));
-    tickDataPool tempData;
-    tempData.id.ins = string(pD->InstrumentID);
+    getLocalTime(timeArray);
+    tick_data->set_time_point(timeArray);
 
-    auto& marketSer = MarketService::getInstance();
-    auto iter = marketSer.ROLE(controlPara).instrumentList.find(tempData);
-    if (iter != marketSer.ROLE(controlPara).instrumentList.end())
+    auto ins_iter = pc->second.instrumentList.begin();
+    while (ins_iter != pc->second.instrumentList.end())
     {
-        if (isValidTickData(pD) == true)
-        {
-            memcpy(&(tickData->datafield[iter->index]), pD, sizeof(CThostFtdcDepthMarketDataField));
-        }
+        auto iter = tick_data->add_tick_list();
+        iter->set_state(market_strategy::TickData_TickState_inactive);
+        iter->set_instrument_id(ins_iter->ins);
+        iter->set_last_price(std::to_string(max2zero(0.0)));
+        iter->set_bid_price1(std::to_string(max2zero(0.0)));
+        iter->set_bid_volume1(0);
+        iter->set_ask_price1(std::to_string(max2zero(0.0)));
+        iter->set_ask_volume1(0);
+        // iter->set_bid_price2(std::to_string(max2zero(tickData->datafield[instrument_iter->index].BidPrice2)));
+        // iter->set_bid_volume2(tickData->datafield[instrument_iter->index].BidVolume2);
+        // iter->set_ask_price2(std::to_string(max2zero(tickData->datafield[instrument_iter->index].AskPrice2)));
+        // iter->set_ask_volume2(tickData->datafield[instrument_iter->index].AskVolume2);
+        // iter->set_bid_price3(std::to_string(max2zero(tickData->datafield[instrument_iter->index].BidPrice3)));
+        // iter->set_bid_volume3(tickData->datafield[instrument_iter->index].BidVolume3);
+        // iter->set_ask_price3(std::to_string(max2zero(tickData->datafield[instrument_iter->index].AskPrice3)));
+        // iter->set_ask_volume3(tickData->datafield[instrument_iter->index].AskVolume3);
+        // iter->set_bid_price4(std::to_string(max2zero(tickData->datafield[instrument_iter->index].BidPrice4)));
+        // iter->set_bid_volume4(tickData->datafield[instrument_iter->index].BidVolume4);
+        // iter->set_ask_price4(std::to_string(max2zero(tickData->datafield[instrument_iter->index].AskPrice4)));
+        // iter->set_ask_volume4(tickData->datafield[instrument_iter->index].AskVolume4);
+        // iter->set_bid_price5(std::to_string(max2zero(tickData->datafield[instrument_iter->index].BidPrice5)));
+        // iter->set_bid_volume5(tickData->datafield[instrument_iter->index].BidVolume5);
+        // iter->set_ask_price5(std::to_string(max2zero(tickData->datafield[instrument_iter->index].AskPrice5)));
+        // iter->set_ask_volume5(tickData->datafield[instrument_iter->index].AskVolume5);
+        // iter->set_turnover(tickData->datafield[instrument_iter->index].Turnover);
+        // iter->set_open_interest(tickData->datafield[instrument_iter->index].OpenInterest);
+        // iter->set_upper_limit_price(std::to_string(max2zero(tickData->datafield[instrument_iter->index].UpperLimitPrice)));
+        // iter->set_lower_limit_price(std::to_string(max2zero(tickData->datafield[instrument_iter->index].LowerLimitPrice)));
+        iter->set_open_price(std::to_string(max2zero(0.0)));
+        // iter->set_pre_settlement_price(std::to_string(max2zero(tickData->datafield[instrument_iter->index].PreSettlementPrice)));
+        // iter->set_pre_close_price(std::to_string(max2zero(tickData->datafield[instrument_iter->index].PreClosePrice)));
+        // iter->set_pre_open_interest(tickData->datafield[instrument_iter->index].PreOpenInterest);
+        iter->set_volume(0);
+
+        ins_iter++;
     }
-    ik = pthread_mutex_unlock(&(tickData->sm_mutex));
+
+    std::string tickStr;
+    tick.SerializeToString(&tickStr);
+
+    auto& recerSender = RecerSender::getInstance();
+    char temp_topic[100];
+    sprintf(temp_topic, "market_strategy.TickData.%s", pc->first.c_str());
+    recerSender.ROLE(Sender).ROLE(ProxySender).send(temp_topic, tickStr.c_str());
+
+    pc->second.heartbeat = 0;
 }
 
 bool publishData::isValidLevel1Data(std::map<std::string, publishControl>::iterator pc, CThostFtdcDepthMarketDataField *pD)
 {
     bool ret = false;
-    tickDataPool tempData;
-    tempData.id.ins = pD->InstrumentID;
+    utils::InstrumtntID tempIns;
+    tempIns.ins = pD->InstrumentID;
 
-    auto pos = pc->second.instrumentList.find(tempData);
+    auto pos = pc->second.instrumentList.find(tempIns);
     if (pos != end(pc->second.instrumentList))
     {
         float ticksize = max2zero(pD->AskPrice1) - max2zero(pD->BidPrice1);
-        if (fabs(ticksize - pos->id.ticksize) < 1e-6 && fabs(ticksize - 0) > 1e-6)
+        if (fabs(ticksize - pos->ticksize) < 1e-6 && fabs(ticksize - 0) > 1e-6)
         {
             ret = true;
         }
