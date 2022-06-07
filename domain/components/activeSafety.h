@@ -1,18 +1,17 @@
 #ifndef ACTIVE_SAFETY_H
 #define ACTIVE_SAFETY_H
 
-struct activeSafety
-{
-    activeSafety();
+struct activeSafety {
+  activeSafety();
 
-    // 开启查询线程
-    // 制定查询超时策略
-    ~activeSafety() {};
+  // 开启查询线程
+  // 制定查询超时策略
+  ~activeSafety(){};
 
-    void checkSafety();
+  void checkSafety();
 
-    void req_alive();
-    void req_alive_timeout(const string keyname);
+  void req_alive();
+  void req_alive_timeout(const std::string keyname);
 };
 
 #endif

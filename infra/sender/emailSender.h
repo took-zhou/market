@@ -8,14 +8,8 @@
 #ifndef WORKSPACE_TRADER_INFRA_EMAILSENDER_H_
 #define WORKSPACE_TRADER_INFRA_EMAILSENDER_H_
 
-struct EmailSender
-{
-    bool init()
-    {
-        return true;
-    };
+struct EmailSender {
+  bool init() { return true; };
 };
-
-
 
 #endif /* WORKSPACE_TRADER_INFRA_EMAILSENDER_H_ */

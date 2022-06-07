@@ -9,17 +9,12 @@
 #define WORKSPACE_MARKET_INFRA_INTERACTRECER_H_
 #include "market/infra/define.h"
 #include "market/infra/zmqBase.h"
-struct InteractRecer
-{
-    bool init(){
-        return true;
-    };
+struct InteractRecer {
+  bool init() { return true; };
 
-    MsgStruct rece();
+  MsgStruct rece();
 
-    ZmqBase* zmq{nullptr};
+  ZmqBase *zmq{nullptr};
 };
-
-
 
 #endif /* WORKSPACE_MARKET_INFRA_INTERACTRECER_H_ */

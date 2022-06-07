@@ -5,6 +5,4 @@
  *      Author: Administrator
  */
 
-
 #include "market/domain/components/market.h"
-

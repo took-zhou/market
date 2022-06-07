@@ -11,16 +11,14 @@
 
 #include "common/extern/log/log.h"
 
-bool ProxySender::init()
-{
-    auto& zmqBase = ZmqBase::getInstance();
-    zmq = &zmqBase;
+bool ProxySender::init() {
+  auto &zmqBase = ZmqBase::getInstance();
+  zmq = &zmqBase;
 
-    return true;
+  return true;
 }
 
-bool ProxySender::send(const char* head, const char* msg)
-{
-    auto& zmqBase = ZmqBase::getInstance();
-    return zmqBase.PublishMsg(head, msg);
+bool ProxySender::send(const char *head, const char *msg) {
+  auto &zmqBase = ZmqBase::getInstance();
+  return zmqBase.PublishMsg(head, msg);
 }

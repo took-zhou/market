@@ -6,5 +6,3 @@
  */
 
 #include "market/domain/marketService.h"
-
-

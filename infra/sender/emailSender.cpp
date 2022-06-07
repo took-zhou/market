@@ -5,6 +5,4 @@
  *      Author: Administrator
  */
 
-
 #include "market/infra/sender/emailSender.h"
-

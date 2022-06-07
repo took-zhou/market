@@ -11,7 +11,6 @@ target_link_libraries(marketlib
     thostmduserapi_se_6.5.1
     thosttraderapi_se_6.5.1
     commonlib
-    mysqlclient
     zmq
     libgo
     protobuf
