@@ -32,14 +32,11 @@ bool CtpEvent::init() {
 void CtpEvent::regMsgFun() {
   int cnt = 0;
   msgFuncMap.clear();
-  msgFuncMap.insert(std::pair<std::string, std::function<void(MsgStruct & msg)>>("OnRtnDepthMarketData",
-                                                                                 [this](MsgStruct &msg) { DeepMarktDataHandle(msg); }));
-  msgFuncMap.insert(
-      std::pair<std::string, std::function<void(MsgStruct & msg)>>("LoginInfo", [this](MsgStruct &msg) { LoginInfoHandle(msg); }));
-  msgFuncMap.insert(
-      std::pair<std::string, std::function<void(MsgStruct & msg)>>("LogoutInfo", [this](MsgStruct &msg) { LogoutInfoHandle(msg); }));
+  msgFuncMap["OnRtnDepthMarketData"] = [this](MsgStruct &msg) { DeepMarktDataHandle(msg); };
+  msgFuncMap["LoginInfo"] = [this](MsgStruct &msg) { LoginInfoHandle(msg); };
+  msgFuncMap["LogoutInfo"] = [this](MsgStruct &msg) { LogoutInfoHandle(msg); };
 
-  for (auto iter : msgFuncMap) {
+  for (auto &iter : msgFuncMap) {
     INFO_LOG("msgFuncMap[%d] key is [%s]", cnt, iter.first.c_str());
     cnt++;
   }

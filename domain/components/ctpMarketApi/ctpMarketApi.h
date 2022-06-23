@@ -70,7 +70,7 @@ class CtpMarketBaseApi {
   int nRequestID = 0;
 };
 
-enum MARKET_LOGIN_STATE { LOGIN_STATE = 1, LOGOUT_STATE = 2 };
+enum MARKET_LOGIN_STATE { ERROR_STATE = 0, LOGIN_STATE = 1, LOGOUT_STATE = 2 };
 
 struct CtpMarketApi {
  public:

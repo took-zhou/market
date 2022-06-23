@@ -25,14 +25,11 @@ bool StrategyEvent::init() {
 void StrategyEvent::regMsgFun() {
   int cnt = 0;
   msgFuncMap.clear();
-  msgFuncMap.insert(std::pair<std::string, std::function<void(MsgStruct & msg)>>("TickSubscribeReq",
-                                                                                 [this](MsgStruct &msg) { TickSubscribeReqHandle(msg); }));
-  msgFuncMap.insert(std::pair<std::string, std::function<void(MsgStruct & msg)>>(
-      "TickStartStopIndication", [this](MsgStruct &msg) { TickStartStopIndicationHandle(msg); }));
-  msgFuncMap.insert(std::pair<std::string, std::function<void(MsgStruct & msg)>>("ActiveSafetyRsp",
-                                                                                 [this](MsgStruct &msg) { StrategyAliveRspHandle(msg); }));
+  msgFuncMap["TickSubscribeReq"] = [this](MsgStruct &msg) { TickSubscribeReqHandle(msg); };
+  msgFuncMap["TickStartStopIndication"] = [this](MsgStruct &msg) { TickStartStopIndicationHandle(msg); };
+  msgFuncMap["ActiveSafetyRsp"] = [this](MsgStruct &msg) { StrategyAliveRspHandle(msg); };
 
-  for (auto iter : msgFuncMap) {
+  for (auto &iter : msgFuncMap) {
     INFO_LOG("msgFuncMap[%d] key is [%s]", cnt, iter.first.c_str());
     cnt++;
   }

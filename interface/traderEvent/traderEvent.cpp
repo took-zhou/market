@@ -31,16 +31,14 @@ void TraderEvent::handle(MsgStruct &msg) {
 void TraderEvent::regMsgFun() {
   int cnt = 0;
   msgFuncMap.clear();
-  msgFuncMap.insert(std::pair<std::string, std::function<void(MsgStruct & msg)>>("QryInstrumentRsp",
-                                                                                 [this](MsgStruct &msg) { QryInstrumentRspHandle(msg); }));
+  msgFuncMap["QryInstrumentRsp"] = [this](MsgStruct &msg) { QryInstrumentRspHandle(msg); };
 
-  for (auto iter : msgFuncMap) {
+  for (auto &iter : msgFuncMap) {
     INFO_LOG("msgFuncMap[%d] key is [%s]", cnt, iter.first.c_str());
     cnt++;
   }
   return;
 }
-
 void TraderEvent::QryInstrumentRspHandle(MsgStruct &msg) {
   static int instrumentCount;
   static vector<utils::InstrumtntID> ins_vec;

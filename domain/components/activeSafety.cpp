@@ -66,7 +66,7 @@ void activeSafety::req_alive() {
   INFO_LOG("check target alive has finished.");
 }
 
-void activeSafety::req_alive_timeout(const string keyname) {
+void activeSafety::req_alive_timeout(const string &keyname) {
   auto &marketSer = MarketService::getInstance();
   marketSer.ROLE(controlPara).eraseInstrumentList(keyname);
 }

@@ -20,10 +20,9 @@ bool SelfEvent::init() {
 void SelfEvent::regMsgFun() {
   int cnt = 0;
   msgFuncMap.clear();
-  msgFuncMap.insert(
-      std::pair<std::string, std::function<void(MsgStruct & msg)>>("HeartBeat", [this](MsgStruct &msg) { HeartBeatHandle(msg); }));
+  msgFuncMap["HeartBeat"] = [this](MsgStruct &msg) { HeartBeatHandle(msg); };
 
-  for (auto iter : msgFuncMap) {
+  for (auto &iter : msgFuncMap) {
     INFO_LOG("msgFuncMap[%d] key is [%s]", cnt, iter.first.c_str());
     cnt++;
   }

@@ -9,7 +9,6 @@
 #define WORKSPACE_MARKET_DOMAIN_MARKETSERVICE_H_
 
 #include "common/self/dci/Role.h"
-#include "common/self/timer.h"
 #include "market/domain/components/activeSafety.h"
 #include "market/domain/components/controlPara.h"
 #include "market/domain/components/market.h"
@@ -40,7 +39,6 @@ struct MarketService : Market, loadData, controlPara, publishData, publishState,
   IMPL_ROLE(publishData);
   IMPL_ROLE(publishState);
   IMPL_ROLE(activeSafety);
-  TimeoutTimerPool &getTimeoutTimerPool();
 };
 
 #endif /* WORKSPACE_MARKET_DOMAIN_MARKETSERVICE_H_ */

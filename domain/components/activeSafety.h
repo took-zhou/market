@@ -1,6 +1,8 @@
 #ifndef ACTIVE_SAFETY_H
 #define ACTIVE_SAFETY_H
 
+#include <string>
+
 struct activeSafety {
   activeSafety();
 
@@ -11,7 +13,7 @@ struct activeSafety {
   void checkSafety();
 
   void req_alive();
-  void req_alive_timeout(const std::string keyname);
+  void req_alive_timeout(const std::string& keyname);
 };
 
 #endif

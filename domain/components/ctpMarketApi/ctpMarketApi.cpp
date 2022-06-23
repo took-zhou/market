@@ -200,6 +200,8 @@ int CtpMarketBaseApi::ReqUserLogout() {
 }
 
 bool CtpMarketApi::init() {
+  bool out = true;
+
   INFO_LOG("begin CtpMarketApi init");
   marketApi = new CtpMarketBaseApi;
   auto &jsonCfg = utils::JsonConfig::getInstance();
@@ -220,11 +222,18 @@ bool CtpMarketApi::init() {
 
   std::string semName = "market_init";
   /*在这个地方加一个登录登出的优化*/
-  globalSem.waitSemBySemName(semName);
+  if (globalSem.waitSemBySemName(semName, 10)) {
+    out = false;
+    login_state = ERROR_STATE;
+    ERROR_LOG("market init fail.");
+  } else {
+    out = true;
+    INFO_LOG("market init ok.");
+  }
   globalSem.delOrderSem(semName);
 
   sleep(1);
-  INFO_LOG("market init ok.");
+  return out;
 }
 
 int CtpMarketApi::reqInstrumentsFromTrader(void) {
@@ -288,14 +297,16 @@ void CtpMarketApi::login() {
 
 // ctp market登出有异常，做特殊处理
 void CtpMarketApi::logout() {
-  INFO_LOG("logout time, is going to logout.");
-  marketApi->ReqUserLogout();
+  if (marketApi != nullptr) {
+    INFO_LOG("logout time, is going to logout.");
+    marketApi->ReqUserLogout();
 
-  std::string semName = "market_logout";
-  if (globalSem.waitSemBySemName(semName, 3) != 0) {
-    marketSpi->OnRspUserLogout();
+    std::string semName = "market_logout";
+    if (globalSem.waitSemBySemName(semName, 3) != 0) {
+      marketSpi->OnRspUserLogout();
+    }
+    globalSem.delOrderSem(semName);
   }
-  globalSem.delOrderSem(semName);
 
   login_state = LOGOUT_STATE;
 }
@@ -305,16 +316,14 @@ MARKET_LOGIN_STATE CtpMarketApi::getMarketLoginState(void) { return login_state;
 void CtpMarketApi::runLogInAndLogOutAlg() {
   while (1) {
     if (ROLE(MarketTimeState).output.status == LOGIN_TIME && login_state == LOGOUT_STATE) {
-      this->init();
-      if (ROLE(MarketTimeState).output.status == LOGIN_TIME) {
+      if (this->init()) {
         this->login();
       } else {
         this->release();
       }
-    } else if (ROLE(MarketTimeState).output.status == LOGOUT_TIME && login_state == LOGIN_STATE) {
+    } else if (ROLE(MarketTimeState).output.status == LOGOUT_TIME && login_state != LOGOUT_STATE) {
       this->logout();
     }
-    sleep(1);
+    std::this_thread::sleep_for(1000ms);
   }
-  return;
 }
