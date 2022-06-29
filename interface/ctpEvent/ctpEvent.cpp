@@ -5,14 +5,13 @@
  *      Author: Administrator
  */
 
+#include "market/interface/ctpEvent/ctpEvent.h"
 #include "common/extern/log/log.h"
 #include "common/self/fileUtil.h"
-#include "common/self/utils.h"
-
 #include "common/self/semaphorePart.h"
+#include "common/self/utils.h"
 #include "market/domain/marketService.h"
 #include "market/infra/define.h"
-#include "market/interface/ctpEvent/ctpEvent.h"
 
 #include <unistd.h>
 #include <sstream>
@@ -63,8 +62,6 @@ void CtpEvent::DeepMarktDataHandle(MsgStruct &msg) {
       marketSer.ROLE(publishData).directForwardDataToStrategy(deepdata);
     }
   }
-
-  delete deepdata;
 }
 
 void CtpEvent::LoginInfoHandle(MsgStruct &msg) {
@@ -79,6 +76,8 @@ void CtpEvent::LoginInfoHandle(MsgStruct &msg) {
   } else {
     auto &marketSer = MarketService::getInstance();
 
+    marketSer.ROLE(publishState).publish_event();
+
     if (reqInstrumentFrom == "local") {
       marketSer.ROLE(Market).ROLE(CtpMarketApi).reqInstrumentsFromLocal();
     } else if (reqInstrumentFrom == "trader") {
@@ -86,14 +85,11 @@ void CtpEvent::LoginInfoHandle(MsgStruct &msg) {
     } else if (reqInstrumentFrom == "strategy") {
       marketSer.ROLE(Market).ROLE(CtpMarketApi).reqInstrumentsFromStrategy();
     }
-    marketSer.ROLE(publishState).publish_event();
 
     std::string semName = "market_login";
     globalSem.postSemBySemName(semName);
     INFO_LOG("post sem of [%s]", semName.c_str());
   }
-
-  delete (CThostFtdcRspInfoField *)ctpMsg;
 }
 
 void CtpEvent::LogoutInfoHandle(MsgStruct &msg) {
@@ -122,8 +118,6 @@ void CtpEvent::LogoutInfoHandle(MsgStruct &msg) {
     globalSem.postSemBySemName(semName);
     INFO_LOG("post sem of [%s]", semName.c_str());
   }
-
-  delete (CThostFtdcRspInfoField *)ctpMsg;
 }
 
 void CtpEvent::UnSubscribeAllMarketData(void) {

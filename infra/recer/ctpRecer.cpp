@@ -32,88 +32,68 @@ void MarketSpi::OnFrontDisconnected(int nReason) { ERROR_LOG("OnFrontDisconnecte
 void MarketSpi::OnHeartBeatWarning(int nTimeLapse) { ERROR_LOG("OnHeartBeatWarning  %d!", nTimeLapse); }
 
 void MarketSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) {
-  CThostFtdcRspInfoField *field = new CThostFtdcRspInfoField;
-  memcpy(field, pRspInfo, sizeof(CThostFtdcRspInfoField));
-
   MsgStruct msgStruct;
   msgStruct.sessionName = "ctp";
   msgStruct.msgName = "LoginInfo";
-  msgStruct.ctpMsg = field;
+  msgStruct.ctpMsg = pRspInfo;
   ctpMsgChan << msgStruct;
+
+  globalSem.addOrderSem("LoginInfo");
+  globalSem.waitSemBySemName("LoginInfo");
 }
 
 void MarketSpi::OnRspUserLogout(CThostFtdcUserLogoutField *pUserLogout, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) {
-  CThostFtdcRspInfoField *field = new CThostFtdcRspInfoField;
-  memcpy(field, pRspInfo, sizeof(CThostFtdcRspInfoField));
-
   MsgStruct msgStruct;
   msgStruct.sessionName = "ctp";
   msgStruct.msgName = "LogoutInfo";
-  msgStruct.ctpMsg = field;
+  msgStruct.ctpMsg = pRspInfo;
   ctpMsgChan << msgStruct;
+
+  globalSem.addOrderSem("LogoutInfo");
+  globalSem.waitSemBySemName("LogoutInfo");
 }
 
 void MarketSpi::OnRspUserLogout(void) {
-  CThostFtdcRspInfoField *field = new CThostFtdcRspInfoField;
-  field->ErrorID = 0;
-  strcpy(field->ErrorMsg, "force logout");
+  CThostFtdcRspInfoField field;
+  field.ErrorID = 0;
+  strcpy(field.ErrorMsg, "force logout");
 
   MsgStruct msgStruct;
   msgStruct.sessionName = "ctp";
   msgStruct.msgName = "LogoutInfo";
-  msgStruct.ctpMsg = field;
+  msgStruct.ctpMsg = &field;
   ctpMsgChan << msgStruct;
+
+  globalSem.addOrderSem("LogoutInfo");
+  globalSem.waitSemBySemName("LogoutInfo");
 }
+
+void MarketSpi::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *pDepthMarketData) {
+#ifdef BENCH_TEST
+  ScopedTimer t("OnRtnDepthMarketData");
+#endif
+  MsgStruct msgStruct;
+  msgStruct.sessionName = "ctp";
+  msgStruct.msgName = "OnRtnDepthMarketData";
+  msgStruct.ctpMsg = pDepthMarketData;
+  ctpMsgChan << msgStruct;
+
+  globalSem.addOrderSem("OnRtnDepthMarketData");
+  globalSem.waitSemBySemName("OnRtnDepthMarketData");
+}
+
+void MarketSpi::OnRtnForQuoteRsp(CThostFtdcForQuoteRspField *pForQuoteRsp) {}
 
 void MarketSpi::OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) {}
 
 void MarketSpi::OnRspSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID,
-                                   bool bIsLast) {
-#if 0
-        INFO_LOG("<OnRspSubMarketData>");
-        if (pSpecificInstrument)
-        {
-            INFO_LOG("\tInstrumentID = [%s]", pSpecificInstrument->InstrumentID);
-        }
-        if (pRspInfo)
-        {
-            INFO_LOG("\tErrorMsg = [%s]", pRspInfo->ErrorMsg);
-            INFO_LOG("\tErrorID = [%d]", pRspInfo->ErrorID);
-        }
-        INFO_LOG("\tnRequestID = [%d]", nRequestID);
-        INFO_LOG("\tbIsLast = [%d]", bIsLast);
-        INFO_LOG("</OnRspSubMarketData>");
-#endif
-}
+                                   bool bIsLast) {}
 
 void MarketSpi::OnRspUnSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo,
-                                     int nRequestID, bool bIsLast) {
-  return;
-}
+                                     int nRequestID, bool bIsLast) {}
 
 void MarketSpi::OnRspSubForQuoteRsp(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo,
                                     int nRequestID, bool bIsLast) {}
 
 void MarketSpi::OnRspUnSubForQuoteRsp(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo,
                                       int nRequestID, bool bIsLast) {}
-
-void MarketSpi::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *pDepthMarketData) {
-  CThostFtdcDepthMarketDataField *field = new CThostFtdcDepthMarketDataField;
-  memcpy(field, pDepthMarketData, sizeof(CThostFtdcDepthMarketDataField));
-  MsgStruct msgStruct;
-  msgStruct.sessionName = "ctp";
-  msgStruct.msgName = "OnRtnDepthMarketData";
-  msgStruct.ctpMsg = field;
-  ctpMsgChan << msgStruct;
-}
-
-void MarketSpi::OnRtnForQuoteRsp(CThostFtdcForQuoteRspField *pForQuoteRsp) {
-  CThostFtdcForQuoteRspField *field = new CThostFtdcForQuoteRspField;
-  memcpy(field, pForQuoteRsp, sizeof(CThostFtdcForQuoteRspField));
-
-  MsgStruct msgStruct;
-  msgStruct.sessionName = "ctp";
-  msgStruct.msgName = "OnRtnForQuoteRsp";
-  msgStruct.ctpMsg = field;
-  ctpMsgChan << msgStruct;
-}

@@ -40,7 +40,7 @@ void publishState::publish_event(void) {
     auto &recerSender = RecerSender::getInstance();
     string topic = "market_strategy.TickMarketState." + *iter;
     recerSender.ROLE(Sender).ROLE(ProxySender).send(topic.c_str(), tickStr.c_str());
-    sleep(1);
+    std::this_thread::sleep_for(10ms);
   }
   INFO_LOG("Publish makret state.");
 }

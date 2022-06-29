@@ -9,11 +9,14 @@
 #include <thread>
 #include "common/extern/libgo/libgo/libgo.h"
 #include "common/extern/log/log.h"
+#include "common/self/semaphorePart.h"
 #include "market/domain/marketService.h"
 #include "market/infra/define.h"
 #include "market/infra/recerSender.h"
 
+
 extern co_chan<MsgStruct> ctpMsgChan;
+extern GlobalSem globalSem;
 constexpr U32 MAIN_THREAD_WAIT_TIME = 100000;
 
 void MarketEvent::regSessionFunc() {
@@ -81,6 +84,8 @@ bool MarketEvent::run() {
       } else {
         ERROR_LOG("can not find[%s] in sessionFuncMap", msg.sessionName.c_str());
       }
+
+      globalSem.postSemBySemName(msg.msgName);
     }
   };
   INFO_LOG("ctpRecRun prepare ok");
