@@ -90,9 +90,8 @@ void CtpviewEvent::BugInjectionHandle(MsgStruct &msg) {
   INFO_LOG("set bug injection type: %d", type);
 
   if (type == ctpview_market::BugInjection_InjectionType_double_free) {
-    char *ptr = (char *)malloc(1);
-    *ptr = 'a';
-    free(ptr);
-    free(ptr);
+    int *a = new int;
+    std::shared_ptr<int> p(a);
+    delete a;
   }
 }
