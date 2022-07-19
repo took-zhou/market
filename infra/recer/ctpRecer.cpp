@@ -36,10 +36,10 @@ void MarketSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin, CThos
   msgStruct.sessionName = "ctp";
   msgStruct.msgName = "LoginInfo";
   msgStruct.ctpMsg = pRspInfo;
-  ctpMsgChan << msgStruct;
 
-  globalSem.addOrderSem("LoginInfo");
-  globalSem.waitSemBySemName("LoginInfo");
+  globalSem.addOrderSem(msgStruct.msgName);
+  ctpMsgChan << msgStruct;
+  globalSem.waitSemBySemName(msgStruct.msgName);
 }
 
 void MarketSpi::OnRspUserLogout(CThostFtdcUserLogoutField *pUserLogout, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) {
@@ -47,10 +47,10 @@ void MarketSpi::OnRspUserLogout(CThostFtdcUserLogoutField *pUserLogout, CThostFt
   msgStruct.sessionName = "ctp";
   msgStruct.msgName = "LogoutInfo";
   msgStruct.ctpMsg = pRspInfo;
-  ctpMsgChan << msgStruct;
 
-  globalSem.addOrderSem("LogoutInfo");
-  globalSem.waitSemBySemName("LogoutInfo");
+  globalSem.addOrderSem(msgStruct.msgName);
+  ctpMsgChan << msgStruct;
+  globalSem.waitSemBySemName(msgStruct.msgName);
 }
 
 void MarketSpi::OnRspUserLogout(void) {
@@ -62,10 +62,10 @@ void MarketSpi::OnRspUserLogout(void) {
   msgStruct.sessionName = "ctp";
   msgStruct.msgName = "LogoutInfo";
   msgStruct.ctpMsg = &field;
-  ctpMsgChan << msgStruct;
 
-  globalSem.addOrderSem("LogoutInfo");
-  globalSem.waitSemBySemName("LogoutInfo");
+  globalSem.addOrderSem(msgStruct.msgName);
+  ctpMsgChan << msgStruct;
+  globalSem.waitSemBySemName(msgStruct.msgName);
 }
 
 void MarketSpi::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *pDepthMarketData) {
@@ -76,10 +76,10 @@ void MarketSpi::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *pDepthMarke
   msgStruct.sessionName = "ctp";
   msgStruct.msgName = "OnRtnDepthMarketData";
   msgStruct.ctpMsg = pDepthMarketData;
-  ctpMsgChan << msgStruct;
 
-  globalSem.addOrderSem("OnRtnDepthMarketData");
-  globalSem.waitSemBySemName("OnRtnDepthMarketData");
+  globalSem.addOrderSem(msgStruct.msgName);
+  ctpMsgChan << msgStruct;
+  globalSem.waitSemBySemName(msgStruct.msgName);
 }
 
 void MarketSpi::OnRtnForQuoteRsp(CThostFtdcForQuoteRspField *pForQuoteRsp) {}
