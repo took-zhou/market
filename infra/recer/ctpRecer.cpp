@@ -19,12 +19,13 @@ extern co_chan<MsgStruct> ctpMsgChan;
 void MarketSpi::OnFrontConnected() {
   INFO_LOG("OnFrontConnected():is excuted...");
   // 在登出后系统会重新调用OnFrontConnected，这里简单判断并忽略第1次之后的所有调用。
-  INFO_LOG("reConnect:%d.", reConnect);
   if (reConnect++ == 0) {
     std::string semName = "market_init";
     globalSem.postSemBySemName(semName);
     INFO_LOG("post sem of [%s]", semName.c_str());
   }
+
+  INFO_LOG("reConnect:%d.", reConnect);
 }
 
 void MarketSpi::OnFrontDisconnected(int nReason) { ERROR_LOG("OnFrontDisconnected, ErrorCode:%#x", nReason); }

@@ -105,7 +105,7 @@ struct CtpMarketApi {
 
  private:
   std::string instrumentFrom;
-  MarketSpi *marketSpi;
+  MarketSpi *marketSpi = nullptr;
   MARKET_LOGIN_STATE login_state = LOGOUT_STATE;
 };
 
