@@ -106,9 +106,12 @@ void CtpEvent::LogoutInfoHandle(MsgStruct &msg) {
     sleep(WAITTIME_FOR_CONTRACTS_UNSCRIBEED);
     auto &marketSer = MarketService::getInstance();
 
-    if (reqInstrumentFrom == "trader") {
+    if (reqInstrumentFrom == "trader" && (marketSer.ROLE(Market).ROLE(MarketTimeState).rtDW.is_MarketTimeState == IN_day_logout ||
+                                          marketSer.ROLE(Market).ROLE(MarketTimeState).rtDW.is_MarketTimeState == IN_night_logout)) {
       marketSer.ROLE(loadData).ClassifyContractFiles();
     }
+
+    marketSer.ROLE(loadData).clearInsExchPair();
 
     marketSer.ROLE(publishState).publish_event();
 

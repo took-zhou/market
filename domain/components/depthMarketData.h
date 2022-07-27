@@ -15,6 +15,8 @@ struct marketData {
   ~marketData(){};
   bool isValidTickData(CThostFtdcDepthMarketDataField *pD);
   bool insertInsExchPair(const std::string &ins, const std::string &exch);
+  bool clearInsExchPair(void);
+  bool showInsExchPair(void);
   std::string findExchange(std::string ins);
   double max2zero(double num);
 

@@ -54,8 +54,7 @@ void TraderEvent::QryInstrumentRspHandle(MsgStruct &msg) {
   instrumtntID.ins = rsp.instrument_id();
 
   if (instrumtntID.ins.find(" ") == instrumtntID.ins.npos) {
-    auto &marketSer = MarketService::getInstance();
-    marketSer.ROLE(loadData).insertInsExchPair(instrumtntID.ins, instrumtntID.exch);
+    marketServer.ROLE(loadData).insertInsExchPair(instrumtntID.ins, instrumtntID.exch);
     ins_vec.push_back(instrumtntID);
 
     instrumentCount++;
@@ -63,6 +62,7 @@ void TraderEvent::QryInstrumentRspHandle(MsgStruct &msg) {
 
   if (rsp.finish_flag() == true) {
     marketServer.ROLE(Market).marketApi->SubscribeMarketData(ins_vec);
+    marketServer.ROLE(loadData).showInsExchPair();
     INFO_LOG("The number of trading contracts is: %d.", instrumentCount);
     instrumentCount = 0;
     ins_vec.clear();

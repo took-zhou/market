@@ -77,6 +77,13 @@ bool marketData::insertInsExchPair(const std::string &ins, const std::string &ex
   return true;
 }
 
+bool marketData::clearInsExchPair(void) {
+  md_Instrument_Exhange.clear();
+  return true;
+}
+
+bool marketData::showInsExchPair(void) { INFO_LOG("md_Instrument_Exhange size: %d", (int)md_Instrument_Exhange.size()); }
+
 double marketData::max2zero(double num) {
   double re;
   if (num >= 100000000) {
@@ -92,6 +99,7 @@ std::string marketData::findExchange(std::string ins) {
   if (iter != md_Instrument_Exhange.end()) {
     return md_Instrument_Exhange[ins];
   } else {
+    ERROR_LOG("not find ins: %s", ins.c_str());
     return "";
   }
 }
