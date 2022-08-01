@@ -1,6 +1,7 @@
 #include "market/domain/components/publishMarketState.h"
 #include "common/extern/log/log.h"
-#include "common/self/protobuf/market-strategy.pb.h"
+#include "common/self/protobuf/manage-market.pb.h"
+#include "common/self/protobuf/strategy-market.pb.h"
 #include "market/domain/components/ctpMarketApi/marketTimeState.h"
 #include "market/domain/marketService.h"
 #include "market/infra/recerSender.h"
@@ -13,36 +14,76 @@ publishState::publishState() {
 }
 
 void publishState::publish_event(void) {
+  publish_to_strategy();
+  publish_to_manage();
+}
+
+void publishState::publish_to_strategy(void) {
   char date_buff[10];
   get_trade_data(date_buff);
   auto &marketSer = MarketService::getInstance();
 
-  auto keyNameList = marketSer.ROLE(controlPara).getKeyNameList();
-  for (auto iter = keyNameList.begin(); iter != keyNameList.end(); iter++) {
-    market_strategy::message tick;
-    auto market_state = tick.mutable_market_state();
+  strategy_market::TickMarketState_MarketState state = strategy_market::TickMarketState_MarketState_reserve;
+  if (marketSer.ROLE(Market).ROLE(MarketTimeState).rtDW.is_MarketTimeState == IN_day_logout) {
+    state = strategy_market::TickMarketState_MarketState_day_close;
+    INFO_LOG("Publish makret state: day_close, date: %s to strategy.", date_buff);
+  } else if (marketSer.ROLE(Market).ROLE(MarketTimeState).rtDW.is_MarketTimeState == IN_night_logout) {
+    state = strategy_market::TickMarketState_MarketState_night_close;
+    INFO_LOG("Publish makret state: night_close, date: %s to strategy.", date_buff);
+  } else if (marketSer.ROLE(Market).ROLE(MarketTimeState).rtDW.is_MarketTimeState == IN_day_login) {
+    state = strategy_market::TickMarketState_MarketState_day_open;
+    INFO_LOG("Publish makret state: day_open, date: %s to strategy.", date_buff);
+  } else if (marketSer.ROLE(Market).ROLE(MarketTimeState).rtDW.is_MarketTimeState == IN_night_login) {
+    state = strategy_market::TickMarketState_MarketState_night_open;
+    INFO_LOG("Publish makret state: night_open, date: %s to strategy.", date_buff);
+  }
 
-    market_strategy::TickMarketState_MarketState state = market_strategy::TickMarketState_MarketState_reserve;
-    if (marketSer.ROLE(Market).ROLE(MarketTimeState).rtDW.is_MarketTimeState == IN_day_logout) {
-      state = market_strategy::TickMarketState_MarketState_day_close;
-    } else if (marketSer.ROLE(Market).ROLE(MarketTimeState).rtDW.is_MarketTimeState == IN_night_logout) {
-      state = market_strategy::TickMarketState_MarketState_night_close;
-    } else if (marketSer.ROLE(Market).ROLE(MarketTimeState).rtDW.is_MarketTimeState == IN_day_login) {
-      state = market_strategy::TickMarketState_MarketState_day_open;
-    } else if (marketSer.ROLE(Market).ROLE(MarketTimeState).rtDW.is_MarketTimeState == IN_night_login) {
-      state = market_strategy::TickMarketState_MarketState_night_open;
-    }
+  auto keyNameList = marketSer.ROLE(controlPara).getIdentifyList();
+  for (auto &keyname : keyNameList) {
+    strategy_market::message tick;
+    auto market_state = tick.mutable_market_state();
 
     market_state->set_market_state(state);
     market_state->set_date(date_buff);
     std::string tickStr;
     tick.SerializeToString(&tickStr);
     auto &recerSender = RecerSender::getInstance();
-    string topic = "market_strategy.TickMarketState." + *iter;
+    string topic = "strategy_market.TickMarketState." + keyname;
     recerSender.ROLE(Sender).ROLE(ProxySender).send(topic.c_str(), tickStr.c_str());
     std::this_thread::sleep_for(10ms);
   }
-  INFO_LOG("Publish makret state.");
+}
+
+void publishState::publish_to_manage(void) {
+  char date_buff[10];
+  get_trade_data(date_buff);
+  auto &marketSer = MarketService::getInstance();
+
+  manage_market::TickMarketState_MarketState state = manage_market::TickMarketState_MarketState_reserve;
+  if (marketSer.ROLE(Market).ROLE(MarketTimeState).rtDW.is_MarketTimeState == IN_day_logout) {
+    state = manage_market::TickMarketState_MarketState_day_close;
+    INFO_LOG("Publish makret state: day_close, date: %s to manage.", date_buff);
+  } else if (marketSer.ROLE(Market).ROLE(MarketTimeState).rtDW.is_MarketTimeState == IN_night_logout) {
+    state = manage_market::TickMarketState_MarketState_night_close;
+    INFO_LOG("Publish makret state: night_close, date: %s to manage.", date_buff);
+  } else if (marketSer.ROLE(Market).ROLE(MarketTimeState).rtDW.is_MarketTimeState == IN_day_login) {
+    state = manage_market::TickMarketState_MarketState_day_open;
+    INFO_LOG("Publish makret state: day_open to, date: %s manage.", date_buff);
+  } else if (marketSer.ROLE(Market).ROLE(MarketTimeState).rtDW.is_MarketTimeState == IN_night_login) {
+    state = manage_market::TickMarketState_MarketState_night_open;
+    INFO_LOG("Publish makret state: night_open, date: %s to manage.", date_buff);
+  }
+
+  manage_market::message tick;
+  auto market_state = tick.mutable_market_state();
+
+  market_state->set_market_state(state);
+  market_state->set_date(date_buff);
+  std::string tickStr;
+  tick.SerializeToString(&tickStr);
+  auto &recerSender = RecerSender::getInstance();
+  string topic = "manage_market.TickMarketState.00000000000";
+  recerSender.ROLE(Sender).ROLE(ProxySender).send(topic.c_str(), tickStr.c_str());
 }
 
 int publishState::is_leap_year(int y) {
@@ -121,6 +162,4 @@ void publishState::get_trade_data(char *buff) {
   } else {
     sprintf(buff, "%04d%02d%02d", y, m, d);
   }
-
-  INFO_LOG("trade date: %s", buff);
 }

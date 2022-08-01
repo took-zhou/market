@@ -39,25 +39,25 @@ void activeSafety::req_alive() {
   INFO_LOG("is going to check target is alive.");
 
   auto &marketSer = MarketService::getInstance();
-  auto keyNameList = marketSer.ROLE(controlPara).getKeyNameList();
-  for (auto iter = keyNameList.begin(); iter != keyNameList.end(); iter++) {
-    market_strategy::message msg;
+  auto keyNameList = marketSer.ROLE(controlPara).getIdentifyList();
+  for (auto &keyname : keyNameList) {
+    strategy_market::message msg;
     auto active_safety = msg.mutable_active_req();
 
-    market_strategy::ActiveSafetyReq_MessageType check_id = market_strategy::ActiveSafetyReq_MessageType_isrun;
+    strategy_market::ActiveSafetyReq_MessageType check_id = strategy_market::ActiveSafetyReq_MessageType_isrun;
     active_safety->set_safe_id(check_id);
-    active_safety->set_process_random_id(*iter);
+    active_safety->set_process_random_id(keyname);
 
     std::string reqStr;
     msg.SerializeToString(&reqStr);
     auto &recerSender = RecerSender::getInstance();
-    string topic = "market_strategy.ActiveSafetyReq." + *iter;
+    string topic = "strategy_market.ActiveSafetyReq." + keyname;
     recerSender.ROLE(Sender).ROLE(ProxySender).send(topic.c_str(), reqStr.c_str());
 
     std::string semName = "req_alive";
     globalSem.addOrderSem(semName);
     if (globalSem.waitSemBySemName(semName, 3) != 0) {
-      req_alive_timeout(*iter);
+      req_alive_timeout(keyname);
     }
     globalSem.delOrderSem(semName);
     sleep(1);
@@ -68,5 +68,5 @@ void activeSafety::req_alive() {
 
 void activeSafety::req_alive_timeout(const string &keyname) {
   auto &marketSer = MarketService::getInstance();
-  marketSer.ROLE(controlPara).eraseInstrumentList(keyname);
+  marketSer.ROLE(controlPara).eraseControlPara(keyname);
 }

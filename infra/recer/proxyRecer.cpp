@@ -17,10 +17,10 @@ extern std::map<std::string, EventType> TitleToEvent;
 bool ProxyRecer::init() {
   topicList.clear();
 
-  // market_strategy
-  topicList.push_back("market_strategy.TickSubscribeReq");
-  topicList.push_back("market_strategy.TickStartStopIndication");
-  topicList.push_back("market_strategy.ActiveSafetyRsp");
+  // strategy_market
+  topicList.push_back("strategy_market.TickSubscribeReq");
+  topicList.push_back("strategy_market.TickStartStopIndication");
+  topicList.push_back("strategy_market.ActiveSafetyRsp");
 
   // market_market
   topicList.push_back("market_market.HeartBeat");
@@ -32,6 +32,7 @@ bool ProxyRecer::init() {
   topicList.push_back("ctpview_market.CheckStrategyAlive");
   topicList.push_back("ctpview_market.BlockControl");
   topicList.push_back("ctpview_market.BugInjection");
+  topicList.push_back("ctpview_market.SimulateMarketState");
 
   auto &zmqBase = ZmqBase::getInstance();
   for (auto &topic : topicList) {

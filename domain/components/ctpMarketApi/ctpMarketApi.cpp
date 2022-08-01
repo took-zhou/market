@@ -91,10 +91,10 @@ int CtpMarketBaseApi::SubscribeMarketData(std::vector<utils::InstrumtntID> const
   int ik = pthread_mutex_lock(&(md_InstrumentIDs.sm_mutex));
   char **ppInstrumentID2 = new char *[5000];
 
-  for (int i = 0; i < nameVec.size(); i++) {
-    if (md_InstrumentIDs.instrumentIDs.find(nameVec[i]) == end(md_InstrumentIDs.instrumentIDs)) {
-      ppInstrumentID2[md_num] = const_cast<char *>(nameVec[i].ins.c_str());
-      md_InstrumentIDs.instrumentIDs.insert(nameVec[i]);
+  for (auto &neme : nameVec) {
+    if (md_InstrumentIDs.instrumentIDs.find(neme) == end(md_InstrumentIDs.instrumentIDs)) {
+      ppInstrumentID2[md_num] = const_cast<char *>(neme.ins.c_str());
+      md_InstrumentIDs.instrumentIDs.insert(neme);
       md_num++;
     }
   }
@@ -128,10 +128,10 @@ int CtpMarketBaseApi::UnSubscribeMarketData(std::vector<utils::InstrumtntID> con
   int ik = pthread_mutex_lock(&(md_InstrumentIDs.sm_mutex));
   char **ppInstrumentID2 = new char *[5000];
 
-  for (int i = 0; i < nameVec.size(); i++) {
-    if (md_InstrumentIDs.instrumentIDs.find(nameVec[i]) != end(md_InstrumentIDs.instrumentIDs)) {
-      ppInstrumentID2[md_num] = const_cast<char *>(nameVec[i].ins.c_str());
-      md_InstrumentIDs.instrumentIDs.erase(nameVec[i]);
+  for (auto &name : nameVec) {
+    if (md_InstrumentIDs.instrumentIDs.find(name) != end(md_InstrumentIDs.instrumentIDs)) {
+      ppInstrumentID2[md_num] = const_cast<char *>(name.ins.c_str());
+      md_InstrumentIDs.instrumentIDs.erase(name);
       md_num++;
     }
   }
@@ -222,7 +222,7 @@ bool CtpMarketApi::init() {
 
   std::string semName = "market_init";
   /*在这个地方加一个登录登出的优化*/
-  if (globalSem.waitSemBySemName(semName, 10)) {
+  if (globalSem.waitSemBySemName(semName, 60)) {
     out = false;
     login_state = ERROR_STATE;
     ERROR_LOG("market init fail.");
@@ -268,7 +268,7 @@ int CtpMarketApi::reqInstrumentsFromStrategy(void) {
   if (instrumentVec.size() != 0) {
     marketApi->SubscribeMarketData(instrumentVec);
   }
-}
+} 
 
 std::string CtpMarketApi::getInstrumentsFrom() { return instrumentFrom; }
 

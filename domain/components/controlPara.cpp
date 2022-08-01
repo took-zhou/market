@@ -31,23 +31,21 @@ bool controlPara::load_from_json(void) {
   if (outFile.is_open()) {
     outFile >> readData;
     for (auto iter = readData.begin(); iter != readData.end(); iter++) {
-      publishControl tempControl;
-      for (int i = 0; i < readData[iter.key()]["instrument"].size(); i++) {
-        utils::InstrumtntID id;
-        id.exch = readData[iter.key()]["instrument"][i]["exch"];
-        id.ins = readData[iter.key()]["instrument"][i]["ins"];
-        id.ticksize = utils::stringToFloat(readData[iter.key()]["instrument"][i]["ticksize"]);
-        tempControl.instrumentList.insert(id);
+      std::vector<publishControl> tempcontrol_vec;
+      for (int i = 0; i < readData[iter.key()].size(); i++) {
+        publishControl tempControl;
+        readData[iter.key()][i].at("exch").get_to(tempControl.exch);
+        readData[iter.key()][i].at("ticksize").get_to(tempControl.ticksize);
+        readData[iter.key()][i].at("identify").get_to(tempControl.identify);
+        readData[iter.key()][i].at("indication").get_to(tempControl.indication);
+        readData[iter.key()][i].at("interval").get_to(tempControl.interval);
+        readData[iter.key()][i].at("directforward").get_to(tempControl.directforward);
+        readData[iter.key()][i].at("source").get_to(tempControl.source);
+
+        tempcontrol_vec.push_back(tempControl);
+        INFO_LOG("load identify: %s, instrument: %s.", tempControl.identify.c_str(), iter.key().c_str());
       }
-
-      readData[iter.key()].at("indication").get_to(tempControl.indication);
-      readData[iter.key()].at("interval").get_to(tempControl.interval);
-      readData[iter.key()].at("directforward").get_to(tempControl.directforward);
-      readData[iter.key()].at("source").get_to(tempControl.source);
-      readData[iter.key()].at("thread_uniqueness_cnt").get_to(tempControl.thread_uniqueness_cnt);
-
-      INFO_LOG("load keyname: %s", iter.key().c_str());
-      publishCtrlMap.insert(make_pair(iter.key(), tempControl));
+      publishCtrlMap.insert(make_pair(iter.key(), tempcontrol_vec));
     }
   } else {
     WARNING_LOG("file:%s not exist.", json_path.c_str());
@@ -62,27 +60,18 @@ bool controlPara::write_to_json(void) {
   int ret = true;
   fifo_json writeData;
 
-  std::map<std::string, publishControl>::iterator mapit = publishCtrlMap.begin();
-  while (mapit != publishCtrlMap.end()) {
-    fifo_json one_item;
-    auto ins_iter = mapit->second.instrumentList.begin();
-    while (ins_iter != mapit->second.instrumentList.end()) {
-      fifo_json ins_exch;
-      ins_exch["exch"] = ins_iter->exch;
-      ins_exch["ins"] = ins_iter->ins;
-      ins_exch["ticksize"] = utils::floatToStringConvert(ins_iter->ticksize);
-      one_item["instrument"].push_back(ins_exch);
-      ins_iter++;
+  for (auto &item_pc : publishCtrlMap) {
+    for (auto &item_id : item_pc.second) {
+      fifo_json one_item;
+      one_item["exch"] = item_id.exch;
+      one_item["identify"] = item_id.identify;
+      one_item["ticksize"] = item_id.ticksize;
+      one_item["indication"] = item_id.indication;
+      one_item["interval"] = item_id.interval;
+      one_item["source"] = item_id.source;
+      one_item["directforward"] = item_id.directforward;
+      writeData[item_pc.first].push_back(one_item);
     }
-
-    one_item["indication"] = mapit->second.indication;
-    one_item["interval"] = mapit->second.interval;
-    one_item["source"] = mapit->second.source;
-    one_item["directforward"] = mapit->second.directforward;
-    one_item["thread_uniqueness_cnt"] = mapit->second.thread_uniqueness_cnt;
-
-    writeData[mapit->first] = one_item;
-    mapit++;
   }
 
   ofstream inFile(json_path);
@@ -97,63 +86,47 @@ bool controlPara::write_to_json(void) {
   return ret;
 }
 
-void controlPara::setInterval(const std::string keyname, float _interval) {
-  std::map<std::string, publishControl>::iterator iter = publishCtrlMap.find(keyname);
+void controlPara::buildControlPara(const std::string &keyname, const publishControl &para) {
+  auto iter = publishCtrlMap.find(keyname);
   if (iter != publishCtrlMap.end()) {
-    iter->second.interval = (U32)(_interval * 1000000);
-  }
-  write_to_json();
-}
-
-void controlPara::setDirectForwardingFlag(const std::string keyname, bool flag) {
-  std::map<std::string, publishControl>::iterator iter = publishCtrlMap.find(keyname);
-  if (iter != publishCtrlMap.end()) {
-    iter->second.directforward = flag;
-  }
-  write_to_json();
-}
-
-void controlPara::setStartStopIndication(const std::string keyname, market_strategy::TickStartStopIndication_MessageType _indication) {
-  std::map<std::string, publishControl>::iterator iter = publishCtrlMap.find(keyname);
-  if (iter != publishCtrlMap.end()) {
-    iter->second.indication = _indication;
-    INFO_LOG("setStartStopIndication %d.", _indication);
-  } else {
-    ERROR_LOG("Please first send tickdatareq action, keyname: %s.", keyname.c_str());
-  }
-  write_to_json();
-}
-
-void controlPara::setSource(const std::string keyname, std::string _source) {
-  std::map<std::string, publishControl>::iterator iter = publishCtrlMap.find(keyname);
-  if (iter != publishCtrlMap.end()) {
-    iter->second.source = _source;
-  } else {
-    ERROR_LOG("Please first send tickdatareq action, keyname: %s.", keyname.c_str());
-  }
-  write_to_json();
-}
-
-void controlPara::buildInstrumentList(const std::string keyname, std::vector<utils::InstrumtntID> const &nameVec) {
-  std::map<std::string, publishControl>::iterator iter = publishCtrlMap.find(keyname);
-  if (iter == publishCtrlMap.end()) {
-    publishControl tempControl;
-    for (int i = 0; i < nameVec.size(); i++) {
-      tempControl.instrumentList.insert(nameVec[i]);
+    for (auto &item : iter->second) {
+      if (item.identify == para.identify) {
+        return;
+      }
     }
+    iter->second.push_back(para);
+  } else {
+    std::vector<publishControl> temp_vec = {para};
+    publishCtrlMap[keyname] = temp_vec;
+  }
+  INFO_LOG("insert ins: %s, identify: %s.", keyname.c_str(), para.identify.c_str());
 
-    INFO_LOG("insert keyname: %s", keyname.c_str());
-    publishCtrlMap.insert(make_pair(keyname, tempControl));
+  write_to_json();
+}
+
+void controlPara::eraseControlPara(const std::string &keyname) {
+  for (auto &item_pc : publishCtrlMap) {
+    for (auto iter = item_pc.second.begin(); iter != item_pc.second.end();) {
+      if (iter->identify == keyname) {
+        INFO_LOG("ins: %s, identify: %s req alive timeout, will not subscribe.", item_pc.first.c_str(), keyname.c_str());
+        item_pc.second.erase(iter);
+      } else {
+        iter++;
+      }
+    }
   }
 
   write_to_json();
 }
 
-void controlPara::eraseInstrumentList(const std::string keyname) {
-  std::map<string, publishControl>::iterator iter = publishCtrlMap.find(keyname);
-  if (iter != publishCtrlMap.end()) {
-    INFO_LOG("%s req alive timeout, will not subscribe.", iter->first.c_str());
-    publishCtrlMap.erase(iter);
+void controlPara::setStartStopIndication(const std::string keyname, strategy_market::TickStartStopIndication_MessageType _indication) {
+  for (auto &item_pc : publishCtrlMap) {
+    for (auto &item_id : item_pc.second) {
+      if (item_id.identify == keyname) {
+        item_id.indication = _indication;
+        INFO_LOG("ins: %s, identify: %s, setStartStopIndication %d.", item_pc.first.c_str(), keyname.c_str(), _indication);
+      }
+    }
   }
 
   write_to_json();
@@ -162,27 +135,31 @@ void controlPara::eraseInstrumentList(const std::string keyname) {
 std::vector<utils::InstrumtntID> controlPara::getInstrumentList(void) {
   std::vector<utils::InstrumtntID> instrument_vec;
   instrument_vec.clear();
-  std::map<std::string, publishControl>::iterator iter;
 
-  for (iter = publishCtrlMap.begin(); iter != publishCtrlMap.end(); iter++) {
-    auto ins_iter = iter->second.instrumentList.begin();
-    while (ins_iter != iter->second.instrumentList.end()) {
-      instrument_vec.push_back(*ins_iter);
-      ins_iter++;
-    }
+  for (auto &item_pc : publishCtrlMap) {
+    utils::InstrumtntID item_ins;
+    item_ins.ins = item_pc.first;
+    item_ins.exch = item_pc.second[0].exch;
+    item_ins.ticksize = item_pc.second[0].ticksize;
+    instrument_vec.push_back(item_ins);
   }
 
   return instrument_vec;
 }
 
-std::vector<std::string> controlPara::getKeyNameList(void) {
+std::vector<std::string> controlPara::getIdentifyList(void) {
   std::vector<std::string> temp_vec;
   temp_vec.clear();
-  std::map<std::string, publishControl>::iterator iter;
 
-  for (iter = publishCtrlMap.begin(); iter != publishCtrlMap.end(); iter++) {
-    temp_vec.push_back(iter->first);
+  std::set<std::string> temp_set;
+  temp_set.clear();
+
+  for (auto &item_pc : publishCtrlMap) {
+    for (auto &item_id : item_pc.second) {
+      temp_set.insert(item_id.identify);
+    }
   }
 
+  temp_vec.assign(temp_set.begin(), temp_set.end());
   return temp_vec;
 }

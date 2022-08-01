@@ -8,7 +8,7 @@
 #include "common/extern/ctp/inc/ThostFtdcUserApiStruct.h"
 #include "common/self/basetype.h"
 #include "common/self/dci/Role.h"
-#include "common/self/protobuf/market-strategy.pb.h"
+#include "common/self/protobuf/strategy-market.pb.h"
 #include "common/self/utils.h"
 
 #include "market/domain/components/controlPara.h"
@@ -21,16 +21,16 @@ struct publishData : public marketData {
 
   // 直接传输到策略端
   void directForwardDataToStrategy(CThostFtdcDepthMarketDataField *pD);
-  void once_from_dataflow(std::map<std::string, publishControl>::iterator pc, CThostFtdcDepthMarketDataField *pD);
+  void once_from_dataflow(const publishControl &pc, CThostFtdcDepthMarketDataField *pD);
 
   // 超时发送默认数据
   void heartbeatDetect();
-  void once_from_default(std::map<std::string, publishControl>::iterator pc);
+  void once_from_default(const publishControl &pc, const string &keyname);
 
  private:
-  void once_from_dataflow_select_rawtick(std::map<std::string, publishControl>::iterator pc, CThostFtdcDepthMarketDataField *pD);
-  void once_from_dataflow_select_level1(std::map<std::string, publishControl>::iterator pc, CThostFtdcDepthMarketDataField *pD);
-  bool isValidLevel1Data(std::map<std::string, publishControl>::iterator pc, CThostFtdcDepthMarketDataField *pD);
+  void once_from_dataflow_select_rawtick(const publishControl &pc, CThostFtdcDepthMarketDataField *pD);
+  void once_from_dataflow_select_level1(const publishControl &pc, CThostFtdcDepthMarketDataField *pD);
+  bool isValidLevel1Data(const publishControl &pc, CThostFtdcDepthMarketDataField *pD);
 
  private:
   const U8 data_level = 1;

@@ -4,8 +4,8 @@
  *  Created on: 2020.11.13
  *      Author: Administrator
  */
-#ifndef WORKSPACE_MARKET_INTERFACE_CTPVIEWEVENT_INTERACTOREVENT_H_
-#define WORKSPACE_MARKET_INTERFACE_CTPVIEWEVENT_INTERACTOREVENT_H_
+#ifndef WORKSPACE_MARKET_INTERFACE_CTPVIEWEVENT_CTPVIEWWEVENT_H_
+#define WORKSPACE_MARKET_INTERFACE_CTPVIEWEVENT_CTPVIEWWEVENT_H_
 
 #include <functional>
 #include <map>
@@ -22,8 +22,9 @@ struct CtpviewEvent {
   void CheckStrategyAliveHandle(MsgStruct &msg);
   void BlockControlHandle(MsgStruct &msg);
   void BugInjectionHandle(MsgStruct &msg);
+  void SimulateMarketStateHandle(MsgStruct &msg);
 
   std::map<std::string, std::function<void(MsgStruct &msg)>> msgFuncMap;
 };
 
-#endif /* WORKSPACE_MARKET_INTERFACE_CTPVIEWEVENT_INTERACTOREVENT_H_ */
+#endif /* WORKSPACE_MARKET_INTERFACE_CTPVIEWEVENT_CTPVIEWWEVENT_H_ */

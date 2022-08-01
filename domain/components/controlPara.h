@@ -1,23 +1,23 @@
 #ifndef CONTROL_PARA_H
 #define CONTROL_PARA_H
 
-#include <map>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "common/self/basetype.h"
-#include "common/self/protobuf/market-strategy.pb.h"
+#include "common/self/protobuf/strategy-market.pb.h"
 #include "common/self/utils.h"
 
 struct publishControl {
-  std::set<utils::InstrumtntID, utils::InstrumtntIDSortCriterion> instrumentList;
-  market_strategy::TickStartStopIndication_MessageType indication = market_strategy::TickStartStopIndication_MessageType_reserve;
-  // 单位us
+  std::string identify;
+  std::string exch;
+  U32 ticksize;
+  strategy_market::TickStartStopIndication_MessageType indication = strategy_market::TickStartStopIndication_MessageType_reserve;
   U32 interval = 0;
   bool directforward = false;
-  std::string source = "rawtick";  // 默认 rawtick
-  int thread_uniqueness_cnt = 0;
-  U32 heartbeat = 0;
+  std::string source = "rawtick";
+  mutable U32 heartbeat = 0;
 };
 
 struct controlPara {
@@ -27,16 +27,14 @@ struct controlPara {
   bool load_from_json(void);
 
   std::vector<utils::InstrumtntID> getInstrumentList(void);
-  std::vector<std::string> getKeyNameList(void);
+  std::vector<std::string> getIdentifyList(void);
 
-  void buildInstrumentList(const std::string keyname, std::vector<utils::InstrumtntID> const &nameVec);
-  void eraseInstrumentList(const std::string keyname);
-  void setStartStopIndication(const std::string keyname, market_strategy::TickStartStopIndication_MessageType _indication);
-  void setInterval(const std::string keyname, float _interval);
-  void setDirectForwardingFlag(const std::string keyname, bool flag);
-  void setSource(const std::string keyname, std::string _source);
+  void buildControlPara(const std::string &keyname, const publishControl &para);
+  void eraseControlPara(const std::string &keyname);
 
-  std::map<std::string, publishControl> publishCtrlMap;
+  void setStartStopIndication(const std::string keyname, strategy_market::TickStartStopIndication_MessageType _indication);
+
+  std::unordered_map<std::string, std::vector<publishControl>> publishCtrlMap;
 
  private:
   bool write_to_json(void);

@@ -6,7 +6,7 @@
  */
 
 #include "common/extern/log/log.h"
-#include "common/self/protobuf/market-strategy.pb.h"
+#include "common/self/protobuf/strategy-market.pb.h"
 #include "common/self/utils.h"
 
 #include "common/self/semaphorePart.h"
@@ -46,35 +46,37 @@ void StrategyEvent::handle(MsgStruct &msg) {
 }
 
 void StrategyEvent::TickSubscribeReqHandle(MsgStruct &msg) {
-  vector<string> keywordVec;
+  auto &marketSer = MarketService::getInstance();
   vector<utils::InstrumtntID> insVec;
-  string mapkeyname = "";
   insVec.clear();
-  keywordVec.clear();
 
-  market_strategy::message _reqInfo;
+  strategy_market::message _reqInfo;
   _reqInfo.ParseFromString(msg.pbMsg);
   auto reqInfo = _reqInfo.tick_sub_req();
 
   for (int i = 0; i < reqInfo.instrument_info_list_size(); i++) {
     utils::InstrumtntID insId;
+
     insId.ins = reqInfo.instrument_info_list(i).instrument_id();
     insId.exch = reqInfo.instrument_info_list(i).exchange_id();
     insId.ticksize = utils::stringToFloat(reqInfo.instrument_info_list(i).ticksize());
     insVec.push_back(insId);
-  }
 
-  mapkeyname = reqInfo.process_random_id();
+    publishControl pc;
+    pc.identify = reqInfo.process_random_id();
+    pc.exch = reqInfo.instrument_info_list(i).exchange_id();
+    pc.ticksize = utils::stringToFloat(reqInfo.instrument_info_list(i).ticksize());
+    pc.indication = strategy_market::TickStartStopIndication_MessageType_reserve;
+    pc.source = reqInfo.source();
+    pc.heartbeat = 0;
 
-  auto &marketSer = MarketService::getInstance();
-  marketSer.ROLE(controlPara).buildInstrumentList(mapkeyname, insVec);
-
-  if (reqInfo.interval() == "raw") {
-    marketSer.ROLE(controlPara).setDirectForwardingFlag(mapkeyname, true);
-    marketSer.ROLE(controlPara).setSource(mapkeyname, reqInfo.source());
-  } else {
-    marketSer.ROLE(controlPara).setInterval(mapkeyname, float(std::atof(reqInfo.interval().c_str())));
-    marketSer.ROLE(controlPara).setDirectForwardingFlag(mapkeyname, false);
+    if (reqInfo.interval() == "raw") {
+      pc.directforward = true;
+    } else {
+      pc.directforward = false;
+      pc.interval = float(std::atof(reqInfo.interval().c_str()));
+    }
+    marketSer.ROLE(controlPara).buildControlPara(insId.ins, pc);
   }
 
   if (marketSer.ROLE(Market).ROLE(CtpMarketApi).getMarketLoginState() == LOGIN_STATE) {
@@ -86,7 +88,7 @@ void StrategyEvent::TickSubscribeReqHandle(MsgStruct &msg) {
 
 void StrategyEvent::TickStartStopIndicationHandle(MsgStruct &msg) {
   string mapkeyname = "";
-  market_strategy::message _indication;
+  strategy_market::message _indication;
   _indication.ParseFromString(msg.pbMsg);
   auto indication = _indication.tick_start_stop_indication();
 

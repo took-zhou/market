@@ -9,6 +9,8 @@ struct publishState {
   ~publishState(){};
 
  private:
+  void publish_to_strategy(void);
+  void publish_to_manage(void);
   void publish_day_closing(void);
   int is_leap_year(int y);
 };
