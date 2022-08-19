@@ -321,8 +321,9 @@ void CtpMarketApi::runLogInAndLogOutAlg() {
       } else {
         this->release();
       }
-    } else if ((ROLE(MarketTimeState).output.status == LOGOUT_TIME || (marketSpi != nullptr && marketSpi->reConnect > 1)) &&
-               login_state != LOGOUT_STATE) {
+    } else if (ROLE(MarketTimeState).output.status == LOGOUT_TIME && login_state != LOGOUT_STATE) {
+      this->logout();
+    } else if (marketSpi != nullptr && marketSpi->reConnect > 1 && login_state != LOGOUT_STATE) {
       std::this_thread::sleep_for(60s);
       this->logout();
     }

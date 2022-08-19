@@ -52,6 +52,7 @@ void CtpviewEvent::LoginControlHandle(MsgStruct &msg) {
   int command = indication.command();
   auto &marketSer = MarketService::getInstance();
 
+  INFO_LOG("force set time state: %d", command);
   marketSer.ROLE(Market).ROLE(MarketTimeState).set_time_state(command);
 }
 

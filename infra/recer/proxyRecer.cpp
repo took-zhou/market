@@ -28,6 +28,8 @@ bool ProxyRecer::init() {
   // market_trader
   topicList.push_back("market_trader.QryInstrumentRsp");
 
+  topicList.push_back("manage_market.TickMarketStateReq");
+
   topicList.push_back("ctpview_market.LoginControl");
   topicList.push_back("ctpview_market.CheckStrategyAlive");
   topicList.push_back("ctpview_market.BlockControl");

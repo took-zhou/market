@@ -18,6 +18,8 @@ struct ManageEvent {
   void handle(MsgStruct &msg);
   void regMsgFun();
 
+  void TickMarketStateReqReqHandle(MsgStruct &msg);
+
   std::map<std::string, std::function<void(MsgStruct &msg)>> msgFuncMap;
 };
 

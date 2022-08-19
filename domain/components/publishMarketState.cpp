@@ -14,8 +14,9 @@ publishState::publishState() {
 }
 
 void publishState::publish_event(void) {
-  publish_to_strategy();
   publish_to_manage();
+  std::this_thread::sleep_for(10s);
+  publish_to_strategy();
 }
 
 void publishState::publish_to_strategy(void) {
@@ -68,7 +69,7 @@ void publishState::publish_to_manage(void) {
     INFO_LOG("Publish makret state: night_close, date: %s to manage.", date_buff);
   } else if (marketSer.ROLE(Market).ROLE(MarketTimeState).rtDW.is_MarketTimeState == IN_day_login) {
     state = manage_market::TickMarketState_MarketState_day_open;
-    INFO_LOG("Publish makret state: day_open to, date: %s manage.", date_buff);
+    INFO_LOG("Publish makret state: day_open, date: %s to manage.", date_buff);
   } else if (marketSer.ROLE(Market).ROLE(MarketTimeState).rtDW.is_MarketTimeState == IN_night_login) {
     state = manage_market::TickMarketState_MarketState_night_open;
     INFO_LOG("Publish makret state: night_open, date: %s to manage.", date_buff);
