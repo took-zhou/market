@@ -10,24 +10,17 @@
 #include "common/self/utils.h"
 
 #include "common/self/semaphorePart.h"
-#include "market/domain/components/ctpMarketApi/ctpMarketApi.h"
 #include "market/domain/marketService.h"
-#include "market/infra/define.h"
 #include "market/interface/strategyEvent/strategyEvent.h"
-extern GlobalSem globalSem;
 
-bool StrategyEvent::init() {
-  regMsgFun();
-
-  return true;
-}
+StrategyEvent::StrategyEvent() { regMsgFun(); }
 
 void StrategyEvent::regMsgFun() {
   int cnt = 0;
   msgFuncMap.clear();
-  msgFuncMap["TickSubscribeReq"] = [this](MsgStruct &msg) { TickSubscribeReqHandle(msg); };
-  msgFuncMap["TickStartStopIndication"] = [this](MsgStruct &msg) { TickStartStopIndicationHandle(msg); };
-  msgFuncMap["ActiveSafetyRsp"] = [this](MsgStruct &msg) { StrategyAliveRspHandle(msg); };
+  msgFuncMap["TickSubscribeReq"] = [this](utils::ItpMsg &msg) { TickSubscribeReqHandle(msg); };
+  msgFuncMap["TickStartStopIndication"] = [this](utils::ItpMsg &msg) { TickStartStopIndicationHandle(msg); };
+  msgFuncMap["ActiveSafetyRsp"] = [this](utils::ItpMsg &msg) { StrategyAliveRspHandle(msg); };
 
   for (auto &iter : msgFuncMap) {
     INFO_LOG("msgFuncMap[%d] key is [%s]", cnt, iter.first.c_str());
@@ -35,7 +28,7 @@ void StrategyEvent::regMsgFun() {
   }
 }
 
-void StrategyEvent::handle(MsgStruct &msg) {
+void StrategyEvent::handle(utils::ItpMsg &msg) {
   auto iter = msgFuncMap.find(msg.msgName);
   if (iter != msgFuncMap.end()) {
     iter->second(msg);
@@ -45,7 +38,7 @@ void StrategyEvent::handle(MsgStruct &msg) {
   return;
 }
 
-void StrategyEvent::TickSubscribeReqHandle(MsgStruct &msg) {
+void StrategyEvent::TickSubscribeReqHandle(utils::ItpMsg &msg) {
   auto &marketSer = MarketService::getInstance();
   vector<utils::InstrumtntID> insVec;
   insVec.clear();
@@ -79,14 +72,15 @@ void StrategyEvent::TickSubscribeReqHandle(MsgStruct &msg) {
     marketSer.ROLE(controlPara).buildControlPara(insId.ins, pc);
   }
 
-  if (marketSer.ROLE(Market).ROLE(CtpMarketApi).getMarketLoginState() == LOGIN_STATE) {
-    marketSer.ROLE(Market).ROLE(CtpMarketApi).marketApi->SubscribeMarketData(insVec);
+  if (marketSer.login_state == LOGIN_STATE) {
+    auto &recerSender = RecerSender::getInstance();
+    recerSender.ROLE(Sender).ROLE(ItpSender).SubscribeMarketData(insVec);
   } else {
     WARNING_LOG("now is logout, wait login to subscribe new instruments");
   }
 }
 
-void StrategyEvent::TickStartStopIndicationHandle(MsgStruct &msg) {
+void StrategyEvent::TickStartStopIndicationHandle(utils::ItpMsg &msg) {
   string mapkeyname = "";
   strategy_market::message _indication;
   _indication.ParseFromString(msg.pbMsg);
@@ -97,8 +91,4 @@ void StrategyEvent::TickStartStopIndicationHandle(MsgStruct &msg) {
   marketSer.ROLE(controlPara).setStartStopIndication(mapkeyname, indication.type());
 }
 
-void StrategyEvent::StrategyAliveRspHandle(MsgStruct &msg) {
-  std::string semName = "req_alive";
-  globalSem.postSemBySemName(semName);
-  INFO_LOG("post sem of [%s]", semName.c_str());
-}
+void StrategyEvent::StrategyAliveRspHandle(utils::ItpMsg &msg) { GlobalSem::getInstance().postSemBySemName(GlobalSem::viewDebug); }

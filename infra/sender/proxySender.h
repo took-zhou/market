@@ -5,14 +5,12 @@
  *      Author: Administrator
  */
 
-#ifndef WORKSPACE_TRADER_INFRA_PROXYSENDER_H_
-#define WORKSPACE_TRADER_INFRA_PROXYSENDER_H_
+#ifndef WORKSPACE_MARKET_INFRA_PROXYSENDER_H_
+#define WORKSPACE_MARKET_INFRA_PROXYSENDER_H_
 
-struct ZmqBase;
 struct ProxySender {
-  bool init();
+  ProxySender(){};
   bool send(const char *head, const char *msg);
-  ZmqBase *zmq{nullptr};
 };
 
-#endif /* WORKSPACE_TRADER_INFRA_PROXYSENDER_H_ */
+#endif /* WORKSPACE_MARKET_INFRA_PROXYSENDER_H_ */

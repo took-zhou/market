@@ -10,25 +10,26 @@
 #include <functional>
 #include <map>
 #include <string>
-struct MsgStruct;
-struct StrategyEvent {
-  bool init();
+#include "common/self/utils.h"
 
-  void handle(MsgStruct &msg);
+struct StrategyEvent {
+  StrategyEvent();
+
+  void handle(utils::ItpMsg &msg);
   void regMsgFun();
 
   // 处理策略端请求的合约信息
-  void TickSubscribeReqHandle(MsgStruct &msg);
+  void TickSubscribeReqHandle(utils::ItpMsg &msg);
 
   // 发布tick数据进度控制
-  void TickStartStopIndicationHandle(MsgStruct &msg);
+  void TickStartStopIndicationHandle(utils::ItpMsg &msg);
 
   // 策略是否运行回复处理
-  void StrategyAliveRspHandle(MsgStruct &msg);
+  void StrategyAliveRspHandle(utils::ItpMsg &msg);
 
-  void TimeLimitReqHandle(MsgStruct &msg);
+  void TimeLimitReqHandle(utils::ItpMsg &msg);
 
-  std::map<std::string, std::function<void(MsgStruct &msg)>> msgFuncMap;
+  std::map<std::string, std::function<void(utils::ItpMsg &msg)>> msgFuncMap;
 };
 
 #endif /* WORKSPACE_MARKET_INTERFACE_STRATEGYEVENT_STRATEGYEVENT_H_ */

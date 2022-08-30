@@ -5,28 +5,25 @@
  *      Author: Administrator
  */
 #include "market/interface/ctpviewEvent/ctpviewEvent.h"
+#include <thread>
 #include "common/extern/log/log.h"
 #include "common/self/protobuf/ctpview-market.pb.h"
 #include "common/self/protobuf/manage-market.pb.h"
 #include "common/self/protobuf/strategy-market.pb.h"
 #include "market/domain/marketService.h"
-#include "market/infra/define.h"
 #include "market/infra/recerSender.h"
 #include "market/interface/marketEvent.h"
 
-bool CtpviewEvent::init() {
-  regMsgFun();
+CtpviewEvent::CtpviewEvent() { regMsgFun(); }
 
-  return true;
-}
 void CtpviewEvent::regMsgFun() {
   int cnt = 0;
   msgFuncMap.clear();
-  msgFuncMap["LoginControl"] = [this](MsgStruct &msg) { LoginControlHandle(msg); };
-  msgFuncMap["CheckStrategyAlive"] = [this](MsgStruct &msg) { CheckStrategyAliveHandle(msg); };
-  msgFuncMap["BlockControl"] = [this](MsgStruct &msg) { BlockControlHandle(msg); };
-  msgFuncMap["BugInjection"] = [this](MsgStruct &msg) { BugInjectionHandle(msg); };
-  msgFuncMap["SimulateMarketState"] = [this](MsgStruct &msg) { SimulateMarketStateHandle(msg); };
+  msgFuncMap["LoginControl"] = [this](utils::ItpMsg &msg) { LoginControlHandle(msg); };
+  msgFuncMap["CheckStrategyAlive"] = [this](utils::ItpMsg &msg) { CheckStrategyAliveHandle(msg); };
+  msgFuncMap["BlockControl"] = [this](utils::ItpMsg &msg) { BlockControlHandle(msg); };
+  msgFuncMap["BugInjection"] = [this](utils::ItpMsg &msg) { BugInjectionHandle(msg); };
+  msgFuncMap["SimulateMarketState"] = [this](utils::ItpMsg &msg) { SimulateMarketStateHandle(msg); };
 
   for (auto &iter : msgFuncMap) {
     INFO_LOG("msgFuncMap[%d] key is [%s]", cnt, iter.first.c_str());
@@ -34,7 +31,7 @@ void CtpviewEvent::regMsgFun() {
   }
 }
 
-void CtpviewEvent::handle(MsgStruct &msg) {
+void CtpviewEvent::handle(utils::ItpMsg &msg) {
   auto iter = msgFuncMap.find(msg.msgName);
   if (iter != msgFuncMap.end()) {
     iter->second(msg);
@@ -44,7 +41,7 @@ void CtpviewEvent::handle(MsgStruct &msg) {
   return;
 }
 
-void CtpviewEvent::LoginControlHandle(MsgStruct &msg) {
+void CtpviewEvent::LoginControlHandle(utils::ItpMsg &msg) {
   ctpview_market::message login_control;
   login_control.ParseFromString(msg.pbMsg);
   auto indication = login_control.login_control();
@@ -53,10 +50,10 @@ void CtpviewEvent::LoginControlHandle(MsgStruct &msg) {
   auto &marketSer = MarketService::getInstance();
 
   INFO_LOG("force set time state: %d", command);
-  marketSer.ROLE(Market).ROLE(MarketTimeState).set_time_state(command);
+  marketSer.ROLE(MarketTimeState).set_time_state(command);
 }
 
-void CtpviewEvent::CheckStrategyAliveHandle(MsgStruct &msg) {
+void CtpviewEvent::CheckStrategyAliveHandle(utils::ItpMsg &msg) {
   string command = "";
   ctpview_market::message check_alive;
   check_alive.ParseFromString(msg.pbMsg);
@@ -73,7 +70,7 @@ void CtpviewEvent::CheckStrategyAliveHandle(MsgStruct &msg) {
   }
 }
 
-void CtpviewEvent::BlockControlHandle(MsgStruct &msg) {
+void CtpviewEvent::BlockControlHandle(utils::ItpMsg &msg) {
   ctpview_market::message block_control;
   block_control.ParseFromString(msg.pbMsg);
   auto indication = block_control.block_control();
@@ -85,7 +82,7 @@ void CtpviewEvent::BlockControlHandle(MsgStruct &msg) {
   marketEvent.ROLE(CtpEvent).set_block_control(command);
 }
 
-void CtpviewEvent::BugInjectionHandle(MsgStruct &msg) {
+void CtpviewEvent::BugInjectionHandle(utils::ItpMsg &msg) {
   ctpview_market::message bug_injection;
   bug_injection.ParseFromString(msg.pbMsg);
   auto injection = bug_injection.bug_injection();
@@ -101,7 +98,7 @@ void CtpviewEvent::BugInjectionHandle(MsgStruct &msg) {
   }
 }
 
-void CtpviewEvent::SimulateMarketStateHandle(MsgStruct &msg) {
+void CtpviewEvent::SimulateMarketStateHandle(utils::ItpMsg &msg) {
   ctpview_market::message _simulate_market_state;
   _simulate_market_state.ParseFromString(msg.pbMsg);
   auto simulate_market_state = _simulate_market_state.simulate_market_state();

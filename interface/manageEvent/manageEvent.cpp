@@ -8,18 +8,14 @@
 #include "common/extern/log/log.h"
 #include "common/self/protobuf/manage-market.pb.h"
 #include "market/domain/marketService.h"
-#include "market/infra/define.h"
 #include "market/interface/marketEvent.h"
 
-bool ManageEvent::init() {
-  regMsgFun();
+ManageEvent::ManageEvent() { regMsgFun(); }
 
-  return true;
-}
 void ManageEvent::regMsgFun() {
   int cnt = 0;
   msgFuncMap.clear();
-  msgFuncMap["TickMarketStateReq"] = [this](MsgStruct &msg) { TickMarketStateReqReqHandle(msg); };
+  msgFuncMap["TickMarketStateReq"] = [this](utils::ItpMsg &msg) { TickMarketStateReqReqHandle(msg); };
 
   for (auto &iter : msgFuncMap) {
     INFO_LOG("msgFuncMap[%d] key is [%s]", cnt, iter.first.c_str());
@@ -27,7 +23,7 @@ void ManageEvent::regMsgFun() {
   }
 }
 
-void ManageEvent::handle(MsgStruct &msg) {
+void ManageEvent::handle(utils::ItpMsg &msg) {
   auto iter = msgFuncMap.find(msg.msgName);
   if (iter != msgFuncMap.end()) {
     iter->second(msg);
@@ -37,7 +33,7 @@ void ManageEvent::handle(MsgStruct &msg) {
   return;
 }
 
-void ManageEvent::TickMarketStateReqReqHandle(MsgStruct &msg) {
+void ManageEvent::TickMarketStateReqReqHandle(utils::ItpMsg &msg) {
   manage_market::message _req;
   _req.ParseFromString(msg.pbMsg);
   auto req = _req.market_state_req();

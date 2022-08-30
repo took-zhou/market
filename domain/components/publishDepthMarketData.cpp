@@ -35,8 +35,7 @@ publishData::publishData() { ; }
 void publishData::directForwardDataToStrategy(CThostFtdcDepthMarketDataField *pD) {
   auto &marketSer = MarketService::getInstance();
   auto pos = marketSer.ROLE(controlPara).publishCtrlMap.find(pD->InstrumentID);
-  if (pos != marketSer.ROLE(controlPara).publishCtrlMap.end() &&
-      marketSer.ROLE(Market).ROLE(CtpMarketApi).getMarketLoginState() == LOGIN_STATE) {
+  if (pos != marketSer.ROLE(controlPara).publishCtrlMap.end() && marketSer.login_state == LOGIN_STATE) {
     for (auto &item_pc : pos->second) {
       if (item_pc.indication == strategy_market::TickStartStopIndication_MessageType_start) {
         once_from_dataflow(item_pc, pD);
@@ -165,8 +164,7 @@ void publishData::heartbeatDetect() {
   while (1) {
     for (auto &item_pc : marketSer.ROLE(controlPara).publishCtrlMap) {
       for (auto &item_id : item_pc.second) {
-        if (marketSer.ROLE(Market).ROLE(CtpMarketApi).getMarketLoginState() == LOGIN_STATE &&
-            item_id.indication == strategy_market::TickStartStopIndication_MessageType_start) {
+        if (marketSer.login_state == LOGIN_STATE && item_id.indication == strategy_market::TickStartStopIndication_MessageType_start) {
           item_id.heartbeat++;
           if (item_id.heartbeat >= HEARTBEAT_WAIT_TIME) {
             once_from_default(item_id, item_pc.first);
@@ -239,6 +237,140 @@ bool publishData::isValidLevel1Data(const publishControl &pc, CThostFtdcDepthMar
   bool ret = false;
 
   float ticksize = max2zero(pD->AskPrice1) - max2zero(pD->BidPrice1);
+  if (fabs(ticksize - pc.ticksize) < 1e-6 && fabs(ticksize - 0) > 1e-6) {
+    ret = true;
+  }
+
+  return ret;
+}
+
+void publishData::directForwardDataToStrategy(XTPMD *pD) {
+  auto &marketSer = MarketService::getInstance();
+  auto pos = marketSer.ROLE(controlPara).publishCtrlMap.find(pD->ticker);
+  if (pos != marketSer.ROLE(controlPara).publishCtrlMap.end() && marketSer.login_state == LOGIN_STATE) {
+    for (auto &item_pc : pos->second) {
+      if (item_pc.indication == strategy_market::TickStartStopIndication_MessageType_start) {
+        once_from_dataflow(item_pc, pD);
+      }
+    }
+  }
+}
+
+void publishData::once_from_dataflow(const publishControl &pc, XTPMD *pD) {
+  if (pc.source == "rawtick") {
+    once_from_dataflow_select_rawtick(pc, pD);
+  } else if (pc.source == "level1") {
+    once_from_dataflow_select_level1(pc, pD);
+  }
+}
+
+void publishData::once_from_dataflow_select_rawtick(const publishControl &pc, XTPMD *pD) {
+  if (isValidTickData(pD) == false) {
+    return;
+  }
+
+  char timeArray[100] = {0};
+  strategy_market::message tick;
+  auto tick_data = tick.mutable_tick_data();
+
+  getAssemblingTime(timeArray, pD);
+  tick_data->set_time_point(timeArray);
+
+  auto iter = tick_data->add_tick_list();
+  iter->set_state(strategy_market::TickData_TickState_active);
+  iter->set_instrument_id(pD->ticker);
+  iter->set_last_price(std::to_string(max2zero(pD->last_price)));
+  iter->set_bid_price1(std::to_string(max2zero(pD->bid[0])));
+  iter->set_bid_volume1(pD->bid_qty[0]);
+  iter->set_ask_price1(std::to_string(max2zero(pD->ask[0])));
+  iter->set_ask_volume1(pD->ask_qty[0]);
+  if (data_level == 2) {
+    iter->set_bid_price2(std::to_string(max2zero(pD->bid[1])));
+    iter->set_bid_volume2(pD->bid_qty[1]);
+    iter->set_ask_price2(std::to_string(max2zero(pD->ask[1])));
+    iter->set_ask_volume2(pD->ask_qty[1]);
+    iter->set_bid_price3(std::to_string(max2zero(pD->bid[2])));
+    iter->set_bid_volume3(pD->bid_qty[2]);
+    iter->set_ask_price3(std::to_string(max2zero(pD->ask[2])));
+    iter->set_ask_volume3(pD->ask_qty[2]);
+    iter->set_bid_price4(std::to_string(max2zero(pD->bid[3])));
+    iter->set_bid_volume4(pD->bid_qty[3]);
+    iter->set_ask_price4(std::to_string(max2zero(pD->ask[3])));
+    iter->set_ask_volume4(pD->ask_qty[3]);
+    iter->set_bid_price5(std::to_string(max2zero(pD->bid[4])));
+    iter->set_bid_volume5(pD->bid_qty[4]);
+    iter->set_ask_price5(std::to_string(max2zero(pD->ask[4])));
+    iter->set_ask_volume5(pD->ask_qty[4]);
+  }
+  iter->set_open_price(std::to_string(max2zero(pD->open_price)));
+  iter->set_volume(pD->qty);
+
+  std::string tickStr;
+  tick.SerializeToString(&tickStr);
+
+  auto &recerSender = RecerSender::getInstance();
+  string topic = "market_strategy.TickData." + pc.identify;
+  recerSender.ROLE(Sender).ROLE(ProxySender).send(topic.c_str(), tickStr.c_str());
+}
+
+// 无法获取最小变动单位，暂不实现该功能
+void publishData::once_from_dataflow_select_level1(const publishControl &pc, XTPMD *pD) {
+  if (isValidTickData(pD) == false) {
+    return;
+  }
+
+  if (isValidLevel1Data(pc, pD) == false) {
+    return;
+  }
+
+  char timeArray[100] = {0};
+  strategy_market::message tick;
+  auto tick_data = tick.mutable_tick_data();
+
+  getAssemblingTime(timeArray, pD);
+  tick_data->set_time_point(timeArray);
+
+  auto iter = tick_data->add_tick_list();
+  iter->set_state(strategy_market::TickData_TickState_active);
+  iter->set_instrument_id(pD->ticker);
+  iter->set_last_price(std::to_string(max2zero(pD->last_price)));
+  iter->set_bid_price1(std::to_string(max2zero(pD->bid[0])));
+  iter->set_bid_volume1(pD->bid_qty[0]);
+  iter->set_ask_price1(std::to_string(max2zero(pD->ask[0])));
+  iter->set_ask_volume1(pD->ask_qty[0]);
+  if (data_level == 2) {
+    iter->set_bid_price2(std::to_string(max2zero(pD->bid[1])));
+    iter->set_bid_volume2(pD->bid_qty[1]);
+    iter->set_ask_price2(std::to_string(max2zero(pD->ask[1])));
+    iter->set_ask_volume2(pD->ask_qty[1]);
+    iter->set_bid_price3(std::to_string(max2zero(pD->bid[2])));
+    iter->set_bid_volume3(pD->bid_qty[2]);
+    iter->set_ask_price3(std::to_string(max2zero(pD->ask[2])));
+    iter->set_ask_volume3(pD->ask_qty[2]);
+    iter->set_bid_price4(std::to_string(max2zero(pD->bid[3])));
+    iter->set_bid_volume4(pD->bid_qty[3]);
+    iter->set_ask_price4(std::to_string(max2zero(pD->ask[3])));
+    iter->set_ask_volume4(pD->ask_qty[3]);
+    iter->set_bid_price5(std::to_string(max2zero(pD->bid[4])));
+    iter->set_bid_volume5(pD->bid_qty[4]);
+    iter->set_ask_price5(std::to_string(max2zero(pD->ask[4])));
+    iter->set_ask_volume5(pD->ask_qty[4]);
+  }
+  iter->set_open_price(std::to_string(max2zero(pD->open_price)));
+  iter->set_volume(pD->qty);
+
+  std::string tickStr;
+  tick.SerializeToString(&tickStr);
+
+  auto &recerSender = RecerSender::getInstance();
+  string topic = "market_strategy.TickData." + pc.identify;
+  recerSender.ROLE(Sender).ROLE(ProxySender).send(topic.c_str(), tickStr.c_str());
+}
+
+bool publishData::isValidLevel1Data(const publishControl &pc, XTPMD *pD) {
+  bool ret = false;
+
+  float ticksize = max2zero(pD->ask[0]) - max2zero(pD->bid[0]);
   if (fabs(ticksize - pc.ticksize) < 1e-6 && fabs(ticksize - 0) > 1e-6) {
     ret = true;
   }

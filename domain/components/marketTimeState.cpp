@@ -4,7 +4,7 @@
  *  Created on: 2020.11.13
  *      Author: Administrator
  */
-#include "market/domain/components/ctpMarketApi/marketTimeState.h"
+#include "market/domain/components/marketTimeState.h"
 #include <string.h>
 #include <unistd.h>
 #include <string>

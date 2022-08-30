@@ -10,17 +10,16 @@
 #include <functional>
 #include <map>
 #include <string>
-
-struct MsgStruct;
+#include "common/self/utils.h"
 
 struct ManageEvent {
-  bool init();
-  void handle(MsgStruct &msg);
+  ManageEvent();
+  void handle(utils::ItpMsg &msg);
   void regMsgFun();
 
-  void TickMarketStateReqReqHandle(MsgStruct &msg);
+  void TickMarketStateReqReqHandle(utils::ItpMsg &msg);
 
-  std::map<std::string, std::function<void(MsgStruct &msg)>> msgFuncMap;
+  std::map<std::string, std::function<void(utils::ItpMsg &msg)>> msgFuncMap;
 };
 
 #endif /* WORKSPACE_MARKET_INTERFACE_MANAGEEVENT_MANAGEEVENT_H_ */

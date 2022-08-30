@@ -5,46 +5,25 @@
  *      Author: Administrator
  */
 
-#ifndef WORKSPACE_TRADER_INFRA_RECERSENDER_H_
-#define WORKSPACE_TRADER_INFRA_RECERSENDER_H_
+#ifndef WORKSPACE_MARKET_INFRA_RECERSENDER_H_
+#define WORKSPACE_MARKET_INFRA_RECERSENDER_H_
 
-#include "market/infra/sender/ctpSender.h"
 #include "market/infra/sender/emailSender.h"
-#include "market/infra/sender/interactSender.h"
+#include "market/infra/sender/itpSender.h"
 #include "market/infra/sender/proxySender.h"
 
-#include "market/infra/recer/ctpRecer.h"
-#include "market/infra/recer/interactRecer.h"
+#include "market/infra/recer/itpRecer.h"
 #include "market/infra/recer/proxyRecer.h"
 
 #include "common/self/dci/Role.h"
 
-struct Recer : CtpRecer,
-               InteractRecer,
-               ProxyRecer
-
-{
-  bool init() {
-    ROLE(CtpRecer).init();
-    ROLE(InteractRecer).init();
-    ROLE(ProxyRecer).init();
-    return true;
-  };
-  IMPL_ROLE(CtpRecer);
-  IMPL_ROLE(InteractRecer);
+struct Recer : ItpRecer, ProxyRecer {
+  IMPL_ROLE(ItpRecer);
   IMPL_ROLE(ProxyRecer);
 };
 
-struct Sender : CtpSender, InteractSender, EmailSender, ProxySender {
-  bool init() {
-    ROLE(CtpSender).init();
-    ROLE(InteractSender).init();
-    ROLE(EmailSender).init();
-    ROLE(ProxySender).init();
-    return true;
-  };
-  IMPL_ROLE(CtpSender);
-  IMPL_ROLE(InteractSender);
+struct Sender : ItpSender, EmailSender, ProxySender {
+  IMPL_ROLE(ItpSender);
   IMPL_ROLE(EmailSender);
   IMPL_ROLE(ProxySender);
 };
@@ -57,13 +36,9 @@ struct RecerSender : Recer, Sender {
     static RecerSender instance;
     return instance;
   }
-  bool init() {
-    ROLE(Recer).init();
-    ROLE(Sender).init();
-    return true;
-  }
+
   IMPL_ROLE(Recer);
   IMPL_ROLE(Sender);
 };
 
-#endif /* WORKSPACE_TRADER_INFRA_RECERSENDER_H_ */
+#endif /* WORKSPACE_MARKET_INFRA_RECERSENDER_H_ */

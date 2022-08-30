@@ -9,14 +9,11 @@
 #define WORKSPACE_MARKET_INFRA_PROXYRECER_H_
 
 #include <vector>
-#include "market/infra/define.h"
-struct ZmqBase;
+#include "common/self/utils.h"
 
 struct ProxyRecer {
-  bool init();
-  MsgStruct receMsg();
-  //    MsgStruct rece();
-  bool checkSessionAndTitle(std::vector<std::string> &sessionAndTitle);
+  ProxyRecer();
+  bool receMsg(utils::ItpMsg &msg);
   bool isTopicInSubTopics(std::string title);
   std::vector<std::string> topicList;
 };

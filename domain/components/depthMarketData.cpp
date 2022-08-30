@@ -25,17 +25,7 @@
 #include "common/self/utils.h"
 #include "market/domain/components/depthMarketData.h"
 
-marketData::marketData() {
-  auto &jsonCfg = utils::JsonConfig::getInstance();
-  string isPrint = jsonCfg.getConfig("common", "PrintNetworkDelay").get<std::string>();
-  if (strcmp(isPrint.c_str(), "yes") == 0) {
-    printNetworkDelay = true;
-  } else {
-    printNetworkDelay = false;
-  }
-
-  md_Instrument_Exhange.clear();
-}
+marketData::marketData() { md_Instrument_Exhange.clear(); }
 
 bool marketData::isValidTickData(CThostFtdcDepthMarketDataField *pD) {
   tm tick_tm;
@@ -53,12 +43,44 @@ bool marketData::isValidTickData(CThostFtdcDepthMarketDataField *pD) {
   int nowSecond = local_time->tm_hour * 60 * 60 + local_time->tm_min * 60 + local_time->tm_sec;
 
   int delaySecond = nowSecond - tickSecond;
-  if (printNetworkDelay == true && delaySecond != 0) {
+
+#ifdef BENCH_TEST
+  if (delaySecond != 0) {
     INFO_LOG("%s local time: %02d:%02d:%02d--ctp time: %s delaySecond %d", pD->InstrumentID, local_time->tm_hour, local_time->tm_min,
              local_time->tm_sec, pD->UpdateTime, delaySecond);
   }
+#endif
 
   if (delaySecond <= 180 && delaySecond >= -180 && (pD->BidPrice1 > 0.0 || pD->AskPrice1 > 0.0)) {
+    ret = true;
+  }
+
+  return ret;
+}
+
+bool marketData::isValidTickData(XTPMD *pD) {
+  tm tick_tm;
+  bool ret = false;
+
+  string data_time = utils::longintToString(pD->data_time);
+  string UpdateTime = data_time.substr(8, 6);
+  strptime(UpdateTime.c_str(), "%H%M%S", &tick_tm);
+
+  int tickSecond = tick_tm.tm_hour * 60 * 60 + tick_tm.tm_min * 60 + tick_tm.tm_sec;
+  // system time
+  time_t now_time = time(NULL);
+  // local time
+  tm *local_time = localtime(&now_time);
+  int nowSecond = local_time->tm_hour * 60 * 60 + local_time->tm_min * 60 + local_time->tm_sec;
+
+  int delaySecond = nowSecond - tickSecond;
+#ifdef BENCH_TEST
+  if (delaySecond != 0) {
+    INFO_LOG("%s local time: %02d:%02d:%02d--ctp time:  %02d:%02d:%02d delaySecond %d", pD->ticker, local_time->tm_hour, local_time->tm_min,
+             local_time->tm_sec, tick_tm.tm_hour, tick_tm.tm_min, tick_tm.tm_sec, delaySecond);
+  }
+#endif
+  if (delaySecond <= 180 && delaySecond >= -180 && pD->bid_qty[0] > 0 && pD->ask_qty[0] > 0 && pD->bid[0] > 0.0 && pD->ask[0] > 0.0) {
     ret = true;
   }
 
@@ -135,4 +157,17 @@ bool marketData::getAssemblingTime(char *t_arr, CThostFtdcDepthMarketDataField *
   d = local_time->tm_mday;
 
   sprintf(t_arr, "%04d-%02d-%02d %s.%d", y, m, d, pD->UpdateTime, pD->UpdateMillisec);
+}
+
+bool marketData::getAssemblingTime(char *t_arr, XTPMD *pD) {
+  string data_time = utils::longintToString(pD->data_time);
+  string y = data_time.substr(0, 4);
+  string mon = data_time.substr(4, 2);
+  string d = data_time.substr(6, 2);
+  string h = data_time.substr(8, 2);
+  string min = data_time.substr(10, 2);
+  string s = data_time.substr(12, 2);
+  string ms = data_time.substr(14, 3);
+
+  sprintf(t_arr, "%s-%s-%s %s:%s:%s.%s", y.c_str(), mon.c_str(), d.c_str(), h.c_str(), min.c_str(), s.c_str(), ms.c_str());
 }

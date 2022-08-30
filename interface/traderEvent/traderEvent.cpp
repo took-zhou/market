@@ -10,15 +10,10 @@
 #include "common/self/protobuf/market-trader.pb.h"
 #include "common/self/utils.h"
 #include "market/domain/marketService.h"
-#include "market/infra/define.h"
 
-bool TraderEvent::init() {
-  regMsgFun();
+TraderEvent::TraderEvent() { regMsgFun(); }
 
-  return true;
-}
-
-void TraderEvent::handle(MsgStruct &msg) {
+void TraderEvent::handle(utils::ItpMsg &msg) {
   auto iter = msgFuncMap.find(msg.msgName);
   if (iter != msgFuncMap.end()) {
     iter->second(msg);
@@ -31,7 +26,7 @@ void TraderEvent::handle(MsgStruct &msg) {
 void TraderEvent::regMsgFun() {
   int cnt = 0;
   msgFuncMap.clear();
-  msgFuncMap["QryInstrumentRsp"] = [this](MsgStruct &msg) { QryInstrumentRspHandle(msg); };
+  msgFuncMap["QryInstrumentRsp"] = [this](utils::ItpMsg &msg) { QryInstrumentRspHandle(msg); };
 
   for (auto &iter : msgFuncMap) {
     INFO_LOG("msgFuncMap[%d] key is [%s]", cnt, iter.first.c_str());
@@ -39,7 +34,8 @@ void TraderEvent::regMsgFun() {
   }
   return;
 }
-void TraderEvent::QryInstrumentRspHandle(MsgStruct &msg) {
+
+void TraderEvent::QryInstrumentRspHandle(utils::ItpMsg &msg) {
   static int instrumentCount;
   static vector<utils::InstrumtntID> ins_vec;
   auto &marketServer = MarketService::getInstance();
@@ -61,14 +57,16 @@ void TraderEvent::QryInstrumentRspHandle(MsgStruct &msg) {
   }
 
   if (rsp.finish_flag() == true) {
-    marketServer.ROLE(Market).marketApi->SubscribeMarketData(ins_vec);
+    auto &recerSender = RecerSender::getInstance();
+    recerSender.ROLE(Sender).ROLE(ItpSender).SubscribeMarketData(ins_vec);
     marketServer.ROLE(loadData).showInsExchPair();
     INFO_LOG("The number of trading contracts is: %d.", instrumentCount);
     instrumentCount = 0;
     ins_vec.clear();
   } else if (ins_vec.size() >= 500) {
     INFO_LOG("The number of trading contracts is: %d.", instrumentCount);
-    marketServer.ROLE(Market).marketApi->SubscribeMarketData(ins_vec);
+    auto &recerSender = RecerSender::getInstance();
+    recerSender.ROLE(Sender).ROLE(ItpSender).SubscribeMarketData(ins_vec);
     ins_vec.clear();
   }
 }

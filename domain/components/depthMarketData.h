@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "common/extern/ctp/inc/ThostFtdcUserApiStruct.h"
+#include "common/extern/xtp/inc/xquote_api_struct.h"
 #include "common/self/basetype.h"
 #include "market/domain/components/depthMarketData.h"
 
@@ -14,6 +15,8 @@ struct marketData {
   marketData();
   ~marketData(){};
   bool isValidTickData(CThostFtdcDepthMarketDataField *pD);
+  bool isValidTickData(XTPMD *pD);
+
   bool insertInsExchPair(const std::string &ins, const std::string &exch);
   bool clearInsExchPair(void);
   bool showInsExchPair(void);
@@ -23,10 +26,10 @@ struct marketData {
   bool getLocalTime(char *t_arr);
   bool getLocalTime(long &stamp);
   bool getAssemblingTime(char *t_arr, CThostFtdcDepthMarketDataField *pD);
+  bool getAssemblingTime(char *t_arr, XTPMD *pD);
 
  private:
   std::map<std::string, std::string> md_Instrument_Exhange;
-  bool printNetworkDelay = false;
 };
 
 #endif

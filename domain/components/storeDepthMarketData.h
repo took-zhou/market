@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "common/extern/ctp/inc/ThostFtdcUserApiStruct.h"
+#include "common/extern/xtp/inc/xquote_api_struct.h"
 #include "common/self/basetype.h"
 
 #include "market/domain/components/depthMarketData.h"
@@ -16,6 +17,9 @@ struct loadData : public marketData {
   ~loadData(){};
   void LoadDepthMarketDataToCsv(CThostFtdcDepthMarketDataField *pD);
   void FormDepthMarketData2Stringflow(CThostFtdcDepthMarketDataField *pD);
+
+  void LoadDepthMarketDataToCsv(XTPMD *pD);
+  void FormDepthMarketData2Stringflow(XTPMD *pD);
 
   bool ClassifyContractFiles(void);
   bool MoveContractToFolder(std::string contractName, std::string exchangeName);

@@ -7,18 +7,22 @@
 #ifndef WORKSPACE_MARKET_INFRA_ZMQBASE_H_
 #define WORKSPACE_MARKET_INFRA_ZMQBASE_H_
 
+#include "common/extern/libzmq/include/zmq.h"
+
 struct ZmqBase {
-  ZmqBase() {}
+  ZmqBase();
   ZmqBase(const ZmqBase &) = delete;
   ZmqBase &operator=(const ZmqBase &) = delete;
   static ZmqBase &getInstance() {
     static ZmqBase instance;
     return instance;
   }
-  bool init();
+
   void SubscribeTopic(const char *topicStr);
   void unSubscribeTopic(const char *topicStr);
-  int PublishMsg(const char *head, const char *msg);
+
+  int SendMsg(const char *head, const char *msg);
+  char *RecvMsg();
   void *context{nullptr};
   void *receiver{nullptr};
   void *publisher{nullptr};

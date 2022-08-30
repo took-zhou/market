@@ -5,15 +5,15 @@
  *      Author: Administrator
  */
 
-#ifndef WORKSPACE_TRADER_INFRA_CTPRECER_H_
-#define WORKSPACE_TRADER_INFRA_CTPRECER_H_
+#ifndef WORKSPACE_MARKET_INFRA_CTPRECER_H_
+#define WORKSPACE_MARKET_INFRA_CTPRECER_H_
 #include "common/extern/ctp/inc/ThostFtdcMdApi.h"
+#include "common/self/utils.h"
+#include "market/infra/recer/recerSpi.h"
 
-struct CtpRecer;
-
-class MarketSpi : public CThostFtdcMdSpi {
+class CtpMarketSpi : public CThostFtdcMdSpi {
  public:
-  ~MarketSpi() {}
+  ~CtpMarketSpi() {}
   void OnFrontConnected();
 
   void OnFrontDisconnected(int nReason);
@@ -45,11 +45,13 @@ class MarketSpi : public CThostFtdcMdSpi {
 
   void OnRtnForQuoteRsp(CThostFtdcForQuoteRspField *pForQuoteRsp);
 
-  int reConnect = 0;
+  bool frontDisconnected = false;
 };
 
-struct CtpRecer {
-  bool init() { return true; };
+struct CtpRecer : RecerSpi {
+ public:
+  CtpRecer(){};
+  bool receMsg(utils::ItpMsg &msg);
 };
 
-#endif /* WORKSPACE_TRADER_INFRA_CTPRECER_H_ */
+#endif /* WORKSPACE_MARKET_INFRA_CTPRECER_H_ */

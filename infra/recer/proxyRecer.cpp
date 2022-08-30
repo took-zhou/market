@@ -6,15 +6,12 @@
  */
 #include <map>
 
-#include "common/extern/libzmq/include/zhelpers.h"
 #include "common/extern/log/log.h"
 #include "common/self/utils.h"
 #include "market/infra/recer/proxyRecer.h"
 #include "market/infra/zmqBase.h"
 
-extern std::map<std::string, EventType> TitleToEvent;
-
-bool ProxyRecer::init() {
+ProxyRecer::ProxyRecer() {
   topicList.clear();
 
   // strategy_market
@@ -40,11 +37,7 @@ bool ProxyRecer::init() {
   for (auto &topic : topicList) {
     zmqBase.SubscribeTopic(topic.c_str());
   }
-
-  return true;
 }
-
-bool ProxyRecer::checkSessionAndTitle(std::vector<std::string> &sessionAndTitle) { return true; }
 
 bool ProxyRecer::isTopicInSubTopics(std::string title) {
   for (auto &topic : topicList) {
@@ -55,40 +48,38 @@ bool ProxyRecer::isTopicInSubTopics(std::string title) {
   return false;
 }
 
-MsgStruct ProxyRecer::receMsg() {
-  static MsgStruct NilMsgStruct;
-  MsgStruct msg;
+bool ProxyRecer::receMsg(utils::ItpMsg &msg) {
+  bool out = true;
   auto &zmqBase = ZmqBase::getInstance();
-  auto receiver = zmqBase.receiver;
-  if (receiver == nullptr) {
-    ERROR_LOG("receiver is nullptr");
-  }
-  // INFO_LOG("prepare recv titleChar");
-  char *recContent = s_recv(receiver);
-  std::string content = std::string(recContent);
-  auto spacePos = content.find_first_of(" ");
-  auto title = content.substr(0, spacePos);
-  auto pbMsg = content.substr(spacePos + 1);
-  if (!isTopicInSubTopics(title)) {
-    return NilMsgStruct;
-  }
-  // INFO_LOG("recv msg, topic is[%s]",title.c_str());
 
-  std::string tmpEventName = std::string(title);
-  std::vector<std::string> sessionAndTitle = utils::splitString(tmpEventName, std::string("."));
-  if (sessionAndTitle.size() != 2) {
-    return NilMsgStruct;
+  char *recContent = zmqBase.RecvMsg();
+  if (recContent != nullptr) {
+    int index = 0;
+    int segIndex = 0;
+    int length = strlen(recContent) + 1;
+    char temp[length];
+    for (int i = 0; i < length; i++) {
+      temp[index] = recContent[i];
+      if (recContent[i] == '.' && segIndex == 0) {
+        temp[index] = '\0';
+        msg.sessionName = temp;
+        index = 0;
+        segIndex++;
+      } else if (recContent[i] == ' ' && segIndex == 1) {
+        temp[index] = '\0';
+        msg.msgName = temp;
+        index = 0;
+        segIndex++;
+      } else if (recContent[i] == '\0' && segIndex == 2) {
+        msg.pbMsg = temp;
+        break;
+      } else {
+        index++;
+      }
+    }
+  } else {
+    out = false;
   }
 
-  if (!checkSessionAndTitle(sessionAndTitle)) {
-    return NilMsgStruct;
-  }
-  std::string session = sessionAndTitle.at(0);
-  std::string msgTitle = sessionAndTitle.at(1);
-
-  msg.sessionName = session;
-  msg.msgName = msgTitle;
-  msg.pbMsg = pbMsg;
-  // INFO_LOG("return msg");
-  return msg;
+  return out;
 }

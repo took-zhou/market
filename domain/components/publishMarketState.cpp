@@ -2,11 +2,12 @@
 #include "common/extern/log/log.h"
 #include "common/self/protobuf/manage-market.pb.h"
 #include "common/self/protobuf/strategy-market.pb.h"
-#include "market/domain/components/ctpMarketApi/marketTimeState.h"
+#include "market/domain/components/marketTimeState.h"
 #include "market/domain/marketService.h"
 #include "market/infra/recerSender.h"
 
 #include <unistd.h>
+#include <thread>
 
 publishState::publishState() {
   ;
@@ -25,16 +26,16 @@ void publishState::publish_to_strategy(void) {
   auto &marketSer = MarketService::getInstance();
 
   strategy_market::TickMarketState_MarketState state = strategy_market::TickMarketState_MarketState_reserve;
-  if (marketSer.ROLE(Market).ROLE(MarketTimeState).rtDW.is_MarketTimeState == IN_day_logout) {
+  if (marketSer.ROLE(MarketTimeState).rtDW.is_MarketTimeState == IN_day_logout) {
     state = strategy_market::TickMarketState_MarketState_day_close;
     INFO_LOG("Publish makret state: day_close, date: %s to strategy.", date_buff);
-  } else if (marketSer.ROLE(Market).ROLE(MarketTimeState).rtDW.is_MarketTimeState == IN_night_logout) {
+  } else if (marketSer.ROLE(MarketTimeState).rtDW.is_MarketTimeState == IN_night_logout) {
     state = strategy_market::TickMarketState_MarketState_night_close;
     INFO_LOG("Publish makret state: night_close, date: %s to strategy.", date_buff);
-  } else if (marketSer.ROLE(Market).ROLE(MarketTimeState).rtDW.is_MarketTimeState == IN_day_login) {
+  } else if (marketSer.ROLE(MarketTimeState).rtDW.is_MarketTimeState == IN_day_login) {
     state = strategy_market::TickMarketState_MarketState_day_open;
     INFO_LOG("Publish makret state: day_open, date: %s to strategy.", date_buff);
-  } else if (marketSer.ROLE(Market).ROLE(MarketTimeState).rtDW.is_MarketTimeState == IN_night_login) {
+  } else if (marketSer.ROLE(MarketTimeState).rtDW.is_MarketTimeState == IN_night_login) {
     state = strategy_market::TickMarketState_MarketState_night_open;
     INFO_LOG("Publish makret state: night_open, date: %s to strategy.", date_buff);
   }
@@ -61,16 +62,16 @@ void publishState::publish_to_manage(void) {
   auto &marketSer = MarketService::getInstance();
 
   manage_market::TickMarketState_MarketState state = manage_market::TickMarketState_MarketState_reserve;
-  if (marketSer.ROLE(Market).ROLE(MarketTimeState).rtDW.is_MarketTimeState == IN_day_logout) {
+  if (marketSer.ROLE(MarketTimeState).rtDW.is_MarketTimeState == IN_day_logout) {
     state = manage_market::TickMarketState_MarketState_day_close;
     INFO_LOG("Publish makret state: day_close, date: %s to manage.", date_buff);
-  } else if (marketSer.ROLE(Market).ROLE(MarketTimeState).rtDW.is_MarketTimeState == IN_night_logout) {
+  } else if (marketSer.ROLE(MarketTimeState).rtDW.is_MarketTimeState == IN_night_logout) {
     state = manage_market::TickMarketState_MarketState_night_close;
     INFO_LOG("Publish makret state: night_close, date: %s to manage.", date_buff);
-  } else if (marketSer.ROLE(Market).ROLE(MarketTimeState).rtDW.is_MarketTimeState == IN_day_login) {
+  } else if (marketSer.ROLE(MarketTimeState).rtDW.is_MarketTimeState == IN_day_login) {
     state = manage_market::TickMarketState_MarketState_day_open;
     INFO_LOG("Publish makret state: day_open, date: %s to manage.", date_buff);
-  } else if (marketSer.ROLE(Market).ROLE(MarketTimeState).rtDW.is_MarketTimeState == IN_night_login) {
+  } else if (marketSer.ROLE(MarketTimeState).rtDW.is_MarketTimeState == IN_night_login) {
     state = manage_market::TickMarketState_MarketState_night_open;
     INFO_LOG("Publish makret state: night_open, date: %s to manage.", date_buff);
   }

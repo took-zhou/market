@@ -16,11 +16,16 @@ using fifo_json = basic_json<fifo_workaround_fifo_map>;
 
 controlPara::controlPara(void) {
   auto &jsonCfg = utils::JsonConfig::getInstance();
-  json_path = jsonCfg.getConfig("market", "ControlParaFilePath").get<std::string>();
-  if (!utils::isFileExist(json_path)) {
-    utils::creatFile(json_path);
-  } else if (utils::getFileSize(json_path) > 0) {
-    load_from_json();
+  auto users = jsonCfg.getConfig("market", "User");
+  for (auto &user : users) {
+    std::string temp_folder = jsonCfg.getConfig("market", "ControlParaFilePath").get<std::string>();
+    json_path = temp_folder + "/" + (std::string)user + "/controlPara/control.json";
+    if (!utils::isFileExist(json_path)) {
+      utils::creatFile(json_path);
+    } else if (utils::getFileSize(json_path) > 0) {
+      load_from_json();
+    }
+    break;
   }
 }
 

@@ -1,13 +1,12 @@
 #include <unistd.h>
+#include <thread>
 
 #include "common/extern/log/log.h"
+#include "common/self/semaphorePart.h"
 #include "common/self/utils.h"
 #include "market/domain/components/activeSafety.h"
 #include "market/domain/marketService.h"
 #include "market/infra/recerSender.h"
-
-#include "common/self/semaphorePart.h"
-extern GlobalSem globalSem;
 
 activeSafety::activeSafety() {
   ;
@@ -31,7 +30,7 @@ void activeSafety::checkSafety() {
       check_flag = false;
     }
 
-    sleep(1);
+    std::this_thread::sleep_for(1s);
   }
 }
 
@@ -54,13 +53,11 @@ void activeSafety::req_alive() {
     string topic = "strategy_market.ActiveSafetyReq." + keyname;
     recerSender.ROLE(Sender).ROLE(ProxySender).send(topic.c_str(), reqStr.c_str());
 
-    std::string semName = "req_alive";
-    globalSem.addOrderSem(semName);
-    if (globalSem.waitSemBySemName(semName, 3) != 0) {
+    auto &globalSem = GlobalSem::getInstance();
+    if (globalSem.waitSemBySemName(GlobalSem::viewDebug, 3) != 0) {
       req_alive_timeout(keyname);
     }
-    globalSem.delOrderSem(semName);
-    sleep(1);
+    std::this_thread::sleep_for(1s);
   }
 
   INFO_LOG("check target alive has finished.");
