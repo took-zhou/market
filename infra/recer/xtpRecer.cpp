@@ -28,12 +28,14 @@ void XtpQuoteSpi::OnRspUserLogin(void) {
   ipc::message reqMsg;
   auto sendMsg = reqMsg.mutable_itp_msg();
   sendMsg->set_address(reinterpret_cast<int64_t>(field.get()));
-  std::string reqStr;
-  reqMsg.SerializeToString(&reqStr);
+  utils::ItpMsg msg;
+  reqMsg.SerializeToString(&msg.pbMsg);
+  msg.sessionName = "xtp_market";
+  msg.msgName = "OnRspUserLogin";
 
   auto &globalSem = GlobalSem::getInstance();
   auto &innerZmq = InnerZmq::getInstance();
-  innerZmq.pushTask("xtp_market.OnRspUserLogin", reqStr.c_str());
+  innerZmq.pushTask(msg);
   globalSem.waitSemBySemName(GlobalSem::apiRecv);
 
   frontDisconnected = false;
@@ -48,12 +50,14 @@ void XtpQuoteSpi::OnRspUserLogout(void) {
   ipc::message reqMsg;
   auto sendMsg = reqMsg.mutable_itp_msg();
   sendMsg->set_address(reinterpret_cast<int64_t>(field.get()));
-  std::string reqStr;
-  reqMsg.SerializeToString(&reqStr);
+  utils::ItpMsg msg;
+  reqMsg.SerializeToString(&msg.pbMsg);
+  msg.sessionName = "xtp_market";
+  msg.msgName = "OnRspUserLogout";
 
   auto &globalSem = GlobalSem::getInstance();
   auto &innerZmq = InnerZmq::getInstance();
-  innerZmq.pushTask("xtp_market.OnRspUserLogout", reqStr.c_str());
+  innerZmq.pushTask(msg);
   globalSem.waitSemBySemName(GlobalSem::apiRecv);
 }
 
@@ -62,12 +66,14 @@ void XtpQuoteSpi::OnDepthMarketData(XTPMD *market_data, int64_t bid1_qty[], int3
   ipc::message reqMsg;
   auto sendMsg = reqMsg.mutable_itp_msg();
   sendMsg->set_address(reinterpret_cast<int64_t>(market_data));
-  std::string reqStr;
-  reqMsg.SerializeToString(&reqStr);
+  utils::ItpMsg msg;
+  reqMsg.SerializeToString(&msg.pbMsg);
+  msg.sessionName = "xtp_market";
+  msg.msgName = "OnDepthMarketData";
 
   auto &globalSem = GlobalSem::getInstance();
   auto &innerZmq = InnerZmq::getInstance();
-  innerZmq.pushTask("xtp_market.OnDepthMarketData", reqStr.c_str());
+  innerZmq.pushTask(msg);
   globalSem.waitSemBySemName(GlobalSem::apiRecv);
 }
 
@@ -76,12 +82,14 @@ void XtpQuoteSpi::OnQueryAllTickers(XTPQSI *ticker_info, XTPRI *error_info, bool
   auto sendMsg = reqMsg.mutable_itp_msg();
   sendMsg->set_address(reinterpret_cast<int64_t>(ticker_info));
   sendMsg->set_is_last(is_last);
-  std::string reqStr;
-  reqMsg.SerializeToString(&reqStr);
+  utils::ItpMsg msg;
+  reqMsg.SerializeToString(&msg.pbMsg);
+  msg.sessionName = "xtp_market";
+  msg.msgName = "OnQueryAllTickers";
 
   auto &globalSem = GlobalSem::getInstance();
   auto &innerZmq = InnerZmq::getInstance();
-  innerZmq.pushTask("xtp_market.OnQueryAllTickers", reqStr.c_str());
+  innerZmq.pushTask(msg);
   globalSem.waitSemBySemName(GlobalSem::apiRecv);
 }
 
@@ -134,40 +142,4 @@ bool XtpQuoteSpi::IsErrorRspInfo(XTPRI *pRspInfo) {
   }
 
   return bResult;
-}
-
-bool XtpRecer::receMsg(utils::ItpMsg &msg) {
-  bool out = true;
-  auto &innerZmqBase = InnerZmq::getInstance();
-
-  char *recContent = innerZmqBase.pullTask();
-  if (recContent != nullptr) {
-    int index = 0;
-    int segIndex = 0;
-    int length = strlen(recContent) + 1;
-    char temp[length];
-    for (int i = 0; i < length; i++) {
-      temp[index] = recContent[i];
-      if (recContent[i] == '.' && segIndex == 0) {
-        temp[index] = '\0';
-        msg.sessionName = temp;
-        index = 0;
-        segIndex++;
-      } else if (recContent[i] == ' ' && segIndex == 1) {
-        temp[index] = '\0';
-        msg.msgName = temp;
-        index = 0;
-        segIndex++;
-      } else if (recContent[i] == '\0' && segIndex == 2) {
-        msg.pbMsg = temp;
-        break;
-      } else {
-        index++;
-      }
-    }
-  } else {
-    out = false;
-  }
-
-  return out;
 }

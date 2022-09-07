@@ -4,16 +4,16 @@
  *  Created on: 2020.11.13
  *      Author: Administrator
  */
+
+#include "market/infra/zmqBase.h"
 #include <unistd.h>
 #include <sstream>
 #include <string>
 #include <thread>
-
 #include "common/extern/log/log.h"
 #include "common/self/basetype.h"
 #include "common/self/fileUtil.h"
 #include "common/self/utils.h"
-#include "market/infra/zmqBase.h"
 
 ZmqBase::ZmqBase() {
   context = zmq_ctx_new();
@@ -44,20 +44,16 @@ void ZmqBase::SubscribeTopic(const char *topicStr) { zmq_setsockopt(receiver, ZM
 
 void ZmqBase::unSubscribeTopic(const char *topicStr) { zmq_setsockopt(receiver, ZMQ_UNSUBSCRIBE, topicStr, strlen(topicStr)); }
 
-int ZmqBase::SendMsg(const char *head, const char *msg) {
-  std::stringstream tmpStr;
-  tmpStr << head << " " << msg;
+int ZmqBase::SendMsg(const std::string &msg) {
+  int size = zmq_send(publisher, const_cast<char *>(msg.c_str()), msg.length(), 0);
 
-  int size = zmq_send(publisher, const_cast<char *>(tmpStr.str().c_str()), strlen(const_cast<char *>(tmpStr.str().c_str())), 0);
+  for (int iii = 0; iii < msg.length(); iii++) {
+    INFO_LOG("%d", (char)msg[iii]);
+  }
   return size;
 }
 
-char *ZmqBase::RecvMsg() {
-  enum { cap = 256 };
-  char buffer[cap];
-  int size = zmq_recv(receiver, buffer, cap - 1, 0);
-  if (size == -1) return NULL;
-  buffer[size < cap ? size : cap - 1] = '\0';
-
-  return strndup(buffer, sizeof(buffer) - 1);
+int ZmqBase::RecvMsg(std::string &msg) {
+  int size = zmq_recv(receiver, &msg[0], msg.length() - 1, 0);
+  return size;
 }

@@ -47,11 +47,14 @@ void publishState::publish_to_strategy(void) {
 
     market_state->set_market_state(state);
     market_state->set_date(date_buff);
-    std::string tickStr;
-    tick.SerializeToString(&tickStr);
+
+    utils::ItpMsg msg;
+    tick.SerializeToString(&msg.pbMsg);
+    msg.sessionName = "strategy_market";
+    msg.msgName = "TickMarketState." + keyname;
     auto &recerSender = RecerSender::getInstance();
-    string topic = "strategy_market.TickMarketState." + keyname;
-    recerSender.ROLE(Sender).ROLE(ProxySender).send(topic.c_str(), tickStr.c_str());
+    recerSender.ROLE(Sender).ROLE(ProxySender).send(msg);
+
     std::this_thread::sleep_for(10ms);
   }
 }
@@ -81,11 +84,13 @@ void publishState::publish_to_manage(void) {
 
   market_state->set_market_state(state);
   market_state->set_date(date_buff);
-  std::string tickStr;
-  tick.SerializeToString(&tickStr);
+
+  utils::ItpMsg msg;
+  tick.SerializeToString(&msg.pbMsg);
+  msg.sessionName = "manage_market";
+  msg.msgName = "TickMarketState.00000000000";
   auto &recerSender = RecerSender::getInstance();
-  string topic = "manage_market.TickMarketState.00000000000";
-  recerSender.ROLE(Sender).ROLE(ProxySender).send(topic.c_str(), tickStr.c_str());
+  recerSender.ROLE(Sender).ROLE(ProxySender).send(msg);
 }
 
 int publishState::is_leap_year(int y) {

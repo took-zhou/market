@@ -93,12 +93,12 @@ void publishData::once_from_dataflow_select_rawtick(const publishControl &pc, CT
   iter->set_open_price(std::to_string(max2zero(pD->OpenPrice)));
   iter->set_volume(pD->Volume);
 
-  std::string tickStr;
-  tick.SerializeToString(&tickStr);
-
+  utils::ItpMsg msg;
+  tick.SerializeToString(&msg.pbMsg);
+  msg.sessionName = "strategy_market";
+  msg.msgName = "TickData." + pc.identify;
   auto &recerSender = RecerSender::getInstance();
-  string topic = "strategy_market.TickData." + pc.identify;
-  recerSender.ROLE(Sender).ROLE(ProxySender).send(topic.c_str(), tickStr.c_str());
+  recerSender.ROLE(Sender).ROLE(ProxySender).send(msg);
 
   pc.heartbeat = 0;
 }
@@ -149,12 +149,12 @@ void publishData::once_from_dataflow_select_level1(const publishControl &pc, CTh
   iter->set_open_price(std::to_string(max2zero(pD->OpenPrice)));
   iter->set_volume(pD->Volume);
 
-  std::string tickStr;
-  tick.SerializeToString(&tickStr);
-
+  utils::ItpMsg msg;
+  tick.SerializeToString(&msg.pbMsg);
+  msg.sessionName = "strategy_market";
+  msg.msgName = "TickData." + pc.identify;
   auto &recerSender = RecerSender::getInstance();
-  string topic = "strategy_market.TickData." + pc.identify;
-  recerSender.ROLE(Sender).ROLE(ProxySender).send(topic.c_str(), tickStr.c_str());
+  recerSender.ROLE(Sender).ROLE(ProxySender).send(msg);
 
   pc.heartbeat = 0;
 }
@@ -222,13 +222,12 @@ void publishData::once_from_default(const publishControl &pc, const string &keyn
 
   iter->set_volume(0);
 
-  std::string tickStr;
-  tick.SerializeToString(&tickStr);
-
+  utils::ItpMsg msg;
+  tick.SerializeToString(&msg.pbMsg);
+  msg.sessionName = "strategy_market";
+  msg.msgName = "TickData." + pc.identify;
   auto &recerSender = RecerSender::getInstance();
-  char temp_topic[100];
-  sprintf(temp_topic, "strategy_market.TickData.%s", pc.identify.c_str());
-  recerSender.ROLE(Sender).ROLE(ProxySender).send(temp_topic, tickStr.c_str());
+  recerSender.ROLE(Sender).ROLE(ProxySender).send(msg);
 
   pc.heartbeat = 0;
 }
@@ -305,12 +304,12 @@ void publishData::once_from_dataflow_select_rawtick(const publishControl &pc, XT
   iter->set_open_price(std::to_string(max2zero(pD->open_price)));
   iter->set_volume(pD->qty);
 
-  std::string tickStr;
-  tick.SerializeToString(&tickStr);
-
+  utils::ItpMsg msg;
+  tick.SerializeToString(&msg.pbMsg);
+  msg.sessionName = "strategy_market";
+  msg.msgName = "TickData." + pc.identify;
   auto &recerSender = RecerSender::getInstance();
-  string topic = "market_strategy.TickData." + pc.identify;
-  recerSender.ROLE(Sender).ROLE(ProxySender).send(topic.c_str(), tickStr.c_str());
+  recerSender.ROLE(Sender).ROLE(ProxySender).send(msg);
 }
 
 // 无法获取最小变动单位，暂不实现该功能
@@ -359,12 +358,12 @@ void publishData::once_from_dataflow_select_level1(const publishControl &pc, XTP
   iter->set_open_price(std::to_string(max2zero(pD->open_price)));
   iter->set_volume(pD->qty);
 
-  std::string tickStr;
-  tick.SerializeToString(&tickStr);
-
+  utils::ItpMsg msg;
+  tick.SerializeToString(&msg.pbMsg);
+  msg.sessionName = "strategy_market";
+  msg.msgName = "TickData." + pc.identify;
   auto &recerSender = RecerSender::getInstance();
-  string topic = "market_strategy.TickData." + pc.identify;
-  recerSender.ROLE(Sender).ROLE(ProxySender).send(topic.c_str(), tickStr.c_str());
+  recerSender.ROLE(Sender).ROLE(ProxySender).send(msg);
 }
 
 bool publishData::isValidLevel1Data(const publishControl &pc, XTPMD *pD) {

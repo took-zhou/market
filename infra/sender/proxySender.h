@@ -8,9 +8,12 @@
 #ifndef WORKSPACE_MARKET_INFRA_PROXYSENDER_H_
 #define WORKSPACE_MARKET_INFRA_PROXYSENDER_H_
 
+#include <string>
+#include "common/self/utils.h"
+
 struct ProxySender {
   ProxySender(){};
-  bool send(const char *head, const char *msg);
+  bool send(utils::ItpMsg &msg);
 };
 
 #endif /* WORKSPACE_MARKET_INFRA_PROXYSENDER_H_ */

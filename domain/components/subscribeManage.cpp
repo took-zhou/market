@@ -47,11 +47,13 @@ void subscribeManager::reqInstrumentsFromTrader() {
   market_trader::message reqMsg;
   auto reqInstrument = reqMsg.mutable_qry_instrument_req();
   reqInstrument->set_identity("all");
-  std::string reqStr;
-  reqMsg.SerializeToString(&reqStr);
 
+  utils::ItpMsg msg;
+  reqMsg.SerializeToString(&msg.pbMsg);
+  msg.sessionName = "market_trader";
+  msg.msgName = "QryInstrumentReq";
   auto& recerSender = RecerSender::getInstance();
-  recerSender.ROLE(Sender).ROLE(ProxySender).send("market_trader.QryInstrumentReq", reqStr.c_str());
+  recerSender.ROLE(Sender).ROLE(ProxySender).send(msg);
 }
 
 void subscribeManager::subscribeInstrument(std::vector<utils::InstrumtntID>& nameVec) {

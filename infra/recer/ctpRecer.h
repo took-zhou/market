@@ -9,7 +9,6 @@
 #define WORKSPACE_MARKET_INFRA_CTPRECER_H_
 #include "common/extern/ctp/inc/ThostFtdcMdApi.h"
 #include "common/self/utils.h"
-#include "market/infra/recer/recerSpi.h"
 
 class CtpMarketSpi : public CThostFtdcMdSpi {
  public:
@@ -46,12 +45,6 @@ class CtpMarketSpi : public CThostFtdcMdSpi {
   void OnRtnForQuoteRsp(CThostFtdcForQuoteRspField *pForQuoteRsp);
 
   bool frontDisconnected = false;
-};
-
-struct CtpRecer : RecerSpi {
- public:
-  CtpRecer(){};
-  bool receMsg(utils::ItpMsg &msg);
 };
 
 #endif /* WORKSPACE_MARKET_INFRA_CTPRECER_H_ */

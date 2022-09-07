@@ -127,11 +127,14 @@ void CtpviewEvent::SimulateMarketStateHandle(utils::ItpMsg &msg) {
 
       market_state->set_market_state(state);
       market_state->set_date(simulate_market_state.date());
-      std::string tickStr;
-      tick.SerializeToString(&tickStr);
+
+      utils::ItpMsg msg;
+      tick.SerializeToString(&msg.pbMsg);
+      msg.sessionName = "strategy_market";
+      msg.msgName = "TickMarketState." + keyname;
       auto &recerSender = RecerSender::getInstance();
-      string topic = "strategy_market.TickMarketState." + keyname;
-      recerSender.ROLE(Sender).ROLE(ProxySender).send(topic.c_str(), tickStr.c_str());
+      recerSender.ROLE(Sender).ROLE(ProxySender).send(msg);
+
       std::this_thread::sleep_for(10ms);
     }
 
@@ -156,11 +159,12 @@ void CtpviewEvent::SimulateMarketStateHandle(utils::ItpMsg &msg) {
 
     market_state->set_market_state(state2);
     market_state->set_date(simulate_market_state.date());
-    std::string tickStr;
-    tick.SerializeToString(&tickStr);
+    utils::ItpMsg msg;
+    tick.SerializeToString(&msg.pbMsg);
+    msg.sessionName = "manage_market";
+    msg.msgName = "TickMarketState.0000000000";
     auto &recerSender = RecerSender::getInstance();
-    string topic = "manage_market.TickMarketState.0000000000";
-    recerSender.ROLE(Sender).ROLE(ProxySender).send(topic.c_str(), tickStr.c_str());
+    recerSender.ROLE(Sender).ROLE(ProxySender).send(msg);
     std::this_thread::sleep_for(10ms);
   } else {
     ERROR_LOG("not find target: %s.", simulate_market_state.target().c_str());

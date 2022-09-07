@@ -7,7 +7,7 @@
 #include "market/domain/marketService.h"
 #include <thread>
 #include "common/extern/log/log.h"
-
+#include "common/self/protobuf/market-trader.pb.h"
 MarketService::MarketService() {
   // 开启发布线程
   auto heartbeatDetect = [&]() { ROLE(publishData).heartbeatDetect(); };

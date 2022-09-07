@@ -36,15 +36,17 @@ void CtpMarketSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin, CT
   sendMsg->set_address(reinterpret_cast<int64_t>(pRspInfo));
   sendMsg->set_request_id(nRequestID);
   sendMsg->set_request_id(bIsLast);
-  std::string reqStr;
-  reqMsg.SerializeToString(&reqStr);
+  utils::ItpMsg msg;
+  reqMsg.SerializeToString(&msg.pbMsg);
+  msg.sessionName = "ctp_market";
+  msg.msgName = "OnRspUserLogin";
 
   auto &globalSem = GlobalSem::getInstance();
   auto &innerZmq = InnerZmq::getInstance();
-  innerZmq.pushTask("ctp_market.OnRspUserLogin", reqStr.c_str());
+
+  innerZmq.pushTask(msg);
   globalSem.waitSemBySemName(GlobalSem::apiRecv);
   frontDisconnected = false;
-
   globalSem.postSemBySemName(GlobalSem::loginLogout);
 }
 
@@ -54,14 +56,15 @@ void CtpMarketSpi::OnRspUserLogout(CThostFtdcUserLogoutField *pUserLogout, CThos
   sendMsg->set_address(reinterpret_cast<int64_t>(pRspInfo));
   sendMsg->set_request_id(nRequestID);
   sendMsg->set_request_id(bIsLast);
-  std::string reqStr;
-  reqMsg.SerializeToString(&reqStr);
+  utils::ItpMsg msg;
+  reqMsg.SerializeToString(&msg.pbMsg);
+  msg.sessionName = "ctp_market";
+  msg.msgName = "OnRspUserLogout";
 
   auto &globalSem = GlobalSem::getInstance();
   auto &innerZmq = InnerZmq::getInstance();
-  innerZmq.pushTask("ctp_market.OnRspUserLogout", reqStr.c_str());
+  innerZmq.pushTask(msg);
   globalSem.waitSemBySemName(GlobalSem::apiRecv);
-
   globalSem.postSemBySemName(GlobalSem::loginLogout);
 }
 
@@ -71,12 +74,14 @@ void CtpMarketSpi::OnRspUserLogout(void) {
   ipc::message reqMsg;
   auto sendMsg = reqMsg.mutable_itp_msg();
   sendMsg->set_address(reinterpret_cast<int64_t>(&field));
-  std::string reqStr;
-  reqMsg.SerializeToString(&reqStr);
+  utils::ItpMsg msg;
+  reqMsg.SerializeToString(&msg.pbMsg);
+  msg.sessionName = "ctp_market";
+  msg.msgName = "OnRspUserLogout";
 
   auto &globalSem = GlobalSem::getInstance();
   auto &innerZmq = InnerZmq::getInstance();
-  innerZmq.pushTask("ctp_market.OnRspUserLogout", reqStr.c_str());
+  innerZmq.pushTask(msg);
   globalSem.waitSemBySemName(GlobalSem::apiRecv);
 }
 
@@ -87,12 +92,14 @@ void CtpMarketSpi::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *pDepthMa
   ipc::message reqMsg;
   auto sendMsg = reqMsg.mutable_itp_msg();
   sendMsg->set_address(reinterpret_cast<int64_t>(pDepthMarketData));
-  std::string reqStr;
-  reqMsg.SerializeToString(&reqStr);
+  utils::ItpMsg msg;
+  reqMsg.SerializeToString(&msg.pbMsg);
+  msg.sessionName = "ctp_market";
+  msg.msgName = "OnRtnDepthMarketData";
 
   auto &globalSem = GlobalSem::getInstance();
   auto &innerZmq = InnerZmq::getInstance();
-  innerZmq.pushTask("ctp_market.OnRtnDepthMarketData", reqStr.c_str());
+  innerZmq.pushTask(msg);
   globalSem.waitSemBySemName(GlobalSem::apiRecv);
 }
 
@@ -111,39 +118,3 @@ void CtpMarketSpi::OnRspSubForQuoteRsp(CThostFtdcSpecificInstrumentField *pSpeci
 
 void CtpMarketSpi::OnRspUnSubForQuoteRsp(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo,
                                          int nRequestID, bool bIsLast) {}
-
-bool CtpRecer::receMsg(utils::ItpMsg &msg) {
-  bool out = true;
-  auto &innerZmqBase = InnerZmq::getInstance();
-
-  char *recContent = innerZmqBase.pullTask();
-  if (recContent != nullptr) {
-    int index = 0;
-    int segIndex = 0;
-    int length = strlen(recContent) + 1;
-    char temp[length];
-    for (int i = 0; i < length; i++) {
-      temp[index] = recContent[i];
-      if (recContent[i] == '.' && segIndex == 0) {
-        temp[index] = '\0';
-        msg.sessionName = temp;
-        index = 0;
-        segIndex++;
-      } else if (recContent[i] == ' ' && segIndex == 1) {
-        temp[index] = '\0';
-        msg.msgName = temp;
-        index = 0;
-        segIndex++;
-      } else if (recContent[i] == '\0' && segIndex == 2) {
-        msg.pbMsg = temp;
-        break;
-      } else {
-        index++;
-      }
-    }
-  } else {
-    out = false;
-  }
-
-  return out;
-}

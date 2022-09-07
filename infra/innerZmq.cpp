@@ -17,20 +17,52 @@ InnerZmq::InnerZmq() {
   zmq_connect(sender, inprocAddress.c_str());
 }
 
-int InnerZmq::pushTask(const char *head, const char *msg) {
-  std::stringstream tmpStr;
-  tmpStr << head << " " << msg;
-
-  int size = zmq_send(sender, const_cast<char *>(tmpStr.str().c_str()), strlen(const_cast<char *>(tmpStr.str().c_str())), 0);
+int InnerZmq::pushTask(const utils::ItpMsg &msg) {
+  std::string outstring = msg.sessionName + "." + msg.msgName + " " + msg.pbMsg;
+  int size = zmq_send(sender, const_cast<char *>(outstring.c_str()), outstring.length(), 0);
   return size;
 }
 
-char *InnerZmq::pullTask() {
-  enum { cap = 256 };
-  char buffer[cap];
-  int size = zmq_recv(receiver, buffer, cap - 1, 0);
-  if (size == -1) return NULL;
-  buffer[size < cap ? size : cap - 1] = '\0';
+int InnerZmq::pullTask(utils::ItpMsg &msg) {
+  bool out = true;
 
-  return strndup(buffer, sizeof(buffer) - 1);
+  std::string recvString;
+  recvString.resize(256);
+
+  int msgsize = zmq_recv(receiver, &recvString[0], recvString.length() - 1, 0);
+  if (msgsize != -1) {
+    int index = 0;
+    int segIndex = 0;
+    char temp[msgsize];
+
+    for (int i = 0; i < msgsize; i++) {
+      temp[index] = recvString[i];
+      if (temp[index] == '.') {
+        if (segIndex == 0) {
+          temp[index] = '\0';
+          msg.sessionName = temp;
+        } else if (segIndex == 1) {
+          temp[index] = '\0';
+          msg.msgName = temp;
+        }
+        segIndex++;
+        index = 0;
+      } else if (temp[index] == ' ') {
+        if (segIndex == 1) {
+          temp[index] = '\0';
+          msg.msgName = temp;
+        }
+        segIndex++;
+        index = 0;
+      } else {
+        index++;
+      }
+    }
+    msg.pbMsg.resize(index);
+    memcpy(&msg.pbMsg[0], temp, index);
+  } else {
+    out = false;
+  }
+
+  return out;
 }

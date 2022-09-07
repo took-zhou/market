@@ -40,18 +40,18 @@ void activeSafety::req_alive() {
   auto &marketSer = MarketService::getInstance();
   auto keyNameList = marketSer.ROLE(controlPara).getIdentifyList();
   for (auto &keyname : keyNameList) {
-    strategy_market::message msg;
-    auto active_safety = msg.mutable_active_req();
+    strategy_market::message reqMsg;
+    auto active_safety = reqMsg.mutable_active_req();
 
     strategy_market::ActiveSafetyReq_MessageType check_id = strategy_market::ActiveSafetyReq_MessageType_isrun;
     active_safety->set_safe_id(check_id);
     active_safety->set_process_random_id(keyname);
-
-    std::string reqStr;
-    msg.SerializeToString(&reqStr);
+    utils::ItpMsg msg;
+    reqMsg.SerializeToString(&msg.pbMsg);
+    msg.sessionName = "strategy_market";
+    msg.msgName = "ActiveSafetyReq." + keyname;
     auto &recerSender = RecerSender::getInstance();
-    string topic = "strategy_market.ActiveSafetyReq." + keyname;
-    recerSender.ROLE(Sender).ROLE(ProxySender).send(topic.c_str(), reqStr.c_str());
+    recerSender.ROLE(Sender).ROLE(ProxySender).send(msg);
 
     auto &globalSem = GlobalSem::getInstance();
     if (globalSem.waitSemBySemName(GlobalSem::viewDebug, 3) != 0) {

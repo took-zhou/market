@@ -14,7 +14,7 @@
 
 EmailSender::EmailSender() {}
 
-void EmailSender::send(const char *head, const char *msg) {
+void EmailSender::send(const std::string &head, const std::string &msg) {
   mail_title = head;
   mail_body = msg;
 

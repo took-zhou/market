@@ -1,16 +1,11 @@
 #include "market/infra/recer/itpRecer.h"
 #include "common/self/fileUtil.h"
-#include "market/infra/recer/ctpRecer.h"
-#include "market/infra/recer/xtpRecer.h"
+#include "market/infra/innerZmq.h"
 
-ItpRecer::ItpRecer() {
-  auto &jsonCfg = utils::JsonConfig::getInstance();
-  auto apiType = jsonCfg.getConfig("common", "ApiType");
-  if (apiType == "ctp") {
-    recerSpi = new CtpRecer();
-  } else if (apiType == "xtp") {
-    recerSpi = new XtpRecer();
-  }
+ItpRecer::ItpRecer() {}
+
+bool ItpRecer::receMsg(utils::ItpMsg &msg) {
+  auto &innerZmqBase = InnerZmq::getInstance();
+
+  return innerZmqBase.pullTask(msg);
 }
-
-bool ItpRecer::receMsg(utils::ItpMsg &msg) { recerSpi->receMsg(msg); }

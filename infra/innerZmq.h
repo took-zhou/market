@@ -7,10 +7,10 @@
 
 #ifndef WORKSPACE_MARKET_INFRA_INNERZMQBASE_H_
 #define WORKSPACE_MARKET_INFRA_INNERZMQBASE_H_
-#include <sstream>
 #include <string>
 
 #include "common/extern/libzmq/include/zmq.h"
+#include "common/self/utils.h"
 
 struct InnerZmq {
   InnerZmq();
@@ -21,8 +21,8 @@ struct InnerZmq {
     return instance;
   }
 
-  int pushTask(const char *head, const char *msg);
-  char *pullTask();
+  int pushTask(const utils::ItpMsg &msg);
+  int pullTask(utils::ItpMsg &msg);
   std::string inprocAddress{"inproc://innerzmq"};
   void *context{nullptr};
   void *receiver{nullptr};

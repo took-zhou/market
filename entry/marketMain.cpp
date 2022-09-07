@@ -24,7 +24,7 @@ int main(int argc, char *agrv[]) {
   INFO_LOG("markt log path is %s", marketLogPath.c_str());
 
   std::string compile_time = utils::GetCompileTime();
-  jsonCfg.writeConfig("market", "version", compile_time);
+  jsonCfg.writeConfig("market", "CompileTime", compile_time);
   INFO_LOG("program last build at %s.", compile_time.c_str());
 
   auto &marketSer = MarketService::getInstance();

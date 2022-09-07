@@ -12,7 +12,7 @@
 
 struct EmailSender {
   EmailSender();
-  void send(const char *head, const char *msg);
+  void send(const std::string &head, const std::string &msg);
 
   std::string mail_title;
   std::string mail_body;

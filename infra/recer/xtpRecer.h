@@ -9,7 +9,6 @@
 #define WORKSPACE_MARKET_INFRA_XTPRECER_H_
 #include "common/extern/xtp/inc/xtp_quote_api.h"
 #include "common/self/utils.h"
-#include "market/infra/recer/recerSpi.h"
 
 class XtpQuoteSpi : public XTP::API::QuoteSpi {
  public:
@@ -59,12 +58,6 @@ class XtpQuoteSpi : public XTP::API::QuoteSpi {
 
  private:
   bool IsErrorRspInfo(XTPRI *pRspInfo);
-};
-
-struct XtpRecer : RecerSpi {
- public:
-  XtpRecer(){};
-  bool receMsg(utils::ItpMsg &msg);
 };
 
 #endif /* WORKSPACE_MARKET_INFRA_CTPRECER_H_ */
