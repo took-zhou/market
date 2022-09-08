@@ -62,7 +62,7 @@ bool marketData::isValidTickData(XTPMD *pD) {
   tm tick_tm;
   bool ret = false;
 
-  string data_time = utils::longintToString(pD->data_time);
+  string data_time = std::to_string(pD->data_time);
   string UpdateTime = data_time.substr(8, 6);
   strptime(UpdateTime.c_str(), "%H%M%S", &tick_tm);
 
@@ -160,7 +160,7 @@ bool marketData::getAssemblingTime(char *t_arr, CThostFtdcDepthMarketDataField *
 }
 
 bool marketData::getAssemblingTime(char *t_arr, XTPMD *pD) {
-  string data_time = utils::longintToString(pD->data_time);
+  string data_time = std::to_string(pD->data_time);
   string y = data_time.substr(0, 4);
   string mon = data_time.substr(4, 2);
   string d = data_time.substr(6, 2);

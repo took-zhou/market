@@ -12,7 +12,7 @@
 struct publishControl {
   std::string identify;
   std::string exch;
-  U32 ticksize;
+  float ticksize;
   strategy_market::TickStartStopIndication_MessageType indication = strategy_market::TickStartStopIndication_MessageType_reserve;
   U32 interval = 0;
   bool directforward = false;

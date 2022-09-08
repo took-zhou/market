@@ -42,7 +42,6 @@ bool MarketEvent::run() {
         continue;
       }
 
-      INFO_LOG("proxyRecRun");
       if (sessionFuncMap.find(msg.sessionName) != sessionFuncMap.end()) {
         sessionFuncMap[msg.sessionName](msg);
       } else {

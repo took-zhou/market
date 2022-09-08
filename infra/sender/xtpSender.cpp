@@ -55,7 +55,7 @@ bool XtpSender::ReqUserLogin(void) {
 
     auto protocol_ip_port = utils::splitString(frontaddr, ":");
     std::string ip = utils::splitString(protocol_ip_port[1], "//")[1];
-    int port = utils::stringToInt(protocol_ip_port[2]);
+    int port = stoi(protocol_ip_port[2]);
     XTP_PROTOCOL_TYPE protoc = XTP_PROTOCOL_TCP;
     if (protocol_ip_port[0] == "tcp") {
       protoc = XTP_PROTOCOL_TCP;

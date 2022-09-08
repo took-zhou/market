@@ -67,30 +67,30 @@ void publishData::once_from_dataflow_select_rawtick(const publishControl &pc, CT
   auto iter = tick_data->add_tick_list();
   iter->set_state(strategy_market::TickData_TickState_active);
   iter->set_instrument_id(pD->InstrumentID);
-  iter->set_last_price(std::to_string(max2zero(pD->LastPrice)));
-  iter->set_bid_price1(std::to_string(max2zero(pD->BidPrice1)));
+  iter->set_last_price(max2zero(pD->LastPrice));
+  iter->set_bid_price1(max2zero(pD->BidPrice1));
   iter->set_bid_volume1(pD->BidVolume1);
-  iter->set_ask_price1(std::to_string(max2zero(pD->AskPrice1)));
+  iter->set_ask_price1(max2zero(pD->AskPrice1));
   iter->set_ask_volume1(pD->AskVolume1);
   if (data_level == 2) {
-    iter->set_bid_price2(std::to_string(max2zero(pD->BidPrice2)));
+    iter->set_bid_price2(max2zero(pD->BidPrice2));
     iter->set_bid_volume2(pD->BidVolume2);
-    iter->set_ask_price2(std::to_string(max2zero(pD->AskPrice2)));
+    iter->set_ask_price2(max2zero(pD->AskPrice2));
     iter->set_ask_volume2(pD->AskVolume2);
-    iter->set_bid_price3(std::to_string(max2zero(pD->BidPrice3)));
+    iter->set_bid_price3(max2zero(pD->BidPrice3));
     iter->set_bid_volume3(pD->BidVolume3);
-    iter->set_ask_price3(std::to_string(max2zero(pD->AskPrice3)));
+    iter->set_ask_price3(max2zero(pD->AskPrice3));
     iter->set_ask_volume3(pD->AskVolume3);
-    iter->set_bid_price4(std::to_string(max2zero(pD->BidPrice4)));
+    iter->set_bid_price4(max2zero(pD->BidPrice4));
     iter->set_bid_volume4(pD->BidVolume4);
-    iter->set_ask_price4(std::to_string(max2zero(pD->AskPrice4)));
+    iter->set_ask_price4(max2zero(pD->AskPrice4));
     iter->set_ask_volume4(pD->AskVolume4);
-    iter->set_bid_price5(std::to_string(max2zero(pD->BidPrice5)));
+    iter->set_bid_price5(max2zero(pD->BidPrice5));
     iter->set_bid_volume5(pD->BidVolume5);
-    iter->set_ask_price5(std::to_string(max2zero(pD->AskPrice5)));
+    iter->set_ask_price5(max2zero(pD->AskPrice5));
     iter->set_ask_volume5(pD->AskVolume5);
   }
-  iter->set_open_price(std::to_string(max2zero(pD->OpenPrice)));
+  iter->set_open_price(max2zero(pD->OpenPrice));
   iter->set_volume(pD->Volume);
 
   utils::ItpMsg msg;
@@ -122,31 +122,31 @@ void publishData::once_from_dataflow_select_level1(const publishControl &pc, CTh
   auto iter = tick_data->add_tick_list();
   iter->set_state(strategy_market::TickData_TickState_active);
   iter->set_instrument_id(pD->InstrumentID);
-  iter->set_last_price(std::to_string(max2zero(pD->LastPrice)));
-  iter->set_bid_price1(std::to_string(max2zero(pD->BidPrice1)));
+  iter->set_last_price(max2zero(pD->LastPrice));
+  iter->set_bid_price1(max2zero(pD->BidPrice1));
   iter->set_bid_volume1(pD->BidVolume1);
-  iter->set_ask_price1(std::to_string(max2zero(pD->AskPrice1)));
+  iter->set_ask_price1(max2zero(pD->AskPrice1));
   iter->set_ask_volume1(pD->AskVolume1);
   if (data_level == 2) {
-    iter->set_bid_price2(std::to_string(max2zero(pD->BidPrice2)));
+    iter->set_bid_price2(max2zero(pD->BidPrice2));
     iter->set_bid_volume2(pD->BidVolume2);
-    iter->set_ask_price2(std::to_string(max2zero(pD->AskPrice2)));
+    iter->set_ask_price2(max2zero(pD->AskPrice2));
     iter->set_ask_volume2(pD->AskVolume2);
-    iter->set_bid_price3(std::to_string(max2zero(pD->BidPrice3)));
+    iter->set_bid_price3(max2zero(pD->BidPrice3));
     iter->set_bid_volume3(pD->BidVolume3);
-    iter->set_ask_price3(std::to_string(max2zero(pD->AskPrice3)));
+    iter->set_ask_price3(max2zero(pD->AskPrice3));
     iter->set_ask_volume3(pD->AskVolume3);
-    iter->set_bid_price4(std::to_string(max2zero(pD->BidPrice4)));
+    iter->set_bid_price4(max2zero(pD->BidPrice4));
     iter->set_bid_volume4(pD->BidVolume4);
-    iter->set_ask_price4(std::to_string(max2zero(pD->AskPrice4)));
+    iter->set_ask_price4(max2zero(pD->AskPrice4));
     iter->set_ask_volume4(pD->AskVolume4);
-    iter->set_bid_price5(std::to_string(max2zero(pD->BidPrice5)));
+    iter->set_bid_price5(max2zero(pD->BidPrice5));
     iter->set_bid_volume5(pD->BidVolume5);
-    iter->set_ask_price5(std::to_string(max2zero(pD->AskPrice5)));
+    iter->set_ask_price5(max2zero(pD->AskPrice5));
     iter->set_ask_volume5(pD->AskVolume5);
   }
 
-  iter->set_open_price(std::to_string(max2zero(pD->OpenPrice)));
+  iter->set_open_price(max2zero(pD->OpenPrice));
   iter->set_volume(pD->Volume);
 
   utils::ItpMsg msg;
@@ -188,37 +188,37 @@ void publishData::once_from_default(const publishControl &pc, const string &keyn
   auto iter = tick_data->add_tick_list();
   iter->set_state(strategy_market::TickData_TickState_inactive);
   iter->set_instrument_id(keyname);
-  iter->set_last_price(std::to_string(max2zero(0.0)));
-  iter->set_bid_price1(std::to_string(max2zero(0.0)));
+  iter->set_last_price(max2zero(0.0));
+  iter->set_bid_price1(max2zero(0.0));
   iter->set_bid_volume1(0);
-  iter->set_ask_price1(std::to_string(max2zero(0.0)));
+  iter->set_ask_price1(max2zero(0.0));
   iter->set_ask_volume1(0);
   if (data_level == 2) {
-    iter->set_bid_price2(std::to_string(max2zero(0.0)));
+    iter->set_bid_price2(max2zero(0.0));
     iter->set_bid_volume2(0);
-    iter->set_ask_price2(std::to_string(max2zero(0.0)));
+    iter->set_ask_price2(max2zero(0.0));
     iter->set_ask_volume2(0);
-    iter->set_bid_price3(std::to_string(max2zero(0.0)));
+    iter->set_bid_price3(max2zero(0.0));
     iter->set_bid_volume3(0);
-    iter->set_ask_price3(std::to_string(max2zero(0.0)));
+    iter->set_ask_price3(max2zero(0.0));
     iter->set_ask_volume3(0);
-    iter->set_bid_price4(std::to_string(max2zero(0.0)));
+    iter->set_bid_price4(max2zero(0.0));
     iter->set_bid_volume4(0);
-    iter->set_ask_price4(std::to_string(max2zero(0.0)));
+    iter->set_ask_price4(max2zero(0.0));
     iter->set_ask_volume4(0);
-    iter->set_bid_price5(std::to_string(max2zero(0.0)));
+    iter->set_bid_price5(max2zero(0.0));
     iter->set_bid_volume5(0);
-    iter->set_ask_price5(std::to_string(max2zero(0.0)));
+    iter->set_ask_price5(max2zero(0.0));
     iter->set_ask_volume5(0);
     iter->set_turnover(0);
     iter->set_open_interest(0);
-    iter->set_upper_limit_price(std::to_string(max2zero(0.0)));
-    iter->set_lower_limit_price(std::to_string(max2zero(0.0)));
-    iter->set_pre_settlement_price(std::to_string(max2zero(0.0)));
-    iter->set_pre_close_price(std::to_string(max2zero(0.0)));
+    iter->set_upper_limit_price(max2zero(0.0));
+    iter->set_lower_limit_price(max2zero(0.0));
+    iter->set_pre_settlement_price(max2zero(0.0));
+    iter->set_pre_close_price(max2zero(0.0));
     iter->set_pre_open_interest(0);
   }
-  iter->set_open_price(std::to_string(max2zero(0.0)));
+  iter->set_open_price(max2zero(0.0));
 
   iter->set_volume(0);
 
@@ -278,30 +278,30 @@ void publishData::once_from_dataflow_select_rawtick(const publishControl &pc, XT
   auto iter = tick_data->add_tick_list();
   iter->set_state(strategy_market::TickData_TickState_active);
   iter->set_instrument_id(pD->ticker);
-  iter->set_last_price(std::to_string(max2zero(pD->last_price)));
-  iter->set_bid_price1(std::to_string(max2zero(pD->bid[0])));
+  iter->set_last_price(max2zero(pD->last_price));
+  iter->set_bid_price1(max2zero(pD->bid[0]));
   iter->set_bid_volume1(pD->bid_qty[0]);
-  iter->set_ask_price1(std::to_string(max2zero(pD->ask[0])));
+  iter->set_ask_price1(max2zero(pD->ask[0]));
   iter->set_ask_volume1(pD->ask_qty[0]);
   if (data_level == 2) {
-    iter->set_bid_price2(std::to_string(max2zero(pD->bid[1])));
+    iter->set_bid_price2(max2zero(pD->bid[1]));
     iter->set_bid_volume2(pD->bid_qty[1]);
-    iter->set_ask_price2(std::to_string(max2zero(pD->ask[1])));
+    iter->set_ask_price2(max2zero(pD->ask[1]));
     iter->set_ask_volume2(pD->ask_qty[1]);
-    iter->set_bid_price3(std::to_string(max2zero(pD->bid[2])));
+    iter->set_bid_price3(max2zero(pD->bid[2]));
     iter->set_bid_volume3(pD->bid_qty[2]);
-    iter->set_ask_price3(std::to_string(max2zero(pD->ask[2])));
+    iter->set_ask_price3(max2zero(pD->ask[2]));
     iter->set_ask_volume3(pD->ask_qty[2]);
-    iter->set_bid_price4(std::to_string(max2zero(pD->bid[3])));
+    iter->set_bid_price4(max2zero(pD->bid[3]));
     iter->set_bid_volume4(pD->bid_qty[3]);
-    iter->set_ask_price4(std::to_string(max2zero(pD->ask[3])));
+    iter->set_ask_price4(max2zero(pD->ask[3]));
     iter->set_ask_volume4(pD->ask_qty[3]);
-    iter->set_bid_price5(std::to_string(max2zero(pD->bid[4])));
+    iter->set_bid_price5(max2zero(pD->bid[4]));
     iter->set_bid_volume5(pD->bid_qty[4]);
-    iter->set_ask_price5(std::to_string(max2zero(pD->ask[4])));
+    iter->set_ask_price5(max2zero(pD->ask[4]));
     iter->set_ask_volume5(pD->ask_qty[4]);
   }
-  iter->set_open_price(std::to_string(max2zero(pD->open_price)));
+  iter->set_open_price(max2zero(pD->open_price));
   iter->set_volume(pD->qty);
 
   utils::ItpMsg msg;
@@ -332,30 +332,30 @@ void publishData::once_from_dataflow_select_level1(const publishControl &pc, XTP
   auto iter = tick_data->add_tick_list();
   iter->set_state(strategy_market::TickData_TickState_active);
   iter->set_instrument_id(pD->ticker);
-  iter->set_last_price(std::to_string(max2zero(pD->last_price)));
-  iter->set_bid_price1(std::to_string(max2zero(pD->bid[0])));
+  iter->set_last_price(max2zero(pD->last_price));
+  iter->set_bid_price1(max2zero(pD->bid[0]));
   iter->set_bid_volume1(pD->bid_qty[0]);
-  iter->set_ask_price1(std::to_string(max2zero(pD->ask[0])));
+  iter->set_ask_price1(max2zero(pD->ask[0]));
   iter->set_ask_volume1(pD->ask_qty[0]);
   if (data_level == 2) {
-    iter->set_bid_price2(std::to_string(max2zero(pD->bid[1])));
+    iter->set_bid_price2(max2zero(pD->bid[1]));
     iter->set_bid_volume2(pD->bid_qty[1]);
-    iter->set_ask_price2(std::to_string(max2zero(pD->ask[1])));
+    iter->set_ask_price2(max2zero(pD->ask[1]));
     iter->set_ask_volume2(pD->ask_qty[1]);
-    iter->set_bid_price3(std::to_string(max2zero(pD->bid[2])));
+    iter->set_bid_price3(max2zero(pD->bid[2]));
     iter->set_bid_volume3(pD->bid_qty[2]);
-    iter->set_ask_price3(std::to_string(max2zero(pD->ask[2])));
+    iter->set_ask_price3(max2zero(pD->ask[2]));
     iter->set_ask_volume3(pD->ask_qty[2]);
-    iter->set_bid_price4(std::to_string(max2zero(pD->bid[3])));
+    iter->set_bid_price4(max2zero(pD->bid[3]));
     iter->set_bid_volume4(pD->bid_qty[3]);
-    iter->set_ask_price4(std::to_string(max2zero(pD->ask[3])));
+    iter->set_ask_price4(max2zero(pD->ask[3]));
     iter->set_ask_volume4(pD->ask_qty[3]);
-    iter->set_bid_price5(std::to_string(max2zero(pD->bid[4])));
+    iter->set_bid_price5(max2zero(pD->bid[4]));
     iter->set_bid_volume5(pD->bid_qty[4]);
-    iter->set_ask_price5(std::to_string(max2zero(pD->ask[4])));
+    iter->set_ask_price5(max2zero(pD->ask[4]));
     iter->set_ask_volume5(pD->ask_qty[4]);
   }
-  iter->set_open_price(std::to_string(max2zero(pD->open_price)));
+  iter->set_open_price(max2zero(pD->open_price));
   iter->set_volume(pD->qty);
 
   utils::ItpMsg msg;

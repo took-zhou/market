@@ -46,10 +46,6 @@ void ZmqBase::unSubscribeTopic(const char *topicStr) { zmq_setsockopt(receiver, 
 
 int ZmqBase::SendMsg(const std::string &msg) {
   int size = zmq_send(publisher, const_cast<char *>(msg.c_str()), msg.length(), 0);
-
-  for (int iii = 0; iii < msg.length(); iii++) {
-    INFO_LOG("%d", (char)msg[iii]);
-  }
   return size;
 }
 

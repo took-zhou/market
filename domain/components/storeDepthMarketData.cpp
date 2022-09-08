@@ -163,7 +163,7 @@ void loadData::FormDepthMarketData2Stringflow(XTPMD *pD) {
   ///合约代码 TThostFtdcInstrumentIDType char[31]
   char InstrumentID[16];
   utils::gbk2utf8(pD->ticker, InstrumentID, sizeof(InstrumentID));
-  string data_time = utils::longintToString(pD->data_time);
+  string data_time = std::to_string(pD->data_time);
   ///交易日期
   string TradingDay = data_time.substr(0, 8);
   ///最后修改时间 TThostFtdcTimeType char[9]

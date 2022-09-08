@@ -57,16 +57,14 @@ void TraderEvent::QryInstrumentRspHandle(utils::ItpMsg &msg) {
   }
 
   if (rsp.finish_flag() == true) {
-    auto &recerSender = RecerSender::getInstance();
-    recerSender.ROLE(Sender).ROLE(ItpSender).SubscribeMarketData(ins_vec);
+    marketServer.ROLE(subscribeManager).subscribeInstrument(ins_vec);
     marketServer.ROLE(loadData).showInsExchPair();
     INFO_LOG("The number of trading contracts is: %d.", instrumentCount);
     instrumentCount = 0;
     ins_vec.clear();
   } else if (ins_vec.size() >= 500) {
     INFO_LOG("The number of trading contracts is: %d.", instrumentCount);
-    auto &recerSender = RecerSender::getInstance();
-    recerSender.ROLE(Sender).ROLE(ItpSender).SubscribeMarketData(ins_vec);
+    marketServer.ROLE(subscribeManager).subscribeInstrument(ins_vec);
     ins_vec.clear();
   }
 }

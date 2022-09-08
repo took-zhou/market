@@ -52,13 +52,13 @@ void StrategyEvent::TickSubscribeReqHandle(utils::ItpMsg &msg) {
 
     insId.ins = reqInfo.instrument_info_list(i).instrument_id();
     insId.exch = reqInfo.instrument_info_list(i).exchange_id();
-    insId.ticksize = utils::stringToFloat(reqInfo.instrument_info_list(i).ticksize());
+    insId.ticksize = reqInfo.instrument_info_list(i).ticksize();
     insVec.push_back(insId);
 
     publishControl pc;
     pc.identify = reqInfo.process_random_id();
     pc.exch = reqInfo.instrument_info_list(i).exchange_id();
-    pc.ticksize = utils::stringToFloat(reqInfo.instrument_info_list(i).ticksize());
+    pc.ticksize = reqInfo.instrument_info_list(i).ticksize();
     pc.indication = strategy_market::TickStartStopIndication_MessageType_reserve;
     pc.source = reqInfo.source();
     pc.heartbeat = 0;
@@ -73,8 +73,7 @@ void StrategyEvent::TickSubscribeReqHandle(utils::ItpMsg &msg) {
   }
 
   if (marketSer.login_state == LOGIN_STATE) {
-    auto &recerSender = RecerSender::getInstance();
-    recerSender.ROLE(Sender).ROLE(ItpSender).SubscribeMarketData(insVec);
+    marketSer.ROLE(subscribeManager).subscribeInstrument(insVec);
   } else {
     WARNING_LOG("now is logout, wait login to subscribe new instruments");
   }

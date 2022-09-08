@@ -105,7 +105,7 @@ void CtpEvent::OnRspUserLogoutHandle(utils::ItpMsg &msg) {
 
   if (rspInfo->ErrorID != 0) {
     // 端登失败，客户端需进行错误处理
-    ERROR_LOG("Failed to login, errorcode=%d errormsg=%s", rspInfo->ErrorID, errormsg);
+    ERROR_LOG("Failed to logout, errorcode=%d errormsg=%s", rspInfo->ErrorID, errormsg);
     exit(-1);
   } else {
     auto &marketSer = MarketService::getInstance();

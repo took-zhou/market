@@ -31,35 +31,33 @@ int InnerZmq::pullTask(utils::ItpMsg &msg) {
 
   int msgsize = zmq_recv(receiver, &recvString[0], recvString.length() - 1, 0);
   if (msgsize != -1) {
-    int index = 0;
+    int startIndex = 0;
     int segIndex = 0;
-    char temp[msgsize];
 
     for (int i = 0; i < msgsize; i++) {
-      temp[index] = recvString[i];
-      if (temp[index] == '.') {
+      if (recvString[i] == '.') {
         if (segIndex == 0) {
-          temp[index] = '\0';
-          msg.sessionName = temp;
+          msg.sessionName.resize(i - startIndex);
+          memcpy(&msg.sessionName[0], &recvString[startIndex], (i - startIndex));
         } else if (segIndex == 1) {
-          temp[index] = '\0';
-          msg.msgName = temp;
+          msg.msgName.resize(i - startIndex);
+          memcpy(&msg.msgName[0], &recvString[startIndex], (i - startIndex));
         }
+        startIndex = i + 1;
         segIndex++;
-        index = 0;
-      } else if (temp[index] == ' ') {
+      } else if (recvString[i] == ' ') {
         if (segIndex == 1) {
-          temp[index] = '\0';
-          msg.msgName = temp;
+          i = i;
+          msg.msgName.resize(i - startIndex);
+          memcpy(&msg.msgName[0], &recvString[startIndex], (i - startIndex));
         }
-        segIndex++;
-        index = 0;
-      } else {
-        index++;
+        startIndex = i + 1;
+        break;
       }
     }
-    msg.pbMsg.resize(index);
-    memcpy(&msg.pbMsg[0], temp, index);
+
+    msg.pbMsg.resize(msgsize - startIndex);
+    memcpy(&msg.pbMsg[0], &recvString[startIndex], (msgsize - startIndex));
   } else {
     out = false;
   }
