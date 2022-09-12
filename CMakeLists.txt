@@ -3,7 +3,7 @@ include_directories(
     "${workspace_dir}/"
 )
 file(GLOB_RECURSE maket_source
-    "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.cc"
 )
 
 add_library(marketlib STATIC ${maket_source})
