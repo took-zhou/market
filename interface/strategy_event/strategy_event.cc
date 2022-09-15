@@ -29,51 +29,51 @@ void StrategyEvent::RegMsgFun() {
 }
 
 void StrategyEvent::Handle(utils::ItpMsg &msg) {
-  auto iter = msg_func_map.find(msg.msgName);
+  auto iter = msg_func_map.find(msg.msg_name);
   if (iter != msg_func_map.end()) {
     iter->second(msg);
     return;
   }
-  ERROR_LOG("can not find func for msgName [%s]!", msg.msgName.c_str());
+  ERROR_LOG("can not find func for msg_name [%s]!", msg.msg_name.c_str());
   return;
 }
 
 void StrategyEvent::TickSubscribeReqHandle(utils::ItpMsg &msg) {
-  auto &marketSer = MarketService::getInstance();
-  vector<utils::InstrumtntID> insVec;
-  insVec.clear();
+  auto &market_ser = MarketService::GetInstance();
+  vector<utils::InstrumtntID> ins_vec;
+  ins_vec.clear();
 
-  strategy_market::message _reqInfo;
-  _reqInfo.ParseFromString(msg.pbMsg);
-  auto reqInfo = _reqInfo.tick_sub_req();
+  strategy_market::message message;
+  message.ParseFromString(msg.pb_msg);
+  auto req_info = message.tick_sub_req();
 
-  for (int i = 0; i < reqInfo.instrument_info_list_size(); i++) {
-    utils::InstrumtntID insId;
+  for (int i = 0; i < req_info.instrument_info_list_size(); i++) {
+    utils::InstrumtntID ins_id;
 
-    insId.ins = reqInfo.instrument_info_list(i).instrument_id();
-    insId.exch = reqInfo.instrument_info_list(i).exchange_id();
-    insId.ticksize = reqInfo.instrument_info_list(i).ticksize();
-    insVec.push_back(insId);
+    ins_id.ins = req_info.instrument_info_list(i).instrument_id();
+    ins_id.exch = req_info.instrument_info_list(i).exchange_id();
+    ins_id.ticksize = req_info.instrument_info_list(i).ticksize();
+    ins_vec.push_back(ins_id);
 
-    PublishControl pc;
-    pc.prid = reqInfo.process_random_id();
-    pc.exch = reqInfo.instrument_info_list(i).exchange_id();
-    pc.ticksize = reqInfo.instrument_info_list(i).ticksize();
-    pc.indication = strategy_market::TickStartStopIndication_MessageType_reserve;
-    pc.source = reqInfo.source();
-    pc.heartbeat = 0;
+    PublishControl p_c;
+    p_c.prid = req_info.process_random_id();
+    p_c.exch = req_info.instrument_info_list(i).exchange_id();
+    p_c.ticksize = req_info.instrument_info_list(i).ticksize();
+    p_c.indication = strategy_market::TickStartStopIndication_MessageType_reserve;
+    p_c.source = req_info.source();
+    p_c.heartbeat = 0;
 
-    if (reqInfo.interval() == "raw") {
-      pc.directforward = true;
+    if (req_info.interval() == "raw") {
+      p_c.directforward = true;
     } else {
-      pc.directforward = false;
-      pc.interval = float(std::atof(reqInfo.interval().c_str()));
+      p_c.directforward = false;
+      p_c.interval = float(std::atof(req_info.interval().c_str()));
     }
-    marketSer.ROLE(ControlPara).BuildControlPara(insId.ins, pc);
+    market_ser.ROLE(ControlPara).BuildControlPara(ins_id.ins, p_c);
   }
 
-  if (marketSer.login_state == kLoginState) {
-    marketSer.ROLE(SubscribeManager).subscribeInstrument(insVec);
+  if (market_ser.login_state == kLoginState) {
+    market_ser.ROLE(SubscribeManager).SubscribeInstrument(ins_vec);
   } else {
     WARNING_LOG("now is logout, wait login to subscribe new instruments");
   }
@@ -81,13 +81,13 @@ void StrategyEvent::TickSubscribeReqHandle(utils::ItpMsg &msg) {
 
 void StrategyEvent::TickStartStopIndicationHandle(utils::ItpMsg &msg) {
   string mapkeyname = "";
-  strategy_market::message _indication;
-  _indication.ParseFromString(msg.pbMsg);
-  auto indication = _indication.tick_start_stop_indication();
+  strategy_market::message message;
+  message.ParseFromString(msg.pb_msg);
+  auto indication = message.tick_start_stop_indication();
 
   mapkeyname = indication.process_random_id();
-  auto &marketSer = MarketService::getInstance();
-  marketSer.ROLE(ControlPara).set_start_stop_indication(mapkeyname, indication.type());
+  auto &market_ser = MarketService::GetInstance();
+  market_ser.ROLE(ControlPara).SetStartStopIndication(mapkeyname, indication.type());
 }
 
-void StrategyEvent::StrategyAliveRspHandle(utils::ItpMsg &msg) { GlobalSem::getInstance().PostSemBySemName(GlobalSem::kViewDebug); }
+void StrategyEvent::StrategyAliveRspHandle(utils::ItpMsg &msg) { GlobalSem::GetInstance().PostSemBySemName(GlobalSem::kViewDebug); }

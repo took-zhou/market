@@ -18,7 +18,7 @@ InnerZmq::InnerZmq() {
 }
 
 int InnerZmq::PushTask(const utils::ItpMsg &msg) {
-  std::string outstring = msg.sessionName + "." + msg.msgName + " " + msg.pbMsg;
+  std::string outstring = msg.session_name + "." + msg.msg_name + " " + msg.pb_msg;
   int size = zmq_send(sender, const_cast<char *>(outstring.c_str()), outstring.length(), 0);
   return size;
 }
@@ -26,38 +26,38 @@ int InnerZmq::PushTask(const utils::ItpMsg &msg) {
 int InnerZmq::PullTask(utils::ItpMsg &msg) {
   bool out = true;
 
-  std::string recvString;
-  recvString.resize(256);
+  std::string recv_string;
+  recv_string.resize(256);
 
-  int msgsize = zmq_recv(receiver, &recvString[0], recvString.length() - 1, 0);
+  int msgsize = zmq_recv(receiver, &recv_string[0], recv_string.length() - 1, 0);
   if (msgsize != -1) {
-    int startIndex = 0;
-    int segIndex = 0;
+    int start_index = 0;
+    int seg_index = 0;
 
     for (int i = 0; i < msgsize; i++) {
-      if (recvString[i] == '.') {
-        if (segIndex == 0) {
-          msg.sessionName.resize(i - startIndex);
-          memcpy(&msg.sessionName[0], &recvString[startIndex], (i - startIndex));
-        } else if (segIndex == 1) {
-          msg.msgName.resize(i - startIndex);
-          memcpy(&msg.msgName[0], &recvString[startIndex], (i - startIndex));
+      if (recv_string[i] == '.') {
+        if (seg_index == 0) {
+          msg.session_name.resize(i - start_index);
+          memcpy(&msg.session_name[0], &recv_string[start_index], (i - start_index));
+        } else if (seg_index == 1) {
+          msg.msg_name.resize(i - start_index);
+          memcpy(&msg.msg_name[0], &recv_string[start_index], (i - start_index));
         }
-        startIndex = i + 1;
-        segIndex++;
-      } else if (recvString[i] == ' ') {
-        if (segIndex == 1) {
+        start_index = i + 1;
+        seg_index++;
+      } else if (recv_string[i] == ' ') {
+        if (seg_index == 1) {
           i = i;
-          msg.msgName.resize(i - startIndex);
-          memcpy(&msg.msgName[0], &recvString[startIndex], (i - startIndex));
+          msg.msg_name.resize(i - start_index);
+          memcpy(&msg.msg_name[0], &recv_string[start_index], (i - start_index));
         }
-        startIndex = i + 1;
+        start_index = i + 1;
         break;
       }
     }
 
-    msg.pbMsg.resize(msgsize - startIndex);
-    memcpy(&msg.pbMsg[0], &recvString[startIndex], (msgsize - startIndex));
+    msg.pb_msg.resize(msgsize - start_index);
+    memcpy(&msg.pb_msg[0], &recv_string[start_index], (msgsize - start_index));
   } else {
     out = false;
   }

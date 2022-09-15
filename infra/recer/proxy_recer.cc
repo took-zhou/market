@@ -33,9 +33,9 @@ ProxyRecer::ProxyRecer() {
   topic_list.push_back("ctpview_market.BugInjection");
   topic_list.push_back("ctpview_market.SimulateMarketState");
 
-  auto &zmqBase = BaseZmq::getInstance();
+  auto &zmq_base = BaseZmq::GetInstance();
   for (auto &topic : topic_list) {
-    zmqBase.SubscribeTopic(topic.c_str());
+    zmq_base.SubscribeTopic(topic.c_str());
   }
 }
 
@@ -50,40 +50,40 @@ bool ProxyRecer::IsTopicInSubTopics(std::string title) {
 
 bool ProxyRecer::ReceMsg(utils::ItpMsg &msg) {
   bool out = true;
-  auto &zmqBase = BaseZmq::getInstance();
+  auto &zmq_base = BaseZmq::GetInstance();
 
-  std::string recvString;
-  recvString.resize(256);
+  std::string recv_string;
+  recv_string.resize(256);
 
-  int msgsize = zmqBase.RecvMsg(recvString);
+  int msgsize = zmq_base.RecvMsg(recv_string);
   if (msgsize != -1) {
-    int startIndex = 0;
-    int segIndex = 0;
+    int start_index = 0;
+    int seg_index = 0;
 
     for (int i = 0; i < msgsize; i++) {
-      if (recvString[i] == '.') {
-        if (segIndex == 0) {
-          msg.sessionName.resize(i - startIndex);
-          memcpy(&msg.sessionName[0], &recvString[startIndex], (i - startIndex));
-        } else if (segIndex == 1) {
-          msg.msgName.resize(i - startIndex);
-          memcpy(&msg.msgName[0], &recvString[startIndex], (i - startIndex));
+      if (recv_string[i] == '.') {
+        if (seg_index == 0) {
+          msg.session_name.resize(i - start_index);
+          memcpy(&msg.session_name[0], &recv_string[start_index], (i - start_index));
+        } else if (seg_index == 1) {
+          msg.msg_name.resize(i - start_index);
+          memcpy(&msg.msg_name[0], &recv_string[start_index], (i - start_index));
         }
-        startIndex = i + 1;
-        segIndex++;
-      } else if (recvString[i] == ' ') {
-        if (segIndex == 1) {
+        start_index = i + 1;
+        seg_index++;
+      } else if (recv_string[i] == ' ') {
+        if (seg_index == 1) {
           i = i;
-          msg.msgName.resize(i - startIndex);
-          memcpy(&msg.msgName[0], &recvString[startIndex], (i - startIndex));
+          msg.msg_name.resize(i - start_index);
+          memcpy(&msg.msg_name[0], &recv_string[start_index], (i - start_index));
         }
-        startIndex = i + 1;
+        start_index = i + 1;
         break;
       }
     }
 
-    msg.pbMsg.resize(msgsize - startIndex);
-    memcpy(&msg.pbMsg[0], &recvString[startIndex], (msgsize - startIndex));
+    msg.pb_msg.resize(msgsize - start_index);
+    memcpy(&msg.pb_msg[0], &recv_string[start_index], (msgsize - start_index));
   } else {
     out = false;
   }

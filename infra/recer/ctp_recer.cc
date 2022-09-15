@@ -13,108 +13,93 @@
 #include "market/infra/inner_zmq.h"
 
 void CtpMarketSpi::OnFrontConnected() {
-  static int reConnect = 0;
+  static int re_connect = 0;
   INFO_LOG("OnFrontConnected():is excuted...");
   // 在登出后系统会重新调用OnFrontConnected，这里简单判断并忽略第1次之后的所有调用。
-  if (reConnect++ == 0) {
-    auto &globalSem = GlobalSem::getInstance();
-    globalSem.PostSemBySemName(GlobalSem::kLoginLogout);
+  if (re_connect++ == 0) {
+    auto &global_sem = GlobalSem::GetInstance();
+    global_sem.PostSemBySemName(GlobalSem::kLoginLogout);
   }
 }
 
-void CtpMarketSpi::OnFrontDisconnected(int nReason) {
-  ERROR_LOG("OnFrontDisconnected, ErrorCode:%#x", nReason);
+void CtpMarketSpi::OnFrontDisconnected(int reason) {
+  ERROR_LOG("OnFrontDisconnected, ErrorCode:%#x", reason);
   front_disconnected = true;
 }
 
-void CtpMarketSpi::OnHeartBeatWarning(int nTimeLapse) { ERROR_LOG("OnHeartBeatWarning  %d!", nTimeLapse); }
+void CtpMarketSpi::OnHeartBeatWarning(int n_time_lapse) { ERROR_LOG("OnHeartBeatWarning  %d!", n_time_lapse); }
 
-void CtpMarketSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin, CThostFtdcRspInfoField *pRspInfo, int nRequestID,
-                                  bool bIsLast) {
-  ipc::message reqMsg;
-  auto sendMsg = reqMsg.mutable_itp_msg();
-  sendMsg->set_address(reinterpret_cast<int64_t>(pRspInfo));
-  sendMsg->set_request_id(nRequestID);
-  sendMsg->set_request_id(bIsLast);
+void CtpMarketSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *p_rsp_user_login, CThostFtdcRspInfoField *p_rsp_info, int n_request_id,
+                                  bool b_is_last) {
+  ipc::message req_msg;
+  auto send_msg = req_msg.mutable_itp_msg();
+  send_msg->set_address(reinterpret_cast<int64_t>(p_rsp_info));
+  send_msg->set_request_id(n_request_id);
+  send_msg->set_request_id(b_is_last);
   utils::ItpMsg msg;
-  reqMsg.SerializeToString(&msg.pbMsg);
-  msg.sessionName = "ctp_market";
-  msg.msgName = "OnRspUserLogin";
+  req_msg.SerializeToString(&msg.pb_msg);
+  msg.session_name = "ctp_market";
+  msg.msg_name = "OnRspUserLogin";
 
-  auto &globalSem = GlobalSem::getInstance();
-  auto &innerZmq = InnerZmq::getInstance();
+  auto &global_sem = GlobalSem::GetInstance();
+  auto &inner_zmq = InnerZmq::GetInstance();
 
-  innerZmq.PushTask(msg);
-  globalSem.WaitSemBySemName(GlobalSem::kApiRecv);
+  inner_zmq.PushTask(msg);
+  global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
   front_disconnected = false;
-  globalSem.PostSemBySemName(GlobalSem::kLoginLogout);
+  global_sem.PostSemBySemName(GlobalSem::kLoginLogout);
 }
 
-void CtpMarketSpi::OnRspUserLogout(CThostFtdcUserLogoutField *pUserLogout, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) {
-  ipc::message reqMsg;
-  auto sendMsg = reqMsg.mutable_itp_msg();
-  sendMsg->set_address(reinterpret_cast<int64_t>(pRspInfo));
-  sendMsg->set_request_id(nRequestID);
-  sendMsg->set_request_id(bIsLast);
+void CtpMarketSpi::OnRspUserLogout(CThostFtdcUserLogoutField *user_logout, CThostFtdcRspInfoField *rsp_info, int n_request_id,
+                                   bool b_is_last) {
+  ipc::message req_msg;
+  auto send_msg = req_msg.mutable_itp_msg();
+  send_msg->set_address(reinterpret_cast<int64_t>(rsp_info));
+  send_msg->set_request_id(n_request_id);
+  send_msg->set_request_id(b_is_last);
   utils::ItpMsg msg;
-  reqMsg.SerializeToString(&msg.pbMsg);
-  msg.sessionName = "ctp_market";
-  msg.msgName = "OnRspUserLogout";
+  req_msg.SerializeToString(&msg.pb_msg);
+  msg.session_name = "ctp_market";
+  msg.msg_name = "OnRspUserLogout";
 
-  auto &globalSem = GlobalSem::getInstance();
-  auto &innerZmq = InnerZmq::getInstance();
-  innerZmq.PushTask(msg);
-  globalSem.WaitSemBySemName(GlobalSem::kApiRecv);
-  globalSem.PostSemBySemName(GlobalSem::kLoginLogout);
+  auto &global_sem = GlobalSem::GetInstance();
+  auto &inner_zmq = InnerZmq::GetInstance();
+  inner_zmq.PushTask(msg);
+  global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
+  global_sem.PostSemBySemName(GlobalSem::kLoginLogout);
 }
 
 void CtpMarketSpi::OnRspUserLogout(void) {
   CThostFtdcRspInfoField field;
 
-  ipc::message reqMsg;
-  auto sendMsg = reqMsg.mutable_itp_msg();
-  sendMsg->set_address(reinterpret_cast<int64_t>(&field));
+  ipc::message req_msg;
+  auto send_msg = req_msg.mutable_itp_msg();
+  send_msg->set_address(reinterpret_cast<int64_t>(&field));
   utils::ItpMsg msg;
-  reqMsg.SerializeToString(&msg.pbMsg);
-  msg.sessionName = "ctp_market";
-  msg.msgName = "OnRspUserLogout";
+  req_msg.SerializeToString(&msg.pb_msg);
+  msg.session_name = "ctp_market";
+  msg.msg_name = "OnRspUserLogout";
 
-  auto &globalSem = GlobalSem::getInstance();
-  auto &innerZmq = InnerZmq::getInstance();
-  innerZmq.PushTask(msg);
-  globalSem.WaitSemBySemName(GlobalSem::kApiRecv);
+  auto &global_sem = GlobalSem::GetInstance();
+  auto &inner_zmq = InnerZmq::GetInstance();
+  inner_zmq.PushTask(msg);
+  global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
 }
 
-void CtpMarketSpi::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *pDepthMarketData) {
+void CtpMarketSpi::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *depth_market_data) {
 #ifdef BENCH_TEST
   ScopedTimer t("OnRtnDepthMarketData");
 #endif
-  ipc::message reqMsg;
-  auto sendMsg = reqMsg.mutable_itp_msg();
-  sendMsg->set_address(reinterpret_cast<int64_t>(pDepthMarketData));
+  ipc::message req_msg;
+  auto send_msg = req_msg.mutable_itp_msg();
+  send_msg->set_address(reinterpret_cast<int64_t>(depth_market_data));
   utils::ItpMsg msg;
-  reqMsg.SerializeToString(&msg.pbMsg);
-  msg.sessionName = "ctp_market";
-  msg.msgName = "OnRtnDepthMarketData";
+  req_msg.SerializeToString(&msg.pb_msg);
+  msg.session_name = "ctp_market";
+  msg.msg_name = "OnRtnDepthMarketData";
 
-  auto &globalSem = GlobalSem::getInstance();
-  auto &innerZmq = InnerZmq::getInstance();
-  innerZmq.PushTask(msg);
-  globalSem.WaitSemBySemName(GlobalSem::kApiRecv);
+  auto &global_sem = GlobalSem::GetInstance();
+  auto &inner_zmq = InnerZmq::GetInstance();
+  inner_zmq.PushTask(msg);
+  global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
 }
-
-void CtpMarketSpi::OnRtnForQuoteRsp(CThostFtdcForQuoteRspField *pForQuoteRsp) {}
-
-void CtpMarketSpi::OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) {}
-
-void CtpMarketSpi::OnRspSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo,
-                                      int nRequestID, bool bIsLast) {}
-
-void CtpMarketSpi::OnRspUnSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo,
-                                        int nRequestID, bool bIsLast) {}
-
-void CtpMarketSpi::OnRspSubForQuoteRsp(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo,
-                                       int nRequestID, bool bIsLast) {}
-
-void CtpMarketSpi::OnRspUnSubForQuoteRsp(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo,
-                                         int nRequestID, bool bIsLast) {}

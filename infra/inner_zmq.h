@@ -16,7 +16,7 @@ struct InnerZmq {
   InnerZmq();
   InnerZmq(const InnerZmq &) = delete;
   InnerZmq &operator=(const InnerZmq &) = delete;
-  static InnerZmq &getInstance() {
+  static InnerZmq &GetInstance() {
     static InnerZmq instance;
     return instance;
   }

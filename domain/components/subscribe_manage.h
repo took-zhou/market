@@ -7,26 +7,26 @@
 
 #include "common/self/utils.h"
 
-struct instrumentIDs {
+struct InstrumentIDs {
   pthread_mutex_t sm_mutex;
-  std::set<utils::InstrumtntID, utils::InstrumtntIDSortCriterion> instrumentIDs;
+  std::set<utils::InstrumtntID, utils::InstrumtntIDSortCriterion> instrument_ids;
 };
 
 struct SubscribeManager {
  public:
   SubscribeManager();
-  void reqInstrumentsFromLocal();
-  void reqInstrumrntFromControlPara();
-  void reqInstrumentsFromMarket();
-  void reqInstrumentsFromTrader();
-  void subscribeInstrument(std::vector<utils::InstrumtntID>& nameVec);
-  void unSubscribeInstrument(std::vector<utils::InstrumtntID>& nameVec);
-  void unSubscribeAll();
+  void ReqInstrumentsFromLocal();
+  void ReqInstrumrntFromControlPara();
+  void ReqInstrumentsFromMarket();
+  void ReqInstrumentsFromTrader();
+  void SubscribeInstrument(std::vector<utils::InstrumtntID>& name_vec);
+  void UnSubscribeInstrument(std::vector<utils::InstrumtntID>& name_vec);
+  void UnSubscribeAll();
 
  private:
-  const std::vector<utils::InstrumtntID> remove_subscribed(std::vector<utils::InstrumtntID>& nameVec);
-  const std::vector<utils::InstrumtntID> remove_unsubscribed(std::vector<utils::InstrumtntID>& nameVec);
-  instrumentIDs subscribed;
+  const std::vector<utils::InstrumtntID> RemoveSubscribed(std::vector<utils::InstrumtntID>& name_vec);
+  const std::vector<utils::InstrumtntID> RemoveUnsubscribed(std::vector<utils::InstrumtntID>& name_vec);
+  InstrumentIDs subscribed_;
 };
 
 #endif

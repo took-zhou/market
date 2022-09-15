@@ -23,9 +23,9 @@ struct ControlPara {
   ControlPara();
   ~ControlPara(){};
 
-  std::vector<utils::InstrumtntID> get_instrument_list(void);
-  std::vector<std::string> get_prid_list(void);
-  void set_start_stop_indication(const std::string keyname, strategy_market::TickStartStopIndication_MessageType _indication);
+  std::vector<utils::InstrumtntID> GetInstrumentList(void);
+  std::vector<std::string> GetPridList(void);
+  void SetStartStopIndication(const std::string keyname, strategy_market::TickStartStopIndication_MessageType indication);
 
   void BuildControlPara(const std::string &keyname, const PublishControl &para);
   void EraseControlPara(const std::string &keyname);
@@ -35,7 +35,7 @@ struct ControlPara {
  private:
   bool LoadFromJson(void);
   bool WriteToJson(void);
-  std::string json_path = "";
+  std::string json_path_ = "";
 };
 
 #endif

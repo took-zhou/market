@@ -57,7 +57,7 @@ class XtpQuoteSpi : public XTP::API::QuoteSpi {
   bool front_disconnected = false;
 
  private:
-  bool IsErrorRspInfo(XTPRI *pRspInfo);
+  bool IsErrorRspInfo(XTPRI *p_rsp_info);
 };
 
 #endif /* WORKSPACE_MARKET_INFRA_CTPRECER_H_ */

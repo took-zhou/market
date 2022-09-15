@@ -14,19 +14,19 @@ struct LoadData : public MarketData {
  public:
   LoadData();
   ~LoadData(){};
-  void LoadDepthMarketDataToCsv(CThostFtdcDepthMarketDataField *pD);
-  void FormDepthMarketData2Stringflow(CThostFtdcDepthMarketDataField *pD);
+  void LoadDepthMarketDataToCsv(CThostFtdcDepthMarketDataField *p_d);
+  void FormDepthMarketData2Stringflow(CThostFtdcDepthMarketDataField *p_d);
 
-  void LoadDepthMarketDataToCsv(XTPMD *pD);
-  void FormDepthMarketData2Stringflow(XTPMD *pD);
+  void LoadDepthMarketDataToCsv(XTPMD *p_d);
+  void FormDepthMarketData2Stringflow(XTPMD *p_d);
 
   bool ClassifyContractFiles(void);
-  bool MoveContractToFolder(std::string contractName, std::string exchangeName);
+  bool MoveContractToFolder(std::string contract_name, std::string exchange_name);
 
  private:
-  std::string history_tick_folder;
-  char dataflow[600];
-  char titleflow[400] = {
+  std::string history_tick_folder_;
+  char dataflow_[600];
+  char titleflow_[400] = {
       "InstrumentID,TradingDay,UpdateTime,LastPrice,BidPrice1,BidVolume1,"
       "AskPrice1,AskVolume1,BidPrice2,BidVolume2,AskPrice2,AskVolume2,"
       "BidPrice3,BidVolume3,AskPrice3,AskVolume3,BidPrice4,BidVolume4,"

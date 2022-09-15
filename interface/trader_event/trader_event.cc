@@ -14,12 +14,12 @@
 TraderEvent::TraderEvent() { RegMsgFun(); }
 
 void TraderEvent::Handle(utils::ItpMsg &msg) {
-  auto iter = msg_func_map.find(msg.msgName);
+  auto iter = msg_func_map.find(msg.msg_name);
   if (iter != msg_func_map.end()) {
     iter->second(msg);
     return;
   }
-  ERROR_LOG("can not find func for msgName [%s]!", msg.msgName.c_str());
+  ERROR_LOG("can not find func for msgName [%s]!", msg.msg_name.c_str());
   return;
 }
 
@@ -36,35 +36,35 @@ void TraderEvent::RegMsgFun() {
 }
 
 void TraderEvent::QryInstrumentRspHandle(utils::ItpMsg &msg) {
-  static int instrumentCount;
+  static int instrument_count;
   static vector<utils::InstrumtntID> ins_vec;
-  auto &marketServer = MarketService::getInstance();
+  auto &market_server = MarketService::GetInstance();
 
-  market_trader::message rspMsg;
-  rspMsg.ParseFromString(msg.pbMsg);
+  market_trader::message message;
+  message.ParseFromString(msg.pb_msg);
 
-  auto &rsp = rspMsg.qry_instrument_rsp();
+  auto &rsp = message.qry_instrument_rsp();
 
-  utils::InstrumtntID instrumtntID;
-  instrumtntID.exch = rsp.exchange_id();
-  instrumtntID.ins = rsp.instrument_id();
+  utils::InstrumtntID instrumtnt_id;
+  instrumtnt_id.exch = rsp.exchange_id();
+  instrumtnt_id.ins = rsp.instrument_id();
 
-  if (instrumtntID.ins.find(" ") == instrumtntID.ins.npos) {
-    marketServer.ROLE(LoadData).InsertInsExchPair(instrumtntID.ins, instrumtntID.exch);
-    ins_vec.push_back(instrumtntID);
+  if (instrumtnt_id.ins.find(" ") == instrumtnt_id.ins.npos) {
+    market_server.ROLE(LoadData).InsertInsExchPair(instrumtnt_id.ins, instrumtnt_id.exch);
+    ins_vec.push_back(instrumtnt_id);
 
-    instrumentCount++;
+    instrument_count++;
   }
 
   if (rsp.finish_flag() == true) {
-    marketServer.ROLE(SubscribeManager).subscribeInstrument(ins_vec);
-    marketServer.ROLE(LoadData).ShowInsExchPair();
-    INFO_LOG("The number of trading contracts is: %d.", instrumentCount);
-    instrumentCount = 0;
+    market_server.ROLE(SubscribeManager).SubscribeInstrument(ins_vec);
+    market_server.ROLE(LoadData).ShowInsExchPair();
+    INFO_LOG("The number of trading contracts is: %d.", instrument_count);
+    instrument_count = 0;
     ins_vec.clear();
   } else if (ins_vec.size() >= 500) {
-    INFO_LOG("The number of trading contracts is: %d.", instrumentCount);
-    marketServer.ROLE(SubscribeManager).subscribeInstrument(ins_vec);
+    INFO_LOG("The number of trading contracts is: %d.", instrument_count);
+    market_server.ROLE(SubscribeManager).SubscribeInstrument(ins_vec);
     ins_vec.clear();
   }
 }

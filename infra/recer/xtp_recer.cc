@@ -25,18 +25,18 @@ void XtpQuoteSpi::OnRspUserLogin(void) {
   field->error_id = 0;
   strcpy(field->error_msg, "force login");
 
-  ipc::message reqMsg;
-  auto sendMsg = reqMsg.mutable_itp_msg();
-  sendMsg->set_address(reinterpret_cast<int64_t>(field.get()));
+  ipc::message req_msg;
+  auto send_msg = req_msg.mutable_itp_msg();
+  send_msg->set_address(reinterpret_cast<int64_t>(field.get()));
   utils::ItpMsg msg;
-  reqMsg.SerializeToString(&msg.pbMsg);
-  msg.sessionName = "xtp_market";
-  msg.msgName = "OnRspUserLogin";
+  req_msg.SerializeToString(&msg.pb_msg);
+  msg.session_name = "xtp_market";
+  msg.msg_name = "OnRspUserLogin";
 
-  auto &globalSem = GlobalSem::getInstance();
-  auto &innerZmq = InnerZmq::getInstance();
-  innerZmq.PushTask(msg);
-  globalSem.WaitSemBySemName(GlobalSem::kApiRecv);
+  auto &global_sem = GlobalSem::GetInstance();
+  auto &inner_zmq = InnerZmq::GetInstance();
+  inner_zmq.PushTask(msg);
+  global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
 
   front_disconnected = false;
 }
@@ -47,18 +47,18 @@ void XtpQuoteSpi::OnRspUserLogout(void) {
   field->error_id = 0;
   strcpy(field->error_msg, "force logout");
 
-  ipc::message reqMsg;
-  auto sendMsg = reqMsg.mutable_itp_msg();
-  sendMsg->set_address(reinterpret_cast<int64_t>(field.get()));
+  ipc::message req_msg;
+  auto send_msg = req_msg.mutable_itp_msg();
+  send_msg->set_address(reinterpret_cast<int64_t>(field.get()));
   utils::ItpMsg msg;
-  reqMsg.SerializeToString(&msg.pbMsg);
-  msg.sessionName = "xtp_market";
-  msg.msgName = "OnRspUserLogout";
+  req_msg.SerializeToString(&msg.pb_msg);
+  msg.session_name = "xtp_market";
+  msg.msg_name = "OnRspUserLogout";
 
-  auto &globalSem = GlobalSem::getInstance();
-  auto &innerZmq = InnerZmq::getInstance();
-  innerZmq.PushTask(msg);
-  globalSem.WaitSemBySemName(GlobalSem::kApiRecv);
+  auto &global_sem = GlobalSem::GetInstance();
+  auto &inner_zmq = InnerZmq::GetInstance();
+  inner_zmq.PushTask(msg);
+  global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
 }
 
 void XtpQuoteSpi::OnDepthMarketData(XTPMD *market_data, int64_t bid1_qty[], int32_t bid1_count, int32_t max_bid1_count, int64_t ask1_qty[],
@@ -66,34 +66,34 @@ void XtpQuoteSpi::OnDepthMarketData(XTPMD *market_data, int64_t bid1_qty[], int3
 #ifdef BENCH_TEST
   ScopedTimer t("OnDepthMarketData");
 #endif
-  ipc::message reqMsg;
-  auto sendMsg = reqMsg.mutable_itp_msg();
-  sendMsg->set_address(reinterpret_cast<int64_t>(market_data));
+  ipc::message req_msg;
+  auto send_msg = req_msg.mutable_itp_msg();
+  send_msg->set_address(reinterpret_cast<int64_t>(market_data));
   utils::ItpMsg msg;
-  reqMsg.SerializeToString(&msg.pbMsg);
-  msg.sessionName = "xtp_market";
-  msg.msgName = "OnDepthMarketData";
+  req_msg.SerializeToString(&msg.pb_msg);
+  msg.session_name = "xtp_market";
+  msg.msg_name = "OnDepthMarketData";
 
-  auto &globalSem = GlobalSem::getInstance();
-  auto &innerZmq = InnerZmq::getInstance();
-  innerZmq.PushTask(msg);
-  globalSem.WaitSemBySemName(GlobalSem::kApiRecv);
+  auto &global_sem = GlobalSem::GetInstance();
+  auto &inner_zmq = InnerZmq::GetInstance();
+  inner_zmq.PushTask(msg);
+  global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
 }
 
 void XtpQuoteSpi::OnQueryAllTickers(XTPQSI *ticker_info, XTPRI *error_info, bool is_last) {
-  ipc::message reqMsg;
-  auto sendMsg = reqMsg.mutable_itp_msg();
-  sendMsg->set_address(reinterpret_cast<int64_t>(ticker_info));
-  sendMsg->set_is_last(is_last);
+  ipc::message req_msg;
+  auto send_msg = req_msg.mutable_itp_msg();
+  send_msg->set_address(reinterpret_cast<int64_t>(ticker_info));
+  send_msg->set_is_last(is_last);
   utils::ItpMsg msg;
-  reqMsg.SerializeToString(&msg.pbMsg);
-  msg.sessionName = "xtp_market";
-  msg.msgName = "OnQueryAllTickers";
+  req_msg.SerializeToString(&msg.pb_msg);
+  msg.session_name = "xtp_market";
+  msg.msg_name = "OnQueryAllTickers";
 
-  auto &globalSem = GlobalSem::getInstance();
-  auto &innerZmq = InnerZmq::getInstance();
-  innerZmq.PushTask(msg);
-  globalSem.WaitSemBySemName(GlobalSem::kApiRecv);
+  auto &global_sem = GlobalSem::GetInstance();
+  auto &inner_zmq = InnerZmq::GetInstance();
+  inner_zmq.PushTask(msg);
+  global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
 }
 
 void XtpQuoteSpi::OnSubMarketData(XTPST *ticker, XTPRI *error_info, bool is_last) {}
@@ -138,11 +138,11 @@ void XtpQuoteSpi::OnSubscribeAllOptionTickByTick(XTP_EXCHANGE_TYPE exchange_id, 
 
 void XtpQuoteSpi::OnUnSubscribeAllOptionTickByTick(XTP_EXCHANGE_TYPE exchange_id, XTPRI *error_info) {}
 
-bool XtpQuoteSpi::IsErrorRspInfo(XTPRI *pRspInfo) {
-  bool bResult = ((pRspInfo) && (pRspInfo->error_id != 0));
-  if (bResult) {
-    ERROR_LOG("ErrorID: %d, ErrorMsg: %s", pRspInfo->error_id, pRspInfo->error_msg);
+bool XtpQuoteSpi::IsErrorRspInfo(XTPRI *p_rsp_info) {
+  bool b_result = ((p_rsp_info) && (p_rsp_info->error_id != 0));
+  if (b_result) {
+    ERROR_LOG("ErrorID: %d, ErrorMsg: %s", p_rsp_info->error_id, p_rsp_info->error_msg);
   }
 
-  return bResult;
+  return b_result;
 }

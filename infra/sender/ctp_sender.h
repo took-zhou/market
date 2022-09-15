@@ -18,21 +18,21 @@ struct CtpSender : SendApi {
   CtpSender(void);
   bool ReqUserLogin();
   bool ReqUserLogout();
-  bool SubscribeMarketData(std::vector<utils::InstrumtntID> const &nameVec);
-  bool UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &nameVec);
+  bool SubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec);
+  bool UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec);
   bool ReqInstrumentInfo(const utils::InstrumtntID &ins);
   bool LossConnection();
 
-  static CThostFtdcMdApi *kMarketApi;
-  static CtpMarketSpi *kMarketSpi;
-
- private:
   bool Init(void);
   bool Release(void);
 
-  std::string con_path = "";
-  int request_id = 0;
-  bool is_init = false;
+ private:
+  static CThostFtdcMdApi *market_api;
+  static CtpMarketSpi *market_spi;
+
+  std::string con_path_ = "";
+  int request_id_ = 0;
+  bool is_init_ = false;
 };
 
 #endif /* WORKSPACE_MARKET_INFRA_CTPSENDER_H_ */

@@ -13,32 +13,32 @@
 #include "common/self/utils.h"
 #include "market/infra/recer/ctp_recer.h"
 
-CThostFtdcMdApi *CtpSender::kMarketApi;
-CtpMarketSpi *CtpSender::kMarketSpi;
+CThostFtdcMdApi *CtpSender::market_api;
+CtpMarketSpi *CtpSender::market_spi;
 
 CtpSender::CtpSender(void) { ; }
 
 bool CtpSender::Init(void) {
   bool out = true;
-  if (is_init == false) {
-    auto &jsonCfg = utils::JsonConfig::getInstance();
-    auto users = jsonCfg.get_config("market", "User");
+  if (is_init_ == false) {
+    auto &json_cfg = utils::JsonConfig::GetInstance();
+    auto users = json_cfg.GetConfig("market", "User");
     for (auto &user : users) {
-      con_path = jsonCfg.get_config("market", "con_path").get<std::string>() + "/" + (std::string)user + "/";
-      utils::CreatFolder(con_path);
-      kMarketApi = CThostFtdcMdApi::CreateFtdcMdApi(con_path.c_str(), true, true);
-      INFO_LOG("ctp version: %s.", kMarketApi->GetApiVersion());
+      con_path_ = json_cfg.GetConfig("market", "con_path").get<std::string>() + "/" + std::string(user) + "/";
+      utils::CreatFolder(con_path_);
+      market_api = CThostFtdcMdApi::CreateFtdcMdApi(con_path_.c_str(), true, true);
+      INFO_LOG("ctp version: %s.", market_api->GetApiVersion());
 
-      kMarketSpi = new CtpMarketSpi();
-      kMarketApi->RegisterSpi(kMarketSpi);
+      market_spi = new CtpMarketSpi();
+      market_api->RegisterSpi(market_spi);
 
-      std::string frontaddr = jsonCfg.get_deep_config("users", (std::string)user, "FrontMdAddr").get<std::string>();
+      std::string frontaddr = json_cfg.GetDeepConfig("users", std::string(user), "FrontMdAddr").get<std::string>();
 
-      kMarketApi->RegisterFront(const_cast<char *>(frontaddr.c_str()));
-      kMarketApi->Init();
+      market_api->RegisterFront(const_cast<char *>(frontaddr.c_str()));
+      market_api->Init();
 
-      auto &globalSem = GlobalSem::getInstance();
-      if (globalSem.WaitSemBySemName(GlobalSem::kLoginLogout, 3)) {
+      auto &global_sem = GlobalSem::GetInstance();
+      if (global_sem.WaitSemBySemName(GlobalSem::kLoginLogout, 3)) {
         out = false;
         ERROR_LOG("market init fail.");
       } else {
@@ -47,23 +47,25 @@ bool CtpSender::Init(void) {
       }
       break;
     }
-    is_init = true;
+    is_init_ = true;
   }
 
   return out;
 }
 
 bool CtpSender::Release() {
-  INFO_LOG("Is going to release kMarketApi.");
-  kMarketApi->Release();
+  INFO_LOG("Is going to release market_api.");
+  market_api->Release();
 
   // 释放UserSpi实例
-  if (kMarketSpi) {
-    delete kMarketSpi;
-    kMarketSpi = NULL;
+  if (market_spi) {
+    delete market_spi;
+    market_spi = NULL;
   }
 
-  is_init = false;
+  is_init_ = false;
+
+  return true;
 }
 
 bool CtpSender::ReqUserLogin() {
@@ -72,24 +74,24 @@ bool CtpSender::ReqUserLogin() {
     ret = false;
     Release();
   } else {
-    CThostFtdcReqUserLoginField reqUserLogin = {0};
-    auto &jsonCfg = utils::JsonConfig::getInstance();
+    CThostFtdcReqUserLoginField req_user_login = {0};
+    auto &json_cfg = utils::JsonConfig::GetInstance();
 
-    auto users = jsonCfg.get_config("market", "User");
+    auto users = json_cfg.GetConfig("market", "User");
     for (auto &user : users) {
-      const std::string userID = jsonCfg.get_deep_config("users", (std::string)user, "UserID");
-      const std::string brokerID = jsonCfg.get_deep_config("users", (std::string)user, "BrokerID");
-      const std::string passWord = jsonCfg.get_deep_config("users", (std::string)user, "Password");
-      strcpy(reqUserLogin.BrokerID, brokerID.c_str());
-      strcpy(reqUserLogin.UserID, userID.c_str());
-      strcpy(reqUserLogin.Password, passWord.c_str());
+      std::string user_id = json_cfg.GetDeepConfig("users", std::string(user), "UserID");
+      std::string broker_id = json_cfg.GetDeepConfig("users", (std::string)user, "BrokerID");
+      std::string pass_word = json_cfg.GetDeepConfig("users", (std::string)user, "Password");
+      strcpy(req_user_login.BrokerID, broker_id.c_str());
+      strcpy(req_user_login.UserID, user_id.c_str());
+      strcpy(req_user_login.Password, pass_word.c_str());
 
-      int result = kMarketApi->ReqUserLogin(&reqUserLogin, request_id++);
+      int result = market_api->ReqUserLogin(&req_user_login, request_id_++);
       if (result != 0) {
         INFO_LOG("ReqUserLogin send result is [%d]", result);
       } else {
-        auto &globalSem = GlobalSem::getInstance();
-        globalSem.WaitSemBySemName(GlobalSem::kLoginLogout);
+        auto &global_sem = GlobalSem::GetInstance();
+        global_sem.WaitSemBySemName(GlobalSem::kLoginLogout);
       }
 
       break;
@@ -100,23 +102,23 @@ bool CtpSender::ReqUserLogin() {
 
 bool CtpSender::ReqUserLogout() {
   bool ret = true;
-  CThostFtdcUserLogoutField reqUserLogout = {0};
-  auto &jsonCfg = utils::JsonConfig::getInstance();
+  CThostFtdcUserLogoutField req_user_logout = {0};
+  auto &json_cfg = utils::JsonConfig::GetInstance();
 
-  auto users = jsonCfg.get_config("market", "User");
+  auto users = json_cfg.GetConfig("market", "User");
   for (auto &user : users) {
-    const std::string userID = jsonCfg.get_deep_config("users", (std::string)user, "UserID").get<std::string>();
-    const std::string brokerID = jsonCfg.get_deep_config("users", (std::string)user, "BrokerID").get<std::string>();
-    strcpy(reqUserLogout.UserID, userID.c_str());
-    strcpy(reqUserLogout.BrokerID, brokerID.c_str());
+    std::string user_id = json_cfg.GetDeepConfig("users", (std::string)user, "UserID").get<std::string>();
+    std::string broker_id = json_cfg.GetDeepConfig("users", (std::string)user, "BrokerID").get<std::string>();
+    strcpy(req_user_logout.UserID, user_id.c_str());
+    strcpy(req_user_logout.BrokerID, broker_id.c_str());
 
-    int result = kMarketApi->ReqUserLogout(&reqUserLogout, request_id++);
+    int result = market_api->ReqUserLogout(&req_user_logout, request_id_++);
     if (result != 0) {
       INFO_LOG("ReqUserLogout send result is [%d]", result);
     } else {
-      auto &globalSem = GlobalSem::getInstance();
-      if (globalSem.WaitSemBySemName(GlobalSem::kLoginLogout, 3) != 0) {
-        kMarketSpi->OnRspUserLogout();
+      auto &global_sem = GlobalSem::GetInstance();
+      if (global_sem.WaitSemBySemName(GlobalSem::kLoginLogout, 3) != 0) {
+        market_spi->OnRspUserLogout();
       }
       Release();
     }
@@ -126,24 +128,24 @@ bool CtpSender::ReqUserLogout() {
   return ret;
 }
 
-bool CtpSender::SubscribeMarketData(std::vector<utils::InstrumtntID> const &nameVec) {
+bool CtpSender::SubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec) {
   int result = 0;
   int md_num = 0;
 
-  if (nameVec.size() > 500) {
+  if (name_vec.size() > 500) {
     WARNING_LOG("too much instruments to Subscription.");
     return result;
   }
 
-  char **ppInstrumentID2 = new char *[5000];
+  char **pp_instrument_id = new char *[5000];
 
-  for (auto &neme : nameVec) {
-    ppInstrumentID2[md_num] = const_cast<char *>(neme.ins.c_str());
+  for (auto &neme : name_vec) {
+    pp_instrument_id[md_num] = const_cast<char *>(neme.ins.c_str());
     md_num++;
   }
 
   if (md_num > 0) {
-    result = kMarketApi->SubscribeMarketData(ppInstrumentID2, md_num);
+    result = market_api->SubscribeMarketData(pp_instrument_id, md_num);
     if (result == 0) {
       INFO_LOG("Subscription request ......Send a success, total number: %d", md_num);
     } else {
@@ -153,29 +155,29 @@ bool CtpSender::SubscribeMarketData(std::vector<utils::InstrumtntID> const &name
     INFO_LOG("no instrument need to Subscription.");
   }
 
-  delete[] ppInstrumentID2;
+  delete[] pp_instrument_id;
 
   return result;
 }
 
-bool CtpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &nameVec) {
+bool CtpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec) {
   int result = 0;
   int md_num = 0;
 
-  if (nameVec.size() > 500) {
+  if (name_vec.size() > 500) {
     WARNING_LOG("too much instruments to unSubscription.");
     return result;
   }
 
-  char **ppInstrumentID2 = new char *[5000];
+  char **pp_instrument_id = new char *[5000];
 
-  for (auto &name : nameVec) {
-    ppInstrumentID2[md_num] = const_cast<char *>(name.ins.c_str());
+  for (auto &name : name_vec) {
+    pp_instrument_id[md_num] = const_cast<char *>(name.ins.c_str());
     md_num++;
   }
 
   if (md_num > 0) {
-    result = kMarketApi->UnSubscribeMarketData(ppInstrumentID2, md_num);
+    result = market_api->UnSubscribeMarketData(pp_instrument_id, md_num);
     if (result == 0) {
       INFO_LOG("unSubscription request ......Send a success, total number: %d", md_num);
     } else {
@@ -188,7 +190,7 @@ bool CtpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &na
     INFO_LOG("no instrument need to unSubscription.");
   }
 
-  delete[] ppInstrumentID2;
+  delete[] pp_instrument_id;
 
   return result;
 };
@@ -198,4 +200,4 @@ bool CtpSender::ReqInstrumentInfo(const utils::InstrumtntID &ins) {
   return true;
 }
 
-bool CtpSender::LossConnection() { return (kMarketSpi != nullptr && kMarketSpi->front_disconnected == true); }
+bool CtpSender::LossConnection() { return (market_spi != nullptr && market_spi->front_disconnected == true); }

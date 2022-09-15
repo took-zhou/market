@@ -15,34 +15,34 @@ class CtpMarketSpi : public CThostFtdcMdSpi {
   ~CtpMarketSpi() {}
   void OnFrontConnected();
 
-  void OnFrontDisconnected(int nReason);
+  void OnFrontDisconnected(int reason);
 
-  void OnHeartBeatWarning(int nTimeLapse);
+  void OnHeartBeatWarning(int time_lapse);
 
-  void OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+  void OnRspUserLogin(CThostFtdcRspUserLoginField *rsp_user_login, CThostFtdcRspInfoField *rsp_info, int request_id, bool is_last);
 
-  void OnRspUserLogout(CThostFtdcUserLogoutField *pUserLogout, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+  void OnRspUserLogout(CThostFtdcUserLogoutField *user_logout, CThostFtdcRspInfoField *rsp_info, int request_id, bool is_last);
 
   // market端ctp登出没有反馈，主动调用反馈接口
   void OnRspUserLogout(void);
 
-  void OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+  void OnRspError(CThostFtdcRspInfoField *rsp_info, int request_id, bool is_last){};
 
-  void OnRspSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID,
-                          bool bIsLast);
+  void OnRspSubMarketData(CThostFtdcSpecificInstrumentField *specific_instrument, CThostFtdcRspInfoField *rsp_info, int request_id,
+                          bool is_last){};
 
-  void OnRspUnSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID,
-                            bool bIsLast);
+  void OnRspUnSubMarketData(CThostFtdcSpecificInstrumentField *specific_instrument, CThostFtdcRspInfoField *rsp_info, int request_id,
+                            bool is_last){};
 
-  void OnRspSubForQuoteRsp(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID,
-                           bool bIsLast);
+  void OnRspSubForQuoteRsp(CThostFtdcSpecificInstrumentField *specific_instrument, CThostFtdcRspInfoField *rsp_info, int request_id,
+                           bool is_last){};
 
-  void OnRspUnSubForQuoteRsp(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID,
-                             bool bIsLast);
+  void OnRspUnSubForQuoteRsp(CThostFtdcSpecificInstrumentField *specific_instrument, CThostFtdcRspInfoField *rsp_info, int request_id,
+                             bool is_last){};
 
-  void OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *pDepthMarketData);
+  void OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *depth_market_data);
 
-  void OnRtnForQuoteRsp(CThostFtdcForQuoteRspField *pForQuoteRsp);
+  void OnRtnForQuoteRsp(CThostFtdcForQuoteRspField *for_quote_rsp){};
 
   bool front_disconnected = false;
 };

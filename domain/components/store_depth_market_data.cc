@@ -26,131 +26,131 @@
 #include "market/domain/components/store_depth_market_data.h"
 
 LoadData::LoadData() {
-  auto &jsonCfg = utils::JsonConfig::getInstance();
-  history_tick_folder = jsonCfg.get_config("market", "HistoryTickPath").get<std::string>();
+  auto &json_cfg = utils::JsonConfig::GetInstance();
+  history_tick_folder_ = json_cfg.GetConfig("market", "HistoryTickPath").get<std::string>();
 }
 
-void LoadData::FormDepthMarketData2Stringflow(CThostFtdcDepthMarketDataField *pD) {
+void LoadData::FormDepthMarketData2Stringflow(CThostFtdcDepthMarketDataField *p_d) {
   ///合约代码 TThostFtdcInstrumentIDType char[31]
-  char InstrumentID[93];
-  utils::Gbk2Utf8(pD->InstrumentID, InstrumentID, sizeof(InstrumentID));
+  char instrument_id[93];
+  utils::Gbk2Utf8(p_d->InstrumentID, instrument_id, sizeof(instrument_id));
   ///交易日期
-  char TradingDay[27];
-  utils::Gbk2Utf8(pD->TradingDay, TradingDay, sizeof(TradingDay));
+  char trading_day[27];
+  utils::Gbk2Utf8(p_d->TradingDay, trading_day, sizeof(trading_day));
   ///最后修改时间 TThostFtdcTimeType char[9]
-  char UpdateTime[27];
-  utils::Gbk2Utf8(pD->UpdateTime, UpdateTime, sizeof(UpdateTime));
+  char update_time[27];
+  utils::Gbk2Utf8(p_d->UpdateTime, update_time, sizeof(update_time));
   ///最后修改毫秒 TThostFtdcMillisecType int
-  int UpdateMillisec = pD->UpdateMillisec;
+  int update_millisec = p_d->UpdateMillisec;
   ///最新价 TThostFtdcPriceType double
-  double LastPrice = Max2zero(pD->LastPrice);
+  double last_price = Max2zero(p_d->LastPrice);
   ///申买价一 TThostFtdcPriceType double
-  double BidPrice1 = Max2zero(pD->BidPrice1);
+  double bid_price1 = Max2zero(p_d->BidPrice1);
   ///申买量一 TThostFtdcVolumeType int
-  int BidVolume1 = pD->BidVolume1;
+  int bid_volume1 = p_d->BidVolume1;
   ///申卖价一 TThostFtdcPriceType double
-  double AskPrice1 = Max2zero(pD->AskPrice1);
+  double ask_price1 = Max2zero(p_d->AskPrice1);
   ///申卖量一 TThostFtdcVolumeType int
-  int AskVolume1 = pD->AskVolume1;
+  int ask_volume1 = p_d->AskVolume1;
   ///申买价一 TThostFtdcPriceType double
-  double BidPrice2 = Max2zero(pD->BidPrice2);
+  double bid_price2 = Max2zero(p_d->BidPrice2);
   ///申买量一 TThostFtdcVolumeType int
-  int BidVolume2 = pD->BidVolume2;
+  int bid_volume2 = p_d->BidVolume2;
   ///申卖价一 TThostFtdcPriceType double
-  double AskPrice2 = Max2zero(pD->AskPrice2);
+  double ask_price2 = Max2zero(p_d->AskPrice2);
   ///申卖量一 TThostFtdcVolumeType int
-  int AskVolume2 = pD->AskVolume2;
+  int ask_volume2 = p_d->AskVolume2;
   ///申买价一 TThostFtdcPriceType double
-  double BidPrice3 = Max2zero(pD->BidPrice3);
+  double bid_price3 = Max2zero(p_d->BidPrice3);
   ///申买量一 TThostFtdcVolumeType int
-  int BidVolume3 = pD->BidVolume3;
+  int bid_volume3 = p_d->BidVolume3;
   ///申卖价一 TThostFtdcPriceType double
-  double AskPrice3 = Max2zero(pD->AskPrice3);
+  double ask_price3 = Max2zero(p_d->AskPrice3);
   ///申卖量一 TThostFtdcVolumeType int
-  int AskVolume3 = pD->AskVolume3;
+  int ask_volume3 = p_d->AskVolume3;
   ///申买价一 TThostFtdcPriceType double
-  double BidPrice4 = Max2zero(pD->BidPrice4);
+  double bid_price4 = Max2zero(p_d->BidPrice4);
   ///申买量一 TThostFtdcVolumeType int
-  int BidVolume4 = pD->BidVolume4;
+  int bid_volume4 = p_d->BidVolume4;
   ///申卖价一 TThostFtdcPriceType double
-  double AskPrice4 = Max2zero(pD->AskPrice4);
+  double ask_price4 = Max2zero(p_d->AskPrice4);
   ///申卖量一 TThostFtdcVolumeType int
-  int AskVolume4 = pD->AskVolume4;
+  int ask_volume4 = p_d->AskVolume4;
   ///申买价一 TThostFtdcPriceType double
-  double BidPrice5 = Max2zero(pD->BidPrice5);
+  double bid_price5 = Max2zero(p_d->BidPrice5);
   ///申买量一 TThostFtdcVolumeType int
-  int BidVolume5 = pD->BidVolume5;
+  int bid_volume5 = p_d->BidVolume5;
   ///申卖价一 TThostFtdcPriceType double
-  double AskPrice5 = Max2zero(pD->AskPrice5);
+  double ask_price5 = Max2zero(p_d->AskPrice5);
   ///申卖量一 TThostFtdcVolumeType int
-  int AskVolume5 = pD->AskVolume5;
+  int ask_volume5 = p_d->AskVolume5;
   ///数量 TThostFtdcVolumeType int
-  int Volume = pD->Volume;
+  int volume = p_d->Volume;
   ///成交金额 TThostFtdcMoneyType double
-  double Turnover = Max2zero(pD->Turnover);
+  double turnover = Max2zero(p_d->Turnover);
   ///持仓量 TThostFtdcLargeVolumeType double
-  double OpenInterest = Max2zero(pD->OpenInterest);
+  double open_interest = Max2zero(p_d->OpenInterest);
   ///涨停板价 TThostFtdcPriceType double
-  double UpperLimitPrice = Max2zero(pD->UpperLimitPrice);
+  double upper_limit_price = Max2zero(p_d->UpperLimitPrice);
   ///跌停板价 TThostFtdcPriceType double
-  double LowerLimitPrice = Max2zero(pD->LowerLimitPrice);
+  double lower_limit_price = Max2zero(p_d->LowerLimitPrice);
   ///今开盘 TThostFtdcPriceType double
-  double OpenPrice = Max2zero(pD->OpenPrice);
+  double open_price = Max2zero(p_d->OpenPrice);
   ///上次结算价 TThostFtdcPriceType double
-  double PreSettlementPrice = Max2zero(pD->PreSettlementPrice);
+  double pre_settlement_price = Max2zero(p_d->PreSettlementPrice);
   ///昨收盘 TThostFtdcPriceType double
-  double PreClosePrice = Max2zero(pD->PreClosePrice);
+  double pre_close_price = Max2zero(p_d->PreClosePrice);
   ///昨持仓量 TThostFtdcLargeVolumeType double
-  double PreOpenInterest = Max2zero(pD->PreOpenInterest);
+  double pre_open_interest = Max2zero(p_d->PreOpenInterest);
   ///结算价 SettlementPrice double
-  double SettlementPrice = Max2zero(pD->SettlementPrice);
+  double settlement_price = Max2zero(p_d->SettlementPrice);
 
-  sprintf(dataflow,
+  sprintf(dataflow_,
           "%s,%s,%s.%d,%.6lf,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%."
           "6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%d,%.6lf,%.6lf,%.6lf,%."
           "6lf,%.6lf,%.6lf,%.6lf,%.5lf,%.6lf",
-          InstrumentID, TradingDay, UpdateTime, UpdateMillisec, LastPrice, BidPrice1, BidVolume1, AskPrice1, AskVolume1, BidPrice2,
-          BidVolume2, AskPrice2, AskVolume2, BidPrice3, BidVolume3, AskPrice3, AskVolume3, BidPrice4, BidVolume4, AskPrice4, AskVolume4,
-          BidPrice5, BidVolume5, AskPrice5, AskVolume5, Volume, Turnover, OpenInterest, UpperLimitPrice, LowerLimitPrice, OpenPrice,
-          PreSettlementPrice, PreClosePrice, PreOpenInterest, SettlementPrice);
+          instrument_id, trading_day, update_time, update_millisec, last_price, bid_price1, bid_volume1, ask_price1, ask_volume1,
+          bid_price2, bid_volume2, ask_price2, ask_volume2, bid_price3, bid_volume3, ask_price3, ask_volume3, bid_price4, bid_volume4,
+          ask_price4, ask_volume4, bid_price5, bid_volume5, ask_price5, ask_volume5, volume, turnover, open_interest, upper_limit_price,
+          lower_limit_price, open_price, pre_settlement_price, pre_close_price, pre_open_interest, settlement_price);
 }
 
-void LoadData::LoadDepthMarketDataToCsv(CThostFtdcDepthMarketDataField *pD) {
+void LoadData::LoadDepthMarketDataToCsv(CThostFtdcDepthMarketDataField *p_d) {
   char csvpath[200];
   char folderpath[180];
-  char InstrumentID[93];
-  char ExchangeID[27];
-  uint8_t existFlag = 1;
+  char instrument_id[93];
+  char exchange_id[27];
+  uint8_t exist_flag = 1;
 
-  utils::Gbk2Utf8(pD->InstrumentID, InstrumentID,
-                  sizeof(InstrumentID));  //合约代码
-  if (InstrumentID[2] == 'e' && InstrumentID[3] == 'f' && InstrumentID[4] == 'p') {
+  utils::Gbk2Utf8(p_d->InstrumentID, instrument_id,
+                  sizeof(instrument_id));  //合约代码
+  if (instrument_id[2] == 'e' && instrument_id[3] == 'f' && instrument_id[4] == 'p') {
     return;
   }
 
-  if (IsValidTickData(pD) == false) {
+  if (IsValidTickData(p_d) == false) {
     return;
   }
 
-  if (access(history_tick_folder.c_str(), F_OK) == -1) {
-    mkdir(history_tick_folder.c_str(), S_IRWXU);
+  if (access(history_tick_folder_.c_str(), F_OK) == -1) {
+    mkdir(history_tick_folder_.c_str(), S_IRWXU);
   }
 
-  sprintf(csvpath, "%s/%s.csv", history_tick_folder.c_str(),
-          InstrumentID);  //合成存储路径
+  sprintf(csvpath, "%s/%s.csv", history_tick_folder_.c_str(),
+          instrument_id);  //合成存储路径
 
-  FormDepthMarketData2Stringflow(pD);
+  FormDepthMarketData2Stringflow(p_d);
 
   if (access(csvpath, F_OK) == -1) {
-    existFlag = 0;
+    exist_flag = 0;
   }
 
   std::ofstream out(csvpath, std::ios::app);
   if (out.is_open()) {
-    if (existFlag == 0) {
-      out << titleflow << "\r\r\n";
+    if (exist_flag == 0) {
+      out << titleflow_ << "\r\r\n";
     }
-    out << dataflow << "\r\r\n";
+    out << dataflow_ << "\r\r\n";
   } else {
     INFO_LOG("%s open fail.\n", csvpath);
     fflush(stdout);
@@ -159,127 +159,127 @@ void LoadData::LoadDepthMarketDataToCsv(CThostFtdcDepthMarketDataField *pD) {
   out.close();  //关闭文件
 }
 
-void LoadData::FormDepthMarketData2Stringflow(XTPMD *pD) {
+void LoadData::FormDepthMarketData2Stringflow(XTPMD *p_d) {
   ///合约代码 TThostFtdcInstrumentIDType char[31]
-  char InstrumentID[16];
-  utils::Gbk2Utf8(pD->ticker, InstrumentID, sizeof(InstrumentID));
-  string data_time = std::to_string(pD->data_time);
+  char instrument_id[16];
+  utils::Gbk2Utf8(p_d->ticker, instrument_id, sizeof(instrument_id));
+  string data_time = std::to_string(p_d->data_time);
   ///交易日期
-  string TradingDay = data_time.substr(0, 8);
+  string trading_day = data_time.substr(0, 8);
   ///最后修改时间 TThostFtdcTimeType char[9]
-  string UpdateTime_hour = data_time.substr(8, 2);
-  string UpdateTime_min = data_time.substr(10, 2);
-  string UpdateTime_second = data_time.substr(12, 2);
+  string update_time_hour = data_time.substr(8, 2);
+  string update_time_min = data_time.substr(10, 2);
+  string update_time_second = data_time.substr(12, 2);
   ///最后修改毫秒 TThostFtdcMillisecType int
-  string UpdateMillisec = data_time.substr(14, 3);
+  string update_millisec = data_time.substr(14, 3);
   ///最新价 TThostFtdcPriceType double
-  double LastPrice = Max2zero(pD->last_price);
+  double last_price = Max2zero(p_d->last_price);
   ///申买价一 TThostFtdcPriceType double
-  double BidPrice1 = Max2zero(pD->bid[0]);
+  double bid_price1 = Max2zero(p_d->bid[0]);
   ///申买量一 TThostFtdcVolumeType int
-  int BidVolume1 = pD->bid_qty[0];
+  int bid_volume1 = p_d->bid_qty[0];
   ///申卖价一 TThostFtdcPriceType double
-  double AskPrice1 = Max2zero(pD->ask[0]);
+  double ask_price1 = Max2zero(p_d->ask[0]);
   ///申卖量一 TThostFtdcVolumeType int
-  int AskVolume1 = pD->ask_qty[0];
+  int ask_volume1 = p_d->ask_qty[0];
   ///申买价一 TThostFtdcPriceType double
-  double BidPrice2 = Max2zero(pD->bid[1]);
+  double bid_price2 = Max2zero(p_d->bid[1]);
   ///申买量一 TThostFtdcVolumeType int
-  int BidVolume2 = pD->bid_qty[1];
+  int bid_volume2 = p_d->bid_qty[1];
   ///申卖价一 TThostFtdcPriceType double
-  double AskPrice2 = Max2zero(pD->ask[1]);
+  double ask_price2 = Max2zero(p_d->ask[1]);
   ///申卖量一 TThostFtdcVolumeType int
-  int AskVolume2 = pD->ask_qty[1];
+  int ask_volume2 = p_d->ask_qty[1];
   ///申买价一 TThostFtdcPriceType double
-  double BidPrice3 = Max2zero(pD->bid[2]);
+  double bid_price3 = Max2zero(p_d->bid[2]);
   ///申买量一 TThostFtdcVolumeType int
-  int BidVolume3 = pD->bid_qty[2];
+  int bid_volume3 = p_d->bid_qty[2];
   ///申卖价一 TThostFtdcPriceType double
-  double AskPrice3 = Max2zero(pD->ask[2]);
+  double ask_price3 = Max2zero(p_d->ask[2]);
   ///申卖量一 TThostFtdcVolumeType int
-  int AskVolume3 = pD->ask_qty[2];
+  int ask_volume3 = p_d->ask_qty[2];
   ///申买价一 TThostFtdcPriceType double
-  double BidPrice4 = Max2zero(pD->bid[3]);
+  double bid_price4 = Max2zero(p_d->bid[3]);
   ///申买量一 TThostFtdcVolumeType int
-  int BidVolume4 = pD->bid_qty[3];
+  int bid_volume4 = p_d->bid_qty[3];
   ///申卖价一 TThostFtdcPriceType double
-  double AskPrice4 = Max2zero(pD->ask[3]);
+  double ask_price4 = Max2zero(p_d->ask[3]);
   ///申卖量一 TThostFtdcVolumeType int
-  int AskVolume4 = pD->ask_qty[3];
+  int ask_volume4 = p_d->ask_qty[3];
   ///申买价一 TThostFtdcPriceType double
-  double BidPrice5 = Max2zero(pD->bid[4]);
+  double bid_price5 = Max2zero(p_d->bid[4]);
   ///申买量一 TThostFtdcVolumeType int
-  int BidVolume5 = pD->bid_qty[4];
+  int bid_volume5 = p_d->bid_qty[4];
   ///申卖价一 TThostFtdcPriceType double
-  double AskPrice5 = Max2zero(pD->ask[4]);
+  double ask_price5 = Max2zero(p_d->ask[4]);
   ///申卖量一 TThostFtdcVolumeType int
-  int AskVolume5 = pD->ask_qty[4];
+  int ask_volume5 = p_d->ask_qty[4];
   ///数量 TThostFtdcVolumeType int
-  int Volume = pD->trades_count;
+  int volume = p_d->trades_count;
   ///成交金额 TThostFtdcMoneyType double
-  double Turnover = Max2zero(pD->turnover);
+  double turnover = Max2zero(p_d->turnover);
   ///持仓量 TThostFtdcLargeVolumeType double
-  double OpenInterest = Max2zero(pD->total_long_positon);
+  double open_interest = Max2zero(p_d->total_long_positon);
   ///涨停板价 TThostFtdcPriceType double
-  double UpperLimitPrice = Max2zero(pD->upper_limit_price);
+  double upper_limit_price = Max2zero(p_d->upper_limit_price);
   ///跌停板价 TThostFtdcPriceType double
-  double LowerLimitPrice = Max2zero(pD->lower_limit_price);
+  double lower_limit_price = Max2zero(p_d->lower_limit_price);
   ///今开盘 TThostFtdcPriceType double
-  double OpenPrice = Max2zero(pD->open_price);
+  double open_price = Max2zero(p_d->open_price);
   ///上次结算价 TThostFtdcPriceType double
-  double PreSettlementPrice = Max2zero(pD->pre_settl_price);
+  double pre_settlement_price = Max2zero(p_d->pre_settl_price);
   ///昨收盘 TThostFtdcPriceType double
-  double PreClosePrice = Max2zero(pD->pre_close_price);
+  double pre_close_price = Max2zero(p_d->pre_close_price);
   ///昨持仓量 TThostFtdcLargeVolumeType double
-  double PreOpenInterest = Max2zero(pD->pre_total_long_positon);
+  double pre_open_interest = Max2zero(p_d->pre_total_long_positon);
   ///结算价 SettlementPrice double
-  double SettlementPrice = Max2zero(pD->settl_price);
+  double settlement_price = Max2zero(p_d->settl_price);
 
-  sprintf(dataflow,
+  sprintf(dataflow_,
           "%s,%s,%s:%s:%s.%s,%.6lf,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%d,%.6lf,%."
           "6lf,%.6lf,%.6lf,%.6lf,%.6lf,%.6lf,%.5lf,%.6lf",
-          InstrumentID, TradingDay.c_str(), UpdateTime_hour.c_str(), UpdateTime_min.c_str(), UpdateTime_second.c_str(),
-          UpdateMillisec.c_str(), LastPrice, BidPrice1, BidVolume1, AskPrice1, AskVolume1, BidPrice2, BidVolume2, AskPrice2, AskVolume2,
-          BidPrice3, BidVolume3, AskPrice3, AskVolume3, BidPrice4, BidVolume4, AskPrice4, AskVolume4, BidPrice5, BidVolume5, AskPrice5,
-          AskVolume5, Volume, Turnover, OpenInterest, UpperLimitPrice, LowerLimitPrice, OpenPrice, PreSettlementPrice, PreClosePrice,
-          PreOpenInterest, SettlementPrice);
+          instrument_id, trading_day.c_str(), update_time_hour.c_str(), update_time_min.c_str(), update_time_second.c_str(),
+          update_millisec.c_str(), last_price, bid_price1, bid_volume1, ask_price1, ask_volume1, bid_price2, bid_volume2, ask_price2,
+          ask_volume2, bid_price3, bid_volume3, ask_price3, ask_volume3, bid_price4, bid_volume4, ask_price4, ask_volume4, bid_price5,
+          bid_volume5, ask_price5, ask_volume5, volume, turnover, open_interest, upper_limit_price, lower_limit_price, open_price,
+          pre_settlement_price, pre_close_price, pre_open_interest, settlement_price);
 }
 
-void LoadData::LoadDepthMarketDataToCsv(XTPMD *pD) {
+void LoadData::LoadDepthMarketDataToCsv(XTPMD *p_d) {
   char csvpath[200];
   char folderpath[180];
-  char InstrumentID[16];
-  char ExchangeID[27];
-  uint8_t existFlag = 1;
+  char instrument_id[16];
+  char exchange_id[27];
+  uint8_t exist_flag = 1;
 
-  utils::Gbk2Utf8(pD->ticker, InstrumentID, sizeof(InstrumentID));  //合约代码
+  utils::Gbk2Utf8(p_d->ticker, instrument_id, sizeof(instrument_id));  //合约代码
   // if (InstrumentID[2] == 'e' && InstrumentID[3] == 'f' && InstrumentID[4] == 'p')
   // {
   //     return;
   // }
 
-  if (IsValidTickData(pD) == false) {
+  if (IsValidTickData(p_d) == false) {
     return;
   }
 
-  if (access(history_tick_folder.c_str(), F_OK) == -1) {
-    mkdir(history_tick_folder.c_str(), S_IRWXU);
+  if (access(history_tick_folder_.c_str(), F_OK) == -1) {
+    mkdir(history_tick_folder_.c_str(), S_IRWXU);
   }
 
-  sprintf(csvpath, "%s/%s.csv", history_tick_folder.c_str(), InstrumentID);  //合成存储路径
+  sprintf(csvpath, "%s/%s.csv", history_tick_folder_.c_str(), instrument_id);  //合成存储路径
 
-  FormDepthMarketData2Stringflow(pD);
+  FormDepthMarketData2Stringflow(p_d);
 
   if (access(csvpath, F_OK) == -1) {
-    existFlag = 0;
+    exist_flag = 0;
   }
 
   std::ofstream out(csvpath, std::ios::app);
   if (out.is_open()) {
-    if (existFlag == 0) {
-      out << titleflow << "\r\r\n";
+    if (exist_flag == 0) {
+      out << titleflow_ << "\r\r\n";
     }
-    out << dataflow << "\r\r\n";
+    out << dataflow_ << "\r\r\n";
   } else {
     INFO_LOG("%s open fail.\n", csvpath);
     fflush(stdout);
@@ -291,7 +291,7 @@ void LoadData::LoadDepthMarketDataToCsv(XTPMD *pD) {
 bool LoadData::ClassifyContractFiles(void) {
   struct dirent *filename;  // return value for readdir()
   DIR *dir;                 // return value for opendir()
-  dir = opendir(history_tick_folder.c_str());
+  dir = opendir(history_tick_folder_.c_str());
   if (NULL == dir) {
     ERROR_LOG("Can not open dir ");
     return false;
@@ -301,21 +301,21 @@ bool LoadData::ClassifyContractFiles(void) {
     if (strcmp(filename->d_name, ".") == 0 || strcmp(filename->d_name, "..") == 0) continue;
 
     //在map中查找合约
-    string contractFile = filename->d_name;
-    int pos = contractFile.find_first_of('.');
-    string fileName(contractFile.substr(0, pos));
-    string fileFormat(contractFile.substr(pos + 1));
+    string contract_file = filename->d_name;
+    int pos = contract_file.find_first_of('.');
+    string file_name(contract_file.substr(0, pos));
+    string file_format(contract_file.substr(pos + 1));
 
-    if ((pos == -1) || (strcmp(fileFormat.c_str(), "csv") != 0)) {
+    if ((pos == -1) || (strcmp(file_format.c_str(), "csv") != 0)) {
       continue;
     }
 
-    string ins = FindExchange(fileName);
+    string ins = FindExchange(file_name);
     if (ins != "") {
-      MoveContractToFolder(contractFile, FindExchange(fileName));
+      MoveContractToFolder(contract_file, FindExchange(file_name));
       usleep(1000);
     } else {
-      WARNING_LOG("not found fileName:%s", fileName.c_str());
+      WARNING_LOG("not found fileName:%s", file_name.c_str());
     }
   }
 
@@ -323,15 +323,15 @@ bool LoadData::ClassifyContractFiles(void) {
   return true;
 }
 
-bool LoadData::MoveContractToFolder(string contractName, string exchangeName) {
+bool LoadData::MoveContractToFolder(string contract_name, string exchange_name) {
   char csvpath[200];
   char folderpath[180];
   char command[400];
 
-  sprintf(csvpath, "%s/%s", history_tick_folder.c_str(),
-          contractName.c_str());  //合成存储路径
-  sprintf(folderpath, "%s/%s/", history_tick_folder.c_str(),
-          exchangeName.c_str());  //合成存储文件夹路径
+  sprintf(csvpath, "%s/%s", history_tick_folder_.c_str(),
+          contract_name.c_str());  //合成存储路径
+  sprintf(folderpath, "%s/%s/", history_tick_folder_.c_str(),
+          exchange_name.c_str());  //合成存储文件夹路径
 
   if (access(folderpath, F_OK) == -1) {
     if (mkdir(folderpath, S_IRWXU) == 0) {

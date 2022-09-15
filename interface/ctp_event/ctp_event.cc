@@ -23,9 +23,9 @@
 CtpEvent::CtpEvent() {
   RegMsgFun();
 
-  auto &jsonCfg = utils::JsonConfig::getInstance();
-  req_instrument_from = jsonCfg.get_config("market", "SubscribeMarketDataFrom").get<std::string>();
-  INFO_LOG("SubscribeMarketDataFrom: %s", req_instrument_from.c_str());
+  auto &json_cfg = utils::JsonConfig::GetInstance();
+  req_instrument_from_ = json_cfg.GetConfig("market", "SubscribeMarketDataFrom").get<std::string>();
+  INFO_LOG("SubscribeMarketDataFrom: %s", req_instrument_from_.c_str());
 }
 
 void CtpEvent::RegMsgFun() {
@@ -42,85 +42,85 @@ void CtpEvent::RegMsgFun() {
 }
 
 void CtpEvent::Handle(utils::ItpMsg &msg) {
-  auto iter = msg_func_map.find(msg.msgName);
+  auto iter = msg_func_map.find(msg.msg_name);
   if (iter != msg_func_map.end()) {
     iter->second(msg);
     return;
   }
-  ERROR_LOG("can not find func for msgName [%s]!", msg.msgName.c_str());
+  ERROR_LOG("can not find func for msg_name [%s]!", msg.msg_name.c_str());
   return;
 }
 
 void CtpEvent::DeepMarktDataHandle(utils::ItpMsg &msg) {
-  ipc::message itpMsg;
-  itpMsg.ParseFromString(msg.pbMsg);
-  auto &itp_msg = itpMsg.itp_msg();
+  ipc::message message;
+  message.ParseFromString(msg.pb_msg);
+  auto &itp_msg = message.itp_msg();
 
   auto deepdata = (CThostFtdcDepthMarketDataField *)itp_msg.address();
-  auto &marketSer = MarketService::getInstance();
+  auto &market_ser = MarketService::GetInstance();
 
-  if (req_instrument_from == "api") {
-    marketSer.ROLE(LoadData).LoadDepthMarketDataToCsv(deepdata);
+  if (req_instrument_from_ == "api") {
+    market_ser.ROLE(LoadData).LoadDepthMarketDataToCsv(deepdata);
   } else {
-    if (block_control == ctpview_market::BlockControl_Command_unblock) {
-      marketSer.ROLE(PublishData).DirectForwardDataToStrategy(deepdata);
+    if (block_control_ == ctpview_market::BlockControl_Command_unblock) {
+      market_ser.ROLE(PublishData).DirectForwardDataToStrategy(deepdata);
     }
   }
 }
 
 void CtpEvent::OnRspUserLoginHandle(utils::ItpMsg &msg) {
-  ipc::message itpMsg;
-  itpMsg.ParseFromString(msg.pbMsg);
-  auto &itp_msg = itpMsg.itp_msg();
+  ipc::message message;
+  message.ParseFromString(msg.pb_msg);
+  auto &itp_msg = message.itp_msg();
 
-  auto rspInfo = reinterpret_cast<CThostFtdcRspInfoField *>(itp_msg.address());
+  auto rsp_info = reinterpret_cast<CThostFtdcRspInfoField *>(itp_msg.address());
   TThostFtdcErrorMsgType errormsg;
-  utils::Gbk2Utf8(rspInfo->ErrorMsg, errormsg, sizeof(errormsg));  //报错返回信息
-  if (rspInfo->ErrorID != 0) {
+  utils::Gbk2Utf8(rsp_info->ErrorMsg, errormsg, sizeof(errormsg));  //报错返回信息
+  if (rsp_info->ErrorID != 0) {
     // 端登失败，客户端需进行错误处理
-    ERROR_LOG("Failed to login, errorcode=%d errormsg=%s", rspInfo->ErrorID, errormsg);
+    ERROR_LOG("Failed to login, errorcode=%d errormsg=%s", rsp_info->ErrorID, errormsg);
     exit(-1);
   } else {
-    auto &marketSer = MarketService::getInstance();
-    marketSer.ROLE(PublishState).publish_event();
+    auto &market_ser = MarketService::GetInstance();
+    market_ser.ROLE(PublishState).PublishEvent();
 
-    if (req_instrument_from == "local") {
-      marketSer.ROLE(SubscribeManager).reqInstrumentsFromLocal();
-    } else if (req_instrument_from == "api") {
-      marketSer.ROLE(SubscribeManager).reqInstrumentsFromTrader();
-    } else if (req_instrument_from == "strategy") {
-      marketSer.ROLE(SubscribeManager).reqInstrumrntFromControlPara();
+    if (req_instrument_from_ == "local") {
+      market_ser.ROLE(SubscribeManager).ReqInstrumentsFromLocal();
+    } else if (req_instrument_from_ == "api") {
+      market_ser.ROLE(SubscribeManager).ReqInstrumentsFromTrader();
+    } else if (req_instrument_from_ == "strategy") {
+      market_ser.ROLE(SubscribeManager).ReqInstrumrntFromControlPara();
     }
   }
 }
 
 void CtpEvent::OnRspUserLogoutHandle(utils::ItpMsg &msg) {
-  ipc::message itpMsg;
-  itpMsg.ParseFromString(msg.pbMsg);
-  auto &itp_msg = itpMsg.itp_msg();
+  ipc::message message;
+  message.ParseFromString(msg.pb_msg);
+  auto &itp_msg = message.itp_msg();
 
-  auto rspInfo = reinterpret_cast<CThostFtdcRspInfoField *>(itp_msg.address());
+  auto rsp_info = reinterpret_cast<CThostFtdcRspInfoField *>(itp_msg.address());
   TThostFtdcErrorMsgType errormsg;
-  utils::Gbk2Utf8(rspInfo->ErrorMsg, errormsg, sizeof(errormsg));  //报错返回信息
+  utils::Gbk2Utf8(rsp_info->ErrorMsg, errormsg, sizeof(errormsg));  //报错返回信息
 
-  if (rspInfo->ErrorID != 0) {
+  if (rsp_info->ErrorID != 0) {
     // 端登失败，客户端需进行错误处理
-    ERROR_LOG("Failed to logout, errorcode=%d errormsg=%s", rspInfo->ErrorID, errormsg);
+    ERROR_LOG("Failed to logout, errorcode=%d errormsg=%s", rsp_info->ErrorID, errormsg);
     exit(-1);
   } else {
-    auto &marketSer = MarketService::getInstance();
-    marketSer.ROLE(SubscribeManager).unSubscribeAll();
+    auto &market_ser = MarketService::GetInstance();
+    market_ser.ROLE(SubscribeManager).UnSubscribeAll();
 
     std::this_thread::sleep_for(1000ms);
 
-    if (req_instrument_from == "trader" && marketSer.ROLE(MarketTimeState).get_time_state() == kLogoutTime) {
-      marketSer.ROLE(LoadData).ClassifyContractFiles();
+    if (req_instrument_from_ == "trader" && market_ser.ROLE(MarketTimeState).GetTimeState() == kLogoutTime) {
+      market_ser.ROLE(LoadData).ClassifyContractFiles();
     }
 
-    marketSer.ROLE(LoadData).ClearInsExchPair();
+    market_ser.ROLE(LoadData).ClearInsExchPair();
 
-    marketSer.ROLE(PublishState).publish_event();
+    market_ser.ROLE(PublishState).PublishEvent();
   }
 }
 
-void CtpEvent::set_block_control(ctpview_market::BlockControl_Command command) { block_control = command; }
+void CtpEvent::SetBlockControl(ctpview_market::BlockControl_Command command) { block_control_ = command; }

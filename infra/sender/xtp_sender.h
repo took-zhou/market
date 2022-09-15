@@ -18,21 +18,21 @@ struct XtpSender : SendApi {
   XtpSender(void);
   bool ReqUserLogin();
   bool ReqUserLogout();
-  bool SubscribeMarketData(std::vector<utils::InstrumtntID> const &nameVec);
-  bool UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &nameVec);
+  bool SubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec);
+  bool UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec);
   bool ReqInstrumentInfo(const utils::InstrumtntID &ins);
   bool LossConnection();
 
-  static XTP::API::QuoteApi *kQuoteApi;
-  static XtpQuoteSpi *kQuoteSpi;
+  static XTP::API::QuoteApi *quote_api;
+  static XtpQuoteSpi *quote_spi;
 
  private:
   bool Init(void);
   bool Release(void);
 
-  std::string con_path = "";
-  int request_id = 0;
-  bool is_init = false;
+  std::string con_path_ = "";
+  int request_id_ = 0;
+  bool is_init_ = false;
 };
 
 #endif /* WORKSPACE_MARKET_INFRA_XTPSENDER_H_ */

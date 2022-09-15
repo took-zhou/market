@@ -11,18 +11,18 @@
 
 using namespace nlohmann;
 template <class K, class V, class dummy_compare, class A>
-using fifo_workaround_fifo_map = fifo_map<K, V, fifo_map_compare<K>, A>;
-using fifo_json = basic_json<fifo_workaround_fifo_map>;
+using FifoWorkaroundFifoMap = fifo_map<K, V, fifo_map_compare<K>, A>;
+using FifoJson = basic_json<FifoWorkaroundFifoMap>;
 
 ControlPara::ControlPara(void) {
-  auto &jsonCfg = utils::JsonConfig::getInstance();
-  auto users = jsonCfg.get_config("market", "User");
+  auto &json_cfg = utils::JsonConfig::GetInstance();
+  auto users = json_cfg.GetConfig("market", "User");
   for (auto &user : users) {
-    std::string temp_folder = jsonCfg.get_config("market", "ControlParaFilePath").get<std::string>();
-    json_path = temp_folder + "/" + (std::string)user + "/controlPara/control.json";
-    if (!utils::IsFileExist(json_path)) {
-      utils::CreatFile(json_path);
-    } else if (utils::get_file_size(json_path) > 0) {
+    std::string temp_folder = json_cfg.GetConfig("market", "ControlParaFilePath").get<std::string>();
+    json_path_ = temp_folder + "/" + (std::string)user + "/controlPara/control.json";
+    if (!utils::IsFileExist(json_path_)) {
+      utils::CreatFile(json_path_);
+    } else if (utils::GetFileSize(json_path_) > 0) {
       LoadFromJson();
     }
     break;
@@ -31,43 +31,43 @@ ControlPara::ControlPara(void) {
 
 bool ControlPara::LoadFromJson(void) {
   int ret = true;
-  fifo_json readData;
-  ifstream outFile(json_path, ios::binary);
-  if (outFile.is_open()) {
-    outFile >> readData;
-    for (auto iter = readData.begin(); iter != readData.end(); iter++) {
+  FifoJson read_data;
+  ifstream out_file(json_path_, ios::binary);
+  if (out_file.is_open()) {
+    out_file >> read_data;
+    for (auto iter = read_data.begin(); iter != read_data.end(); iter++) {
       std::vector<PublishControl> tempcontrol_vec;
-      for (int i = 0; i < readData[iter.key()].size(); i++) {
-        PublishControl tempControl;
-        readData[iter.key()][i].at("exch").get_to(tempControl.exch);
-        readData[iter.key()][i].at("ticksize").get_to(tempControl.ticksize);
-        readData[iter.key()][i].at("prid").get_to(tempControl.prid);
-        readData[iter.key()][i].at("indication").get_to(tempControl.indication);
-        readData[iter.key()][i].at("interval").get_to(tempControl.interval);
-        readData[iter.key()][i].at("directforward").get_to(tempControl.directforward);
-        readData[iter.key()][i].at("source").get_to(tempControl.source);
+      for (int i = 0; i < read_data[iter.key()].size(); i++) {
+        PublishControl temp_control;
+        read_data[iter.key()][i].at("exch").get_to(temp_control.exch);
+        read_data[iter.key()][i].at("ticksize").get_to(temp_control.ticksize);
+        read_data[iter.key()][i].at("prid").get_to(temp_control.prid);
+        read_data[iter.key()][i].at("indication").get_to(temp_control.indication);
+        read_data[iter.key()][i].at("interval").get_to(temp_control.interval);
+        read_data[iter.key()][i].at("directforward").get_to(temp_control.directforward);
+        read_data[iter.key()][i].at("source").get_to(temp_control.source);
 
-        tempcontrol_vec.push_back(tempControl);
-        INFO_LOG("load prid: %s, instrument: %s.", tempControl.prid.c_str(), iter.key().c_str());
+        tempcontrol_vec.push_back(temp_control);
+        INFO_LOG("load prid: %s, instrument: %s.", temp_control.prid.c_str(), iter.key().c_str());
       }
       publish_ctrl_map.insert(make_pair(iter.key(), tempcontrol_vec));
     }
   } else {
-    WARNING_LOG("file:%s not exist.", json_path.c_str());
+    WARNING_LOG("file:%s not exist.", json_path_.c_str());
     ret = false;
   }
-  outFile.close();
+  out_file.close();
 
   return ret;
 }
 
 bool ControlPara::WriteToJson(void) {
   int ret = true;
-  fifo_json writeData;
+  FifoJson write_data;
 
   for (auto &item_pc : publish_ctrl_map) {
     for (auto &item_id : item_pc.second) {
-      fifo_json one_item;
+      FifoJson one_item;
       one_item["exch"] = item_id.exch;
       one_item["prid"] = item_id.prid;
       one_item["ticksize"] = item_id.ticksize;
@@ -75,18 +75,18 @@ bool ControlPara::WriteToJson(void) {
       one_item["interval"] = item_id.interval;
       one_item["source"] = item_id.source;
       one_item["directforward"] = item_id.directforward;
-      writeData[item_pc.first].push_back(one_item);
+      write_data[item_pc.first].push_back(one_item);
     }
   }
 
-  ofstream inFile(json_path);
-  if (inFile.is_open()) {
-    inFile << setw(4) << writeData << endl;
+  ofstream in_file(json_path_);
+  if (in_file.is_open()) {
+    in_file << setw(4) << write_data << endl;
   } else {
-    ERROR_LOG("file:%s open error.", json_path.c_str());
+    ERROR_LOG("file:%s open error.", json_path_.c_str());
     ret = false;
   }
-  inFile.close();
+  in_file.close();
 
   return ret;
 }
@@ -124,12 +124,12 @@ void ControlPara::EraseControlPara(const std::string &keyname) {
   WriteToJson();
 }
 
-void ControlPara::set_start_stop_indication(const std::string keyname, strategy_market::TickStartStopIndication_MessageType _indication) {
+void ControlPara::SetStartStopIndication(const std::string keyname, strategy_market::TickStartStopIndication_MessageType indication) {
   for (auto &item_pc : publish_ctrl_map) {
     for (auto &item_id : item_pc.second) {
       if (item_id.prid == keyname) {
-        item_id.indication = _indication;
-        INFO_LOG("ins: %s, prid: %s, setStartStopIndication %d.", item_pc.first.c_str(), keyname.c_str(), _indication);
+        item_id.indication = indication;
+        INFO_LOG("ins: %s, prid: %s, setStartStopIndication %d.", item_pc.first.c_str(), keyname.c_str(), indication);
       }
     }
   }
@@ -137,7 +137,7 @@ void ControlPara::set_start_stop_indication(const std::string keyname, strategy_
   WriteToJson();
 }
 
-std::vector<utils::InstrumtntID> ControlPara::get_instrument_list(void) {
+std::vector<utils::InstrumtntID> ControlPara::GetInstrumentList(void) {
   std::vector<utils::InstrumtntID> instrument_vec;
   instrument_vec.clear();
 
@@ -152,7 +152,7 @@ std::vector<utils::InstrumtntID> ControlPara::get_instrument_list(void) {
   return instrument_vec;
 }
 
-std::vector<std::string> ControlPara::get_prid_list(void) {
+std::vector<std::string> ControlPara::GetPridList(void) {
   std::vector<std::string> temp_vec;
   temp_vec.clear();
 

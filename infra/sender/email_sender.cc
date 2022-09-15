@@ -22,19 +22,19 @@ void EmailSender::Send(const std::string &head, const std::string &msg) {
     try {
       CSmtp mail;
 
-      auto &jsonCfg = utils::JsonConfig::getInstance();
+      auto &json_cfg = utils::JsonConfig::GetInstance();
 
-      auto redipients = jsonCfg.get_config("emailbox", "redipients");
+      auto redipients = json_cfg.GetConfig("emailbox", "redipients");
       for (auto &redipient : redipients) {
         mail.AddRecipient(((std::string)redipient).c_str());
       }
 
-      std::string mail_server = jsonCfg.get_config("emailbox", "server");
+      std::string mail_server = json_cfg.GetConfig("emailbox", "server");
       mail.SetSMTPServer(mail_server.c_str());
       mail.SetSecurityType(NO_SECURITY);
 
-      std::string mail_sender = jsonCfg.get_config("emailbox", "sender");
-      std::string mail_password = jsonCfg.get_config("emailbox", "pwd");
+      std::string mail_sender = json_cfg.GetConfig("emailbox", "sender");
+      std::string mail_password = json_cfg.GetConfig("emailbox", "pwd");
       mail.SetLogin(mail_sender.c_str());
       mail.SetPassword(mail_password.c_str());
 

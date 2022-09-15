@@ -14,34 +14,34 @@ PublishState::PublishState() {
   ;
 }
 
-void PublishState::publish_event(void) {
-  publish_to_manage();
+void PublishState::PublishEvent(void) {
+  PublishToManage();
   std::this_thread::sleep_for(10s);
-  publish_to_strategy();
+  PublishToStrategy();
 }
 
-void PublishState::publish_to_strategy(void) {
+void PublishState::PublishToStrategy(void) {
   char date_buff[10];
-  get_trade_data(date_buff);
-  auto &marketSer = MarketService::getInstance();
+  GetTradeData(date_buff);
+  auto &market_ser = MarketService::GetInstance();
 
   strategy_market::TickMarketState_MarketState state = strategy_market::TickMarketState_MarketState_reserve;
-  if (marketSer.ROLE(MarketTimeState).get_sub_time_state() == kInDayLogout) {
+  if (market_ser.ROLE(MarketTimeState).GetSubTimeState() == kInDayLogout) {
     state = strategy_market::TickMarketState_MarketState_day_close;
     INFO_LOG("Publish makret state: day_close, date: %s to strategy.", date_buff);
-  } else if (marketSer.ROLE(MarketTimeState).get_sub_time_state() == kInNightLogout) {
+  } else if (market_ser.ROLE(MarketTimeState).GetSubTimeState() == kInNightLogout) {
     state = strategy_market::TickMarketState_MarketState_night_close;
     INFO_LOG("Publish makret state: night_close, date: %s to strategy.", date_buff);
-  } else if (marketSer.ROLE(MarketTimeState).get_sub_time_state() == kInDayLogin) {
+  } else if (market_ser.ROLE(MarketTimeState).GetSubTimeState() == kInDayLogin) {
     state = strategy_market::TickMarketState_MarketState_day_open;
     INFO_LOG("Publish makret state: day_open, date: %s to strategy.", date_buff);
-  } else if (marketSer.ROLE(MarketTimeState).get_sub_time_state() == kInNightLogin) {
+  } else if (market_ser.ROLE(MarketTimeState).GetSubTimeState() == kInNightLogin) {
     state = strategy_market::TickMarketState_MarketState_night_open;
     INFO_LOG("Publish makret state: night_open, date: %s to strategy.", date_buff);
   }
 
-  auto keyNameList = marketSer.ROLE(ControlPara).get_prid_list();
-  for (auto &keyname : keyNameList) {
+  auto key_name_kist = market_ser.ROLE(ControlPara).GetPridList();
+  for (auto &keyname : key_name_kist) {
     strategy_market::message tick;
     auto market_state = tick.mutable_market_state();
 
@@ -49,32 +49,32 @@ void PublishState::publish_to_strategy(void) {
     market_state->set_date(date_buff);
 
     utils::ItpMsg msg;
-    tick.SerializeToString(&msg.pbMsg);
-    msg.sessionName = "strategy_market";
-    msg.msgName = "TickMarketState." + keyname;
-    auto &recerSender = RecerSender::getInstance();
-    recerSender.ROLE(Sender).ROLE(ProxySender).Send(msg);
+    tick.SerializeToString(&msg.pb_msg);
+    msg.session_name = "strategy_market";
+    msg.msg_name = "TickMarketState." + keyname;
+    auto &recer_sender = RecerSender::GetInstance();
+    recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
 
     std::this_thread::sleep_for(10ms);
   }
 }
 
-void PublishState::publish_to_manage(void) {
+void PublishState::PublishToManage(void) {
   char date_buff[10];
-  get_trade_data(date_buff);
-  auto &marketSer = MarketService::getInstance();
+  GetTradeData(date_buff);
+  auto &market_ser = MarketService::GetInstance();
 
   manage_market::TickMarketState_MarketState state = manage_market::TickMarketState_MarketState_reserve;
-  if (marketSer.ROLE(MarketTimeState).get_sub_time_state() == kInDayLogout) {
+  if (market_ser.ROLE(MarketTimeState).GetSubTimeState() == kInDayLogout) {
     state = manage_market::TickMarketState_MarketState_day_close;
     INFO_LOG("Publish makret state: day_close, date: %s to manage.", date_buff);
-  } else if (marketSer.ROLE(MarketTimeState).get_sub_time_state() == kInNightLogout) {
+  } else if (market_ser.ROLE(MarketTimeState).GetSubTimeState() == kInNightLogout) {
     state = manage_market::TickMarketState_MarketState_night_close;
     INFO_LOG("Publish makret state: night_close, date: %s to manage.", date_buff);
-  } else if (marketSer.ROLE(MarketTimeState).get_sub_time_state() == kInDayLogin) {
+  } else if (market_ser.ROLE(MarketTimeState).GetSubTimeState() == kInDayLogin) {
     state = manage_market::TickMarketState_MarketState_day_open;
     INFO_LOG("Publish makret state: day_open, date: %s to manage.", date_buff);
-  } else if (marketSer.ROLE(MarketTimeState).get_sub_time_state() == kInNightLogin) {
+  } else if (market_ser.ROLE(MarketTimeState).GetSubTimeState() == kInNightLogin) {
     state = manage_market::TickMarketState_MarketState_night_open;
     INFO_LOG("Publish makret state: night_open, date: %s to manage.", date_buff);
   }
@@ -86,87 +86,87 @@ void PublishState::publish_to_manage(void) {
   market_state->set_date(date_buff);
 
   utils::ItpMsg msg;
-  tick.SerializeToString(&msg.pbMsg);
-  msg.sessionName = "manage_market";
-  msg.msgName = "TickMarketState.00000000000";
-  auto &recerSender = RecerSender::getInstance();
-  recerSender.ROLE(Sender).ROLE(ProxySender).Send(msg);
+  tick.SerializeToString(&msg.pb_msg);
+  msg.session_name = "manage_market";
+  msg.msg_name = "TickMarketState.00000000000";
+  auto &recer_sender = RecerSender::GetInstance();
+  recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
 }
 
-int PublishState::is_leap_year(int y) {
-  if ((y % 4 == 0 && y % 100 != 0) || y % 400 == 0) {
+int PublishState::IsLeapYear(int year) {
+  if ((year % 4 == 0 && year % 100 != 0) || year % 400 == 0) {
     return 1;
   } else {
     return 0;
   }
 }
 
-void PublishState::get_trade_data(char *buff) {
-  int y, m, d, a[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+void PublishState::GetTradeData(char *buff) {
+  int year, mon, day, mon_days[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
   time_t now_time = time(NULL);
   // local time
   tm *local_time = localtime(&now_time);
 
-  y = 1900 + local_time->tm_year;
-  m = 1 + local_time->tm_mon;
-  d = local_time->tm_mday;
+  year = 1900 + local_time->tm_year;
+  mon = 1 + local_time->tm_mon;
+  day = local_time->tm_mday;
 
-  if (is_leap_year(y) == 1) {
-    a[1] = 29;
+  if (IsLeapYear(year) == 1) {
+    mon_days[1] = 29;
   }
 
   if (20 <= local_time->tm_hour && local_time->tm_hour <= 23) {
     if (local_time->tm_wday == 5) {
-      d += 3;
-      while (d > a[m - 1]) {
-        d -= a[m - 1];
-        m++;
-        if (m > 12) {
-          m = 1;
-          y++;
-          if (is_leap_year(y) == 1) {
-            a[1] = 29;
+      day += 3;
+      while (day > mon_days[mon - 1]) {
+        day -= mon_days[mon - 1];
+        mon++;
+        if (mon > 12) {
+          mon = 1;
+          year++;
+          if (IsLeapYear(year) == 1) {
+            mon_days[1] = 29;
           } else {
-            a[1] = 28;
+            mon_days[1] = 28;
           }
         }
       }
-      sprintf(buff, "%04d%02d%02d", y, m, d);
+      sprintf(buff, "%04d%02d%02d", year, mon, day);
     } else {
-      d += 1;
-      while (d > a[m - 1]) {
-        d -= a[m - 1];
-        m++;
-        if (m > 12) {
-          m = 1;
-          y++;
-          if (is_leap_year(y) == 1) {
-            a[1] = 29;
+      day += 1;
+      while (day > mon_days[mon - 1]) {
+        day -= mon_days[mon - 1];
+        mon++;
+        if (mon > 12) {
+          mon = 1;
+          year++;
+          if (IsLeapYear(year) == 1) {
+            mon_days[1] = 29;
           } else {
-            a[1] = 28;
+            mon_days[1] = 28;
           }
         }
       }
-      sprintf(buff, "%04d%02d%02d", y, m, d);
+      sprintf(buff, "%04d%02d%02d", year, mon, day);
     }
   } else if (1 <= local_time->tm_hour && local_time->tm_hour <= 3 && local_time->tm_wday == 6) {
-    d += 2;
-    while (d > a[m - 1]) {
-      d -= a[m - 1];
-      m++;
-      if (m > 12) {
-        m = 1;
-        y++;
-        if (is_leap_year(y) == 1) {
-          a[1] = 29;
+    day += 2;
+    while (day > mon_days[mon - 1]) {
+      day -= mon_days[mon - 1];
+      mon++;
+      if (mon > 12) {
+        mon = 1;
+        year++;
+        if (IsLeapYear(year) == 1) {
+          mon_days[1] = 29;
         } else {
-          a[1] = 28;
+          mon_days[1] = 28;
         }
       }
     }
-    sprintf(buff, "%04d%02d%02d", y, m, d);
+    sprintf(buff, "%04d%02d%02d", year, mon, day);
   } else {
-    sprintf(buff, "%04d%02d%02d", y, m, d);
+    sprintf(buff, "%04d%02d%02d", year, mon, day);
   }
 }

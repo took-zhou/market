@@ -5,7 +5,7 @@
 ItpRecer::ItpRecer() {}
 
 bool ItpRecer::ReceMsg(utils::ItpMsg &msg) {
-  auto &innerBaseZmq = InnerZmq::getInstance();
+  auto &inner_base_zmq = InnerZmq::GetInstance();
 
-  return innerBaseZmq.PullTask(msg);
+  return inner_base_zmq.PullTask(msg);
 }

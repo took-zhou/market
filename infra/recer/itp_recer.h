@@ -8,7 +8,7 @@ struct ItpRecer {
   ItpRecer();
   ItpRecer(const ItpRecer &) = delete;
   ItpRecer &operator=(const ItpRecer &) = delete;
-  static ItpRecer &getInstance() {
+  static ItpRecer &GetInstance() {
     static ItpRecer instance;
     return instance;
   }

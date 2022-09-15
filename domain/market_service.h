@@ -23,7 +23,7 @@ struct MarketService : MarketTimeState, LoadData, ControlPara, PublishData, Publ
   MarketService();
   MarketService(const MarketService &) = delete;
   MarketService &operator=(const MarketService &) = delete;
-  static MarketService &getInstance() {
+  static MarketService &GetInstance() {
     static MarketService instance;
     return instance;
   }

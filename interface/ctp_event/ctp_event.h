@@ -30,13 +30,13 @@ struct CtpEvent {
   // 处理登出事件处理
   void OnRspUserLogoutHandle(utils::ItpMsg &msg);
 
-  void set_block_control(ctpview_market::BlockControl_Command command);
+  void SetBlockControl(ctpview_market::BlockControl_Command command);
 
   std::map<std::string, std::function<void(utils::ItpMsg &msg)>> msg_func_map;
 
  private:
-  std::string req_instrument_from = "local";
-  ctpview_market::BlockControl_Command block_control = ctpview_market::BlockControl_Command_unblock;
+  std::string req_instrument_from_ = "local";
+  ctpview_market::BlockControl_Command block_control_ = ctpview_market::BlockControl_Command_unblock;
 };
 
 #endif /* WORKSPACE_MARKET_INTERFACE_CTPEVENT_CTPEVENT_H_ */

@@ -24,26 +24,26 @@ void ManageEvent::RegMsgFun() {
 }
 
 void ManageEvent::Handle(utils::ItpMsg &msg) {
-  auto iter = msg_func_map.find(msg.msgName);
+  auto iter = msg_func_map.find(msg.msg_name);
   if (iter != msg_func_map.end()) {
     iter->second(msg);
     return;
   }
-  ERROR_LOG("can not find func for msgName [%s]!", msg.msgName.c_str());
+  ERROR_LOG("can not find func for msg_name [%s]!", msg.msg_name.c_str());
   return;
 }
 
 void ManageEvent::TickMarketStateReqReqHandle(utils::ItpMsg &msg) {
-  manage_market::message _req;
-  _req.ParseFromString(msg.pbMsg);
-  auto req = _req.market_state_req();
+  manage_market::message message;
+  message.ParseFromString(msg.pb_msg);
+  auto req = message.market_state_req();
 
   std::string isreq = req.req();
 
   INFO_LOG("set market state req: %s", isreq.c_str());
 
   if (isreq == "yes") {
-    auto &marketSer = MarketService::getInstance();
-    marketSer.ROLE(PublishState).publish_to_manage();
+    auto &market_ser = MarketService::GetInstance();
+    market_ser.ROLE(PublishState).PublishToManage();
   }
 }

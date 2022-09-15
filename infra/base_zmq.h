@@ -14,13 +14,13 @@ struct BaseZmq {
   BaseZmq();
   BaseZmq(const BaseZmq &) = delete;
   BaseZmq &operator=(const BaseZmq &) = delete;
-  static BaseZmq &getInstance() {
+  static BaseZmq &GetInstance() {
     static BaseZmq instance;
     return instance;
   }
 
-  void SubscribeTopic(const char *topicStr);
-  void UnSubscribeTopic(const char *topicStr);
+  void SubscribeTopic(const char *topic_str);
+  void UnSubscribeTopic(const char *topic_str);
 
   int SendMsg(const std::string &msg);
   int RecvMsg(std::string &msg);

@@ -14,21 +14,21 @@ class MarketTimeState {
   MarketTimeState();
   ~MarketTimeState();
 
-  void set_time_state(int command);
-  TimeState get_time_state();
-  SubTimeState get_sub_time_state();
+  void SetTimeState(int command);
+  TimeState GetTimeState();
+  SubTimeState GetSubTimeState();
 
  private:
-  uint8_t is_active_step = false;
-  SubTimeState sub_time_state;
-  TimeState time_state = kReserve;
-  TimeState debug_time_state = kReserve;
+  uint8_t is_active_step_ = false;
+  SubTimeState sub_time_state_;
+  TimeState time_state_ = kReserve;
+  TimeState debug_time_state_ = kReserve;
 
-  uint8_t now_mins;
-  uint8_t day_login_mins;
-  uint8_t day_logout_mins;
-  uint8_t night_login_mins;
-  uint8_t night_logout_mins;
+  uint8_t now_mins_;
+  uint8_t day_login_mins_;
+  uint8_t day_logout_mins_;
+  uint8_t night_login_mins_;
+  uint8_t night_logout_mins_;
 
   uint8_t IsDuringDayLogoutTime(void);
   uint8_t IsDuringNightLogoutTime(void);

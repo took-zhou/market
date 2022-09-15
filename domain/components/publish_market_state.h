@@ -4,16 +4,16 @@
 struct PublishState {
  public:
   PublishState();
-  void publish_event(void);
+  void PublishEvent(void);
 
-  void publish_to_strategy(void);
-  void publish_to_manage(void);
-  void get_trade_data(char *);
+  void PublishToStrategy(void);
+  void PublishToManage(void);
+  void GetTradeData(char *);
 
   ~PublishState(){};
 
  private:
-  int is_leap_year(int y);
+  int IsLeapYear(int year);
 };
 
 #endif

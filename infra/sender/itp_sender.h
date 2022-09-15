@@ -8,20 +8,20 @@ struct ItpSender {
   ItpSender();
   ItpSender(const ItpSender &) = delete;
   ItpSender &operator=(const ItpSender &) = delete;
-  static ItpSender &getInstance() {
+  static ItpSender &GetInstance() {
     static ItpSender instance;
     return instance;
   }
 
   bool ReqUserLogin();
   bool ReqUserLogout();
-  bool SubscribeMarketData(std::vector<utils::InstrumtntID> const &nameVec);
-  bool UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &nameVec);
+  bool SubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec);
+  bool UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec);
   bool ReqInstrumentInfo(const utils::InstrumtntID &ins);
   bool LossConnection();
 
  private:
-  SendApi *send_api = nullptr;
+  SendApi *send_api_ = nullptr;
 };
 
 #endif

@@ -17,25 +17,25 @@
 #include "market/interface/market_event.h"
 
 int main(int argc, char *agrv[]) {
-  auto &jsonCfg = utils::JsonConfig::getInstance();
+  auto &json_cfg = utils::JsonConfig::GetInstance();
 
-  std::string marketLogPath = jsonCfg.get_config("market", "LogPath").get<std::string>();
-  utils::CreatFolder(marketLogPath);
-  LOG_INIT(marketLogPath.c_str(), "marketlog", 6);
-  INFO_LOG("markt log path is %s", marketLogPath.c_str());
+  std::string market_log_path = json_cfg.GetConfig("market", "LogPath").get<std::string>();
+  utils::CreatFolder(market_log_path);
+  LOG_INIT(market_log_path.c_str(), "marketlog", 6);
+  INFO_LOG("markt log path is %s", market_log_path.c_str());
 
-  std::string compile_time = utils::get_compile_time();
-  jsonCfg.WriteConfig("market", "CompileTime", compile_time);
+  std::string compile_time = utils::GetCompileTime();
+  json_cfg.WriteConfig("market", "CompileTime", compile_time);
   INFO_LOG("program last build at %s.", compile_time.c_str());
 
-  auto &marketSer = MarketService::getInstance();
+  auto &market_ser = MarketService::GetInstance();
   INFO_LOG("marketSer.init ok");
 
   std::this_thread::sleep_for(3s);
 
-  auto &marketEvent = MarketEvent::getInstance();
+  auto &market_event = MarketEvent::GetInstance();
   INFO_LOG("marketEvent.init ok");
-  marketEvent.Run();
+  market_event.Run();
 
   return 0;
 }

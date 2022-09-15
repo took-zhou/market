@@ -4,18 +4,20 @@
 #include "market/infra/sender/xtp_sender.h"
 
 ItpSender::ItpSender() {
-  auto &jsonCfg = utils::JsonConfig::getInstance();
-  auto apiType = jsonCfg.get_config("common", "ApiType");
-  if (apiType == "ctp") {
-    send_api = new CtpSender();
-  } else if (apiType == "xtp") {
-    send_api = new XtpSender();
+  auto &json_cfg = utils::JsonConfig::GetInstance();
+  auto api_type = json_cfg.GetConfig("common", "ApiType");
+  if (api_type == "ctp") {
+    send_api_ = new CtpSender();
+  } else if (api_type == "xtp") {
+    send_api_ = new XtpSender();
   }
 }
 
-bool ItpSender::ReqUserLogin() { send_api->ReqUserLogin(); }
-bool ItpSender::ReqUserLogout() { send_api->ReqUserLogout(); }
-bool ItpSender::SubscribeMarketData(std::vector<utils::InstrumtntID> const &nameVec) { send_api->SubscribeMarketData(nameVec); }
-bool ItpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &nameVec) { send_api->UnSubscribeMarketData(nameVec); }
-bool ItpSender::ReqInstrumentInfo(const utils::InstrumtntID &ins) { send_api->ReqInstrumentInfo(ins); }
-bool ItpSender::LossConnection() { send_api->LossConnection(); }
+bool ItpSender::ReqUserLogin() { return send_api_->ReqUserLogin(); }
+bool ItpSender::ReqUserLogout() { return send_api_->ReqUserLogout(); }
+bool ItpSender::SubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec) { return send_api_->SubscribeMarketData(name_vec); }
+bool ItpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec) {
+  return send_api_->UnSubscribeMarketData(name_vec);
+}
+bool ItpSender::ReqInstrumentInfo(const utils::InstrumtntID &ins) { return send_api_->ReqInstrumentInfo(ins); }
+bool ItpSender::LossConnection() { return send_api_->LossConnection(); }

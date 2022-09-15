@@ -32,7 +32,7 @@ struct RecerSender : Recer, Sender {
   RecerSender(){};
   RecerSender(const RecerSender &) = delete;
   RecerSender &operator=(const RecerSender &) = delete;
-  static RecerSender &getInstance() {
+  static RecerSender &GetInstance() {
     static RecerSender instance;
     return instance;
   }

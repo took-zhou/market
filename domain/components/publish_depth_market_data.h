@@ -22,31 +22,31 @@ struct PublishData : public MarketData {
 
   // 超时发送默认数据
   void HeartBeatDetect();
-  void OnceFromDefault(const PublishControl &pc, const std::string &keyname);
+  void OnceFromDefault(const PublishControl &p_c, const std::string &keyname);
 
   // ctp深度行情发送
  public:
-  void DirectForwardDataToStrategy(CThostFtdcDepthMarketDataField *pD);
-  void OnceFromDataflow(const PublishControl &pc, CThostFtdcDepthMarketDataField *pD);
+  void DirectForwardDataToStrategy(CThostFtdcDepthMarketDataField *p_d);
+  void OnceFromDataflow(const PublishControl &p_c, CThostFtdcDepthMarketDataField *p_d);
 
  private:
-  void OnceFromDataflowSelectRawtick(const PublishControl &pc, CThostFtdcDepthMarketDataField *pD);
-  void OnceFromDataflowSelectLevel1(const PublishControl &pc, CThostFtdcDepthMarketDataField *pD);
-  bool IsValidLevel1Data(const PublishControl &pc, CThostFtdcDepthMarketDataField *pD);
+  void OnceFromDataflowSelectRawtick(const PublishControl &p_c, CThostFtdcDepthMarketDataField *p_d);
+  void OnceFromDataflowSelectLevel1(const PublishControl &p_c, CThostFtdcDepthMarketDataField *p_d);
+  bool IsValidLevel1Data(const PublishControl &p_c, CThostFtdcDepthMarketDataField *p_d);
 
   // xtp深度行情发送
  public:
-  void DirectForwardDataToStrategy(XTPMD *pD);
-  void OnceFromDataflow(const PublishControl &pc, XTPMD *pD);
+  void DirectForwardDataToStrategy(XTPMD *p_d);
+  void OnceFromDataflow(const PublishControl &p_c, XTPMD *p_d);
 
  private:
-  void OnceFromDataflowSelectRawtick(const PublishControl &pc, XTPMD *pD);
-  void OnceFromDataflowSelectLevel1(const PublishControl &pc, XTPMD *pD);
-  bool IsValidLevel1Data(const PublishControl &pc, XTPMD *pD);
+  void OnceFromDataflowSelectRawtick(const PublishControl &p_c, XTPMD *p_d);
+  void OnceFromDataflowSelectLevel1(const PublishControl &p_c, XTPMD *p_d);
+  bool IsValidLevel1Data(const PublishControl &p_c, XTPMD *p_d);
 
  private:
-  const uint8_t kDataLevel = 1;
-  const uint32_t kHeartBeatWaitTime = 60;
+  const uint8_t kDataLevel_ = 1;
+  const uint32_t kHeartBeatWaitTime_ = 60;
 };
 
 #endif
