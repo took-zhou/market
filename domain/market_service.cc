@@ -41,5 +41,5 @@ MarketService::MarketService() {
     }
   };
   std::thread(market_log_in_out_fuc).detach();
-  INFO_LOG("marketLogInOutFuc prepare ok");
+  INFO_LOG("market_log_in_out_fuc prepare ok");
 }

@@ -45,6 +45,8 @@ class CtpMarketSpi : public CThostFtdcMdSpi {
   void OnRtnForQuoteRsp(CThostFtdcForQuoteRspField *for_quote_rsp){};
 
   bool front_disconnected = false;
+
+  int re_connect = 0;
 };
 
 #endif /* WORKSPACE_MARKET_INFRA_CTPRECER_H_ */

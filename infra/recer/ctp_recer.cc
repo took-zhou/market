@@ -13,7 +13,6 @@
 #include "market/infra/inner_zmq.h"
 
 void CtpMarketSpi::OnFrontConnected() {
-  static int re_connect = 0;
   INFO_LOG("OnFrontConnected():is excuted...");
   // 在登出后系统会重新调用OnFrontConnected，这里简单判断并忽略第1次之后的所有调用。
   if (re_connect++ == 0) {
@@ -71,6 +70,8 @@ void CtpMarketSpi::OnRspUserLogout(CThostFtdcUserLogoutField *user_logout, CThos
 
 void CtpMarketSpi::OnRspUserLogout(void) {
   CThostFtdcRspInfoField field;
+  field.ErrorID = 0;
+  strcpy(field.ErrorMsg, "force logout");
 
   ipc::message req_msg;
   auto send_msg = req_msg.mutable_itp_msg();

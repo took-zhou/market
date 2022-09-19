@@ -29,12 +29,12 @@ int main(int argc, char *agrv[]) {
   INFO_LOG("program last build at %s.", compile_time.c_str());
 
   auto &market_ser = MarketService::GetInstance();
-  INFO_LOG("marketSer.init ok");
+  INFO_LOG("market_ser init ok");
 
   std::this_thread::sleep_for(3s);
 
   auto &market_event = MarketEvent::GetInstance();
-  INFO_LOG("marketEvent.init ok");
+  INFO_LOG("market_event init ok");
   market_event.Run();
 
   return 0;

@@ -24,7 +24,6 @@ XtpEvent::XtpEvent() {
   RegMsgFun();
   auto &json_cfg = utils::JsonConfig::GetInstance();
   req_instrument_from_ = json_cfg.GetConfig("market", "SubscribeMarketDataFrom").get<std::string>();
-  INFO_LOG("SubscribeMarketDataFrom: %s.", req_instrument_from_.c_str());
 }
 
 void XtpEvent::RegMsgFun() {

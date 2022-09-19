@@ -24,7 +24,7 @@ bool CtpSender::Init(void) {
     auto &json_cfg = utils::JsonConfig::GetInstance();
     auto users = json_cfg.GetConfig("market", "User");
     for (auto &user : users) {
-      con_path_ = json_cfg.GetConfig("market", "con_path").get<std::string>() + "/" + std::string(user) + "/";
+      con_path_ = json_cfg.GetConfig("market", "ConPath").get<std::string>() + "/" + std::string(user) + "/";
       utils::CreatFolder(con_path_);
       market_api = CThostFtdcMdApi::CreateFtdcMdApi(con_path_.c_str(), true, true);
       INFO_LOG("ctp version: %s.", market_api->GetApiVersion());
@@ -179,15 +179,15 @@ bool CtpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &na
   if (md_num > 0) {
     result = market_api->UnSubscribeMarketData(pp_instrument_id, md_num);
     if (result == 0) {
-      INFO_LOG("unSubscription request ......Send a success, total number: %d", md_num);
+      INFO_LOG("UnSubscription request ......Send a success, total number: %d", md_num);
     } else {
       INFO_LOG(
-          "unSubscription request ......Failed to send, error serial "
+          "UnSubscription request ......Failed to send, error serial "
           "number=[%d]",
           result);
     }
   } else {
-    INFO_LOG("no instrument need to unSubscription.");
+    INFO_LOG("no instrument need to UnSubscription.");
   }
 
   delete[] pp_instrument_id;

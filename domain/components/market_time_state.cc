@@ -157,10 +157,10 @@ MarketTimeState::MarketTimeState() {
   vector<string> night_start_str_split = utils::SplitString(night_time_str_split[0], ":");
   vector<string> night_end_str_split = utils::SplitString(night_time_str_split[1], ":");
 
-  day_login_mins_ = atoi(day_start_str_split[0].c_str()) * 60 + atoi(day_start_str_split[1].c_str());
-  day_logout_mins_ = atoi(day_end_str_split[0].c_str()) * 60 + atoi(day_end_str_split[1].c_str());
-  night_login_mins_ = atoi(night_start_str_split[0].c_str()) * 60 + atoi(night_start_str_split[1].c_str());
-  night_logout_mins_ = atoi(night_end_str_split[0].c_str()) * 60 + atoi(night_end_str_split[1].c_str());
+  day_login_mins_ = stoi(day_start_str_split[0]) * 60 + stoi(day_start_str_split[1]);
+  day_logout_mins_ = stoi(day_end_str_split[0]) * 60 + stoi(day_end_str_split[1]);
+  night_login_mins_ = stoi(night_start_str_split[0]) * 60 + stoi(night_start_str_split[1]);
+  night_logout_mins_ = stoi(night_end_str_split[0]) * 60 + stoi(night_end_str_split[1]);
 
   INFO_LOG("%d %d %d %d", day_login_mins_, day_logout_mins_, night_login_mins_, night_logout_mins_);
 }
