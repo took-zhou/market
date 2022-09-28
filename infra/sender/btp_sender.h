@@ -5,17 +5,17 @@
  *      Author: Administrator
  */
 
-#ifndef WORKSPACE_MARKET_INFRA_XTPSENDER_H_
-#define WORKSPACE_MARKET_INFRA_XTPSENDER_H_
+#ifndef WORKSPACE_MARKET_INFRA_BTPSENDER_H_
+#define WORKSPACE_MARKET_INFRA_BTPSENDER_H_
 
-#include "common/extern/xtp/inc/xtp_quote_api.h"
+#include "common/extern/btp/inc/btp_market_api.h"
 #include "common/self/utils.h"
-#include "market/infra/recer/xtp_recer.h"
+#include "market/infra/recer/btp_recer.h"
 #include "market/infra/sender/send_api.h"
 
-struct XtpSender : SendApi {
+struct BtpSender : SendApi {
  public:
-  XtpSender(void);
+  BtpSender(void);
   bool ReqUserLogin();
   bool ReqUserLogout();
   bool SubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id = 0);
@@ -23,11 +23,10 @@ struct XtpSender : SendApi {
   bool ReqInstrumentInfo(const utils::InstrumtntID &ins, int request_id);
   bool LossConnection();
 
-  static XTP::API::QuoteApi *quote_api;
-  static XtpQuoteSpi *quote_spi;
+  static btp::api::MarketApi *market_api;
+  static BtpMarketSpi *market_spi;
 
  private:
-  void UpdateInstrumentInfoFromTrader();
   bool Init(void);
   bool Release(void);
 

@@ -6,7 +6,7 @@ enum TimeState { kReserve = 0, kLoginTime = 1, kLogoutTime = 2 };
 
 enum SubTimeState { kInDayLogin = 1, kInDayLogout = 2, kInInitSts = 3, kInNightLogin = 4, kInNightLogout = 5 };
 
-class MarketTimeState {
+struct MarketTimeState {
  public:
   void Step();
   void Update(void);

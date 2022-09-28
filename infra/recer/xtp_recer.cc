@@ -21,7 +21,7 @@ void XtpQuoteSpi::OnDisconnected(int reason) {
 
 // market端ctp登入没有反馈，主动调用反馈接口
 void XtpQuoteSpi::OnRspUserLogin(void) {
-  std::unique_ptr<XTPRI> field = std::make_unique<XTPRI>();
+  std::unique_ptr<XTPRI> field(new XTPRI);
   field->error_id = 0;
   strcpy(field->error_msg, "force login");
 
@@ -43,7 +43,7 @@ void XtpQuoteSpi::OnRspUserLogin(void) {
 
 // market端xtp登出没有反馈，主动调用反馈接口
 void XtpQuoteSpi::OnRspUserLogout(void) {
-  std::unique_ptr<XTPRI> field = std::make_unique<XTPRI>();
+  std::unique_ptr<XTPRI> field(new XTPRI);
   field->error_id = 0;
   strcpy(field->error_msg, "force logout");
 
@@ -54,6 +54,22 @@ void XtpQuoteSpi::OnRspUserLogout(void) {
   req_msg.SerializeToString(&msg.pb_msg);
   msg.session_name = "xtp_market";
   msg.msg_name = "OnRspUserLogout";
+
+  auto &global_sem = GlobalSem::GetInstance();
+  auto &inner_zmq = InnerZmq::GetInstance();
+  inner_zmq.PushTask(msg);
+  global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
+}
+
+void XtpQuoteSpi::OnRspInstrumentInfo(XTPQSI *ticker_info, int request_id) {
+  ipc::message req_msg;
+  auto send_msg = req_msg.mutable_itp_msg();
+  send_msg->set_address(reinterpret_cast<int64_t>(ticker_info));
+  send_msg->set_request_id(request_id);
+  utils::ItpMsg msg;
+  req_msg.SerializeToString(&msg.pb_msg);
+  msg.session_name = "xtp_market";
+  msg.msg_name = "OnRspInstrumentInfo";
 
   auto &global_sem = GlobalSem::GetInstance();
   auto &inner_zmq = InnerZmq::GetInstance();

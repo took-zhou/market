@@ -45,9 +45,9 @@ bool MarketData::IsValidTickData(CThostFtdcDepthMarketDataField *p_d) {
   int delay_second = now_second - tick_second;
 
 #ifdef BENCH_TEST
-  if (delaySecond != 0) {
-    INFO_LOG("%s local time: %02d:%02d:%02d--ctp time: %s delaySecond %d", pD->InstrumentID, local_time->tm_hour, local_time->tm_min,
-             local_time->tm_sec, pD->UpdateTime, delaySecond);
+  if (delay_second != 0) {
+    INFO_LOG("%s local time: %02d:%02d:%02d--ctp time: %s delay_second %d", p_d->InstrumentID, local_time->tm_hour, local_time->tm_min,
+             local_time->tm_sec, p_d->UpdateTime, delay_second);
   }
 #endif
 
@@ -75,9 +75,9 @@ bool MarketData::IsValidTickData(XTPMD *p_d) {
 
   int delay_second = now_second - tick_second;
 #ifdef BENCH_TEST
-  if (delaySecond != 0) {
-    INFO_LOG("%s local time: %02d:%02d:%02d--ctp time:  %02d:%02d:%02d delaySecond %d", pD->ticker, local_time->tm_hour, local_time->tm_min,
-             local_time->tm_sec, tick_tm.tm_hour, tick_tm.tm_min, tick_tm.tm_sec, delaySecond);
+  if (delay_second != 0) {
+    INFO_LOG("%s local time: %02d:%02d:%02d--ctp time:  %02d:%02d:%02d delay_second %d", p_d->ticker, local_time->tm_hour,
+             local_time->tm_min, local_time->tm_sec, tick_tm.tm_hour, tick_tm.tm_min, tick_tm.tm_sec, delay_second);
   }
 #endif
   if (delay_second <= 180 && delay_second >= -180 && p_d->bid_qty[0] > 0 && p_d->ask_qty[0] > 0 && p_d->bid[0] > 0.0 && p_d->ask[0] > 0.0) {
@@ -85,28 +85,6 @@ bool MarketData::IsValidTickData(XTPMD *p_d) {
   }
 
   return ret;
-}
-
-bool MarketData::InsertInsExchPair(const std::string &ins, const std::string &exch) {
-  auto iter = instrument_exchange_map_.find(ins);
-  if (iter != instrument_exchange_map_.end()) {
-    if (instrument_exchange_map_[ins] != exch) {
-      instrument_exchange_map_.insert(pair<string, string>(ins, exch));
-    }
-  } else {
-    instrument_exchange_map_.insert(pair<string, string>(ins, exch));
-  }
-  return true;
-}
-
-bool MarketData::ClearInsExchPair(void) {
-  instrument_exchange_map_.clear();
-  return true;
-}
-
-bool MarketData::ShowInsExchPair(void) {
-  INFO_LOG("instrument_exchange_map size: %d", (int)instrument_exchange_map_.size());
-  return true;
 }
 
 double MarketData::Max2zero(double num) {
@@ -117,16 +95,6 @@ double MarketData::Max2zero(double num) {
     ret = num;
   }
   return ret;
-}
-
-std::string MarketData::FindExchange(const std::string &ins) {
-  auto iter = instrument_exchange_map_.find(ins);
-  if (iter != instrument_exchange_map_.end()) {
-    return instrument_exchange_map_[ins];
-  } else {
-    ERROR_LOG("not find ins: %s", ins.c_str());
-    return "";
-  }
 }
 
 bool MarketData::GetLocalTime(char *t_arr) {

@@ -7,7 +7,6 @@
 
 #include "common/extern/ctp/inc/ThostFtdcUserApiStruct.h"
 #include "common/extern/xtp/inc/xquote_api_struct.h"
-
 #include "market/domain/components/depth_market_data.h"
 
 struct LoadData : public MarketData {

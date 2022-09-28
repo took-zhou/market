@@ -8,6 +8,7 @@
 #ifndef WORKSPACE_MARKET_INTERFACE_MARKETEVENT_H_
 #define WORKSPACE_MARKET_INTERFACE_MARKETEVENT_H_
 
+#include "market/interface/btp_event/btp_event.h"
 #include "market/interface/ctp_event/ctp_event.h"
 #include "market/interface/ctpview_event/ctpview_event.h"
 #include "market/interface/manage_event/manage_event.h"
@@ -20,7 +21,7 @@
 #include <string>
 #include "common/self/dci/role.h"
 
-struct MarketEvent : CtpEvent, XtpEvent, StrategyEvent, ManageEvent, TraderEvent, CtpviewEvent {
+struct MarketEvent : BtpEvent, CtpEvent, XtpEvent, StrategyEvent, ManageEvent, TraderEvent, CtpviewEvent {
   MarketEvent();
   MarketEvent(const MarketEvent &) = delete;
   MarketEvent &operator=(const MarketEvent &) = delete;
@@ -31,6 +32,7 @@ struct MarketEvent : CtpEvent, XtpEvent, StrategyEvent, ManageEvent, TraderEvent
 
   bool Run();
   void RegSessionFunc();
+  IMPL_ROLE(BtpEvent);
   IMPL_ROLE(CtpEvent);
   IMPL_ROLE(XtpEvent);
   IMPL_ROLE(StrategyEvent);

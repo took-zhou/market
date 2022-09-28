@@ -131,7 +131,7 @@ void MarketTimeState::Update(void) {
 
     Step();
 
-    std::this_thread::sleep_for(1000ms);
+    std::this_thread::sleep_for(std::chrono::seconds(1));
   }
 }
 

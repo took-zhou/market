@@ -54,6 +54,8 @@ class XtpQuoteSpi : public XTP::API::QuoteSpi {
 
   void OnRspUserLogin(void);
   void OnRspUserLogout(void);
+  // market端没有获取单个合约信息接口，主动调用反馈接口
+  void OnRspInstrumentInfo(XTPQSI *ticker_info, int request_id);
   bool front_disconnected = false;
 
  private:

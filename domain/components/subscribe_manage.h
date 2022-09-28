@@ -17,15 +17,14 @@ struct SubscribeManager {
   SubscribeManager();
   void ReqInstrumentsFromLocal();
   void ReqInstrumrntFromControlPara();
-  void ReqInstrumentsFromMarket();
-  void ReqInstrumentsFromTrader();
-  void SubscribeInstrument(std::vector<utils::InstrumtntID>& name_vec);
-  void UnSubscribeInstrument(std::vector<utils::InstrumtntID>& name_vec);
+  void ReqInstrumentsFromApi();
+  void SubscribeInstrument(std::vector<utils::InstrumtntID>& name_vec, int request_id = 0);
+  void UnSubscribeInstrument(std::vector<utils::InstrumtntID>& name_vec, int request_id = 0);
   void UnSubscribeAll();
 
  private:
-  const std::vector<utils::InstrumtntID> RemoveSubscribed(std::vector<utils::InstrumtntID>& name_vec);
-  const std::vector<utils::InstrumtntID> RemoveUnsubscribed(std::vector<utils::InstrumtntID>& name_vec);
+  void AddSubscribed(std::vector<utils::InstrumtntID>& name_vec);
+  void RemoveSubscribed(std::vector<utils::InstrumtntID>& name_vec);
   InstrumentIDs subscribed_;
 };
 

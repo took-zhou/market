@@ -34,7 +34,7 @@ bool XtpSender::Init(void) {
       quote_api->SetUDPBufferSize(1);
 
       INFO_LOG("quote_api init ok.");
-      std::this_thread::sleep_for(1000ms);
+      std::this_thread::sleep_for(std::chrono::seconds(1));
       break;
     }
     is_init_ = true;
@@ -84,15 +84,17 @@ bool XtpSender::ReqUserLogin(void) {
 bool XtpSender::ReqUserLogout() {
   INFO_LOG("logout time, is going to logout.");
 
-  int result = quote_api->Logout();
-  INFO_LOG("ReqUserLogout send result is [%d]", result);
+  if (quote_api != nullptr) {
+    int result = quote_api->Logout();
+    INFO_LOG("ReqUserLogout send result is [%d]", result);
 
-  auto &global_sem = GlobalSem::GetInstance();
-  if (global_sem.WaitSemBySemName(GlobalSem::kLoginLogout, 3) != 0) {
-    quote_spi->OnRspUserLogout();
+    auto &global_sem = GlobalSem::GetInstance();
+    if (global_sem.WaitSemBySemName(GlobalSem::kLoginLogout, 3) != 0) {
+      quote_spi->OnRspUserLogout();
+    }
+
+    Release();
   }
-
-  Release();
 
   return true;
 }
@@ -100,20 +102,22 @@ bool XtpSender::ReqUserLogout() {
 bool XtpSender::Release() {
   INFO_LOG("Is going to release quote_api.");
 
-  quote_api->Release();
-  quote_api = nullptr;
+  if (quote_api != nullptr) {
+    quote_api->Release();
+    quote_api = nullptr;
+  }
 
   // 释放UserSpi实例
-  if (quote_spi) {
+  if (quote_spi != nullptr) {
     delete quote_spi;
-    quote_spi = NULL;
+    quote_spi = nullptr;
   }
   is_init_ = false;
 
   return true;
 }
 
-bool XtpSender::SubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec) {
+bool XtpSender::SubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id) {
   int result = true;
   if (name_vec.size() > 500) {
     WARNING_LOG("too much instruments to unSubscription.");
@@ -156,7 +160,7 @@ bool XtpSender::SubscribeMarketData(std::vector<utils::InstrumtntID> const &name
   return true;
 }
 
-bool XtpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec) {
+bool XtpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id) {
   int result = true;
   if (name_vec.size() > 500) {
     WARNING_LOG("too much instruments to unSubscription.");
@@ -199,23 +203,34 @@ bool XtpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &na
   return true;
 }
 
-bool XtpSender::ReqInstrumentInfo(const utils::InstrumtntID &ins) {
-  if (ins.exch == "SHSE") {
-    if (ins.ins == "*") {
-      int result = quote_api->QueryAllTickers(XTP_EXCHANGE_SH);
-      if (result != 0) {
-        ERROR_LOG("request full shse market instruments, result[%d]", result);
-      }
-    }
-  } else if (ins.exch == "SZSE") {
-    if (ins.ins == "*") {
-      int result = quote_api->QueryAllTickers(XTP_EXCHANGE_SZ);
-      if (result != 0) {
-        ERROR_LOG("request full szse market instruments, result[%d]", result);
-      }
-    }
+void XtpSender::UpdateInstrumentInfoFromTrader() {
+  int result = quote_api->QueryAllTickers(XTP_EXCHANGE_SH);
+  if (result != 0) {
+    ERROR_LOG("request full shse market instruments, result[%d]", result);
   }
 
+  result = quote_api->QueryAllTickers(XTP_EXCHANGE_SZ);
+  if (result != 0) {
+    ERROR_LOG("request full szse market instruments, result[%d]", result);
+  }
+
+  auto &global_sem = GlobalSem::GetInstance();
+  global_sem.WaitSemBySemName(GlobalSem::kUpdateInstrumentInfo);
+  INFO_LOG("UpdateInstrumentInfoFromTrader ok");
+}
+
+bool XtpSender::ReqInstrumentInfo(const utils::InstrumtntID &ins, const int request_id) {
+  XTPQSI ticker_info;
+  strcpy(ticker_info.ticker, ins.ins.c_str());
+  if (ins.exch == "SZSE") {
+    ticker_info.exchange_id = XTP_EXCHANGE_SZ;
+  } else if (ins.exch == "SHSE") {
+    ticker_info.exchange_id = XTP_EXCHANGE_SH;
+  } else {
+    ticker_info.exchange_id = XTP_EXCHANGE_UNKNOWN;
+  }
+
+  quote_spi->OnRspInstrumentInfo(&ticker_info, request_id);
   return true;
 }
 

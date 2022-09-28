@@ -16,7 +16,7 @@ PublishState::PublishState() {
 
 void PublishState::PublishEvent(void) {
   PublishToManage();
-  std::this_thread::sleep_for(10s);
+  std::this_thread::sleep_for(std::chrono::seconds(10));
   PublishToStrategy();
 }
 
@@ -55,7 +55,7 @@ void PublishState::PublishToStrategy(void) {
     auto &recer_sender = RecerSender::GetInstance();
     recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
 
-    std::this_thread::sleep_for(10ms);
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
 }
 
@@ -99,6 +99,78 @@ int PublishState::IsLeapYear(int year) {
   } else {
     return 0;
   }
+}
+
+void PublishState::PublishEvent(BtpLoginLogoutStruct *login_logout) {
+  PublishToManage(login_logout);
+  std::this_thread::sleep_for(std::chrono::seconds(10));
+  PublishToStrategy(login_logout);
+}
+
+void PublishState::PublishToStrategy(BtpLoginLogoutStruct *login_logout) {
+  auto &market_ser = MarketService::GetInstance();
+
+  strategy_market::TickMarketState_MarketState state = strategy_market::TickMarketState_MarketState_reserve;
+  if (strcmp(login_logout->market_state, "day_close") == 0) {
+    state = strategy_market::TickMarketState_MarketState_day_close;
+    INFO_LOG("Publish makret state: day_close, date: %s to strategy.", login_logout->date);
+  } else if (strcmp(login_logout->market_state, "night_close") == 0) {
+    state = strategy_market::TickMarketState_MarketState_night_close;
+    INFO_LOG("Publish makret state: night_close, date: %s to strategy.", login_logout->date);
+  } else if (strcmp(login_logout->market_state, "day_open") == 0) {
+    state = strategy_market::TickMarketState_MarketState_day_open;
+    INFO_LOG("Publish makret state: day_open, date: %s to strategy.", login_logout->date);
+  } else if (strcmp(login_logout->market_state, "night_open") == 0) {
+    state = strategy_market::TickMarketState_MarketState_night_open;
+    INFO_LOG("Publish makret state: night_open, date: %s to strategy.", login_logout->date);
+  }
+
+  strategy_market::message tick;
+  auto market_state = tick.mutable_market_state();
+
+  market_state->set_market_state(state);
+  market_state->set_date(login_logout->date);
+
+  utils::ItpMsg msg;
+  tick.SerializeToString(&msg.pb_msg);
+  msg.session_name = "strategy_market";
+  msg.msg_name = "TickMarketState." + to_string(login_logout->prid);
+  auto &recer_sender = RecerSender::GetInstance();
+  recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(10));
+}
+
+void PublishState::PublishToManage(BtpLoginLogoutStruct *login_logout) {
+  auto &market_ser = MarketService::GetInstance();
+
+  manage_market::TickMarketState_MarketState state = manage_market::TickMarketState_MarketState_reserve;
+  if (strcmp(login_logout->market_state, "day_close") == 0) {
+    state = manage_market::TickMarketState_MarketState_day_close;
+    INFO_LOG("Publish makret state: day_close, date: %s to manage.", login_logout->date);
+  } else if (strcmp(login_logout->market_state, "night_close") == 0) {
+    state = manage_market::TickMarketState_MarketState_night_close;
+    INFO_LOG("Publish makret state: night_close, date: %s to manage.", login_logout->date);
+  } else if (strcmp(login_logout->market_state, "day_open") == 0) {
+    state = manage_market::TickMarketState_MarketState_day_open;
+    INFO_LOG("Publish makret state: day_open, date: %s to manage.", login_logout->date);
+  } else if (strcmp(login_logout->market_state, "night_open") == 0) {
+    state = manage_market::TickMarketState_MarketState_night_open;
+    INFO_LOG("Publish makret state: night_open, date: %s to manage.", login_logout->date);
+  }
+
+  manage_market::message tick;
+  auto market_state = tick.mutable_market_state();
+
+  market_state->set_market_state(state);
+  market_state->set_date(login_logout->date);
+
+  utils::ItpMsg msg;
+  tick.SerializeToString(&msg.pb_msg);
+  msg.session_name = "manage_market";
+  msg.msg_name = "TickMarketState.00000000000";
+  auto &recer_sender = RecerSender::GetInstance();
+  recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
 }
 
 void PublishState::GetTradeData(char *buff) {

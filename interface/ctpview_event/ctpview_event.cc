@@ -135,7 +135,7 @@ void CtpviewEvent::SimulateMarketStateHandle(utils::ItpMsg &msg) {
       auto &recer_sender = RecerSender::GetInstance();
       recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
 
-      std::this_thread::sleep_for(10ms);
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 
   } else if (simulate_market_state.target() == "manage") {
@@ -165,7 +165,7 @@ void CtpviewEvent::SimulateMarketStateHandle(utils::ItpMsg &msg) {
     msg.msg_name = "TickMarketState.0000000000";
     auto &recer_sender = RecerSender::GetInstance();
     recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
-    std::this_thread::sleep_for(10ms);
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
   } else {
     ERROR_LOG("not find target: %s.", simulate_market_state.target().c_str());
   }

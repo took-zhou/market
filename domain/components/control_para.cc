@@ -40,12 +40,14 @@ bool ControlPara::LoadFromJson(void) {
       for (int i = 0; i < read_data[iter.key()].size(); i++) {
         PublishControl temp_control;
         read_data[iter.key()][i].at("exch").get_to(temp_control.exch);
-        read_data[iter.key()][i].at("ticksize").get_to(temp_control.ticksize);
         read_data[iter.key()][i].at("prid").get_to(temp_control.prid);
         read_data[iter.key()][i].at("indication").get_to(temp_control.indication);
         read_data[iter.key()][i].at("interval").get_to(temp_control.interval);
         read_data[iter.key()][i].at("directforward").get_to(temp_control.directforward);
         read_data[iter.key()][i].at("source").get_to(temp_control.source);
+        read_data[iter.key()][i].at("begin").get_to(temp_control.begin);
+        read_data[iter.key()][i].at("end").get_to(temp_control.end);
+        read_data[iter.key()][i].at("speed").get_to(temp_control.speed);
 
         tempcontrol_vec.push_back(temp_control);
         INFO_LOG("load prid: %s, instrument: %s.", temp_control.prid.c_str(), iter.key().c_str());
@@ -70,11 +72,13 @@ bool ControlPara::WriteToJson(void) {
       FifoJson one_item;
       one_item["exch"] = item_id.exch;
       one_item["prid"] = item_id.prid;
-      one_item["ticksize"] = item_id.ticksize;
       one_item["indication"] = item_id.indication;
       one_item["interval"] = item_id.interval;
       one_item["source"] = item_id.source;
       one_item["directforward"] = item_id.directforward;
+      one_item["begin"] = item_id.begin;
+      one_item["end"] = item_id.end;
+      one_item["speed"] = item_id.speed;
       write_data[item_pc.first].push_back(one_item);
     }
   }
@@ -113,7 +117,7 @@ void ControlPara::EraseControlPara(const std::string &keyname) {
   for (auto &item_pc : publish_ctrl_map) {
     for (auto iter = item_pc.second.begin(); iter != item_pc.second.end();) {
       if (iter->prid == keyname) {
-        INFO_LOG("ins: %s, prid: %s req alive timeout, will not subscribe.", item_pc.first.c_str(), keyname.c_str());
+        INFO_LOG("ins: %s, prid: %s doesn't exist anymore, will not subscribe.", item_pc.first.c_str(), keyname.c_str());
         item_pc.second.erase(iter);
       } else {
         iter++;
@@ -137,18 +141,29 @@ void ControlPara::SetStartStopIndication(const std::string keyname, strategy_mar
   WriteToJson();
 }
 
-std::vector<utils::InstrumtntID> ControlPara::GetInstrumentList(void) {
+std::vector<utils::InstrumtntID> ControlPara::GetInstrumentList(const std::string &prid) {
   std::vector<utils::InstrumtntID> instrument_vec;
   instrument_vec.clear();
 
-  for (auto &item_pc : publish_ctrl_map) {
-    utils::InstrumtntID item_ins;
-    item_ins.ins = item_pc.first;
-    item_ins.exch = item_pc.second[0].exch;
-    item_ins.ticksize = item_pc.second[0].ticksize;
-    instrument_vec.push_back(item_ins);
+  if (prid == "") {
+    for (auto &item_pc : publish_ctrl_map) {
+      utils::InstrumtntID item_ins;
+      item_ins.ins = item_pc.first;
+      item_ins.exch = item_pc.second[0].exch;
+      instrument_vec.push_back(item_ins);
+    }
+  } else {
+    for (auto &item_pc : publish_ctrl_map) {
+      for (auto &item_id : item_pc.second) {
+        if (item_id.prid == prid) {
+          utils::InstrumtntID item_ins;
+          item_ins.ins = item_pc.first;
+          item_ins.exch = item_pc.second[0].exch;
+          instrument_vec.push_back(item_ins);
+        }
+      }
+    }
   }
-
   return instrument_vec;
 }
 
@@ -167,4 +182,16 @@ std::vector<std::string> ControlPara::GetPridList(void) {
 
   temp_vec.assign(temp_set.begin(), temp_set.end());
   return temp_vec;
+}
+
+int ControlPara::GetInstrumentSubscribedCount(const utils::InstrumtntID &instruemtn_id) {
+  int find_count = 0;
+
+  for (auto &item_pc : publish_ctrl_map) {
+    if (item_pc.first == instruemtn_id.ins) {
+      find_count = find_count + 1;
+    }
+  }
+
+  return find_count;
 }

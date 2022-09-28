@@ -31,7 +31,7 @@ int main(int argc, char *agrv[]) {
   auto &market_ser = MarketService::GetInstance();
   INFO_LOG("market_ser init ok");
 
-  std::this_thread::sleep_for(3s);
+  std::this_thread::sleep_for(std::chrono::seconds(3));
 
   auto &market_event = MarketEvent::GetInstance();
   INFO_LOG("market_event init ok");

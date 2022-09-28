@@ -19,6 +19,7 @@ void MarketEvent::RegSessionFunc() {
   session_func_map["market_trader"] = [this](utils::ItpMsg msg) { ROLE(TraderEvent).Handle(msg); };
   session_func_map["strategy_market"] = [this](utils::ItpMsg msg) { ROLE(StrategyEvent).Handle(msg); };
   session_func_map["manage_market"] = [this](utils::ItpMsg msg) { ROLE(ManageEvent).Handle(msg); };
+  session_func_map["btp_market"] = [this](utils::ItpMsg msg) { ROLE(BtpEvent).Handle(msg); };
   session_func_map["ctp_market"] = [this](utils::ItpMsg msg) { ROLE(CtpEvent).Handle(msg); };
   session_func_map["xtp_market"] = [this](utils::ItpMsg msg) { ROLE(XtpEvent).Handle(msg); };
   session_func_map["ctpview_market"] = [this](utils::ItpMsg msg) { ROLE(CtpviewEvent).Handle(msg); };
@@ -74,7 +75,7 @@ bool MarketEvent::Run() {
   std::thread(itp_rec_run).detach();
 
   while (1) {
-    std::this_thread::sleep_for(1000ms);
+    std::this_thread::sleep_for(std::chrono::seconds(1));
   }
   return true;
 }

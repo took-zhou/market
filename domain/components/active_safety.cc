@@ -27,7 +27,7 @@ void ActiveSafety::CheckSafety() {
       check_flag = false;
     }
 
-    std::this_thread::sleep_for(1s);
+    std::this_thread::sleep_for(std::chrono::seconds(1));
   }
 }
 
@@ -54,7 +54,7 @@ void ActiveSafety::ReqAlive() {
     if (global_sem.WaitSemBySemName(GlobalSem::kViewDebug, 3) != 0) {
       ReqAliveTimeout(keyname);
     }
-    std::this_thread::sleep_for(1s);
+    std::this_thread::sleep_for(std::chrono::seconds(1));
   }
 
   INFO_LOG("check target alive has finished.");

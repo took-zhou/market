@@ -13,6 +13,7 @@
 #include "common/self/utils.h"
 
 struct StrategyEvent {
+ public:
   StrategyEvent();
 
   void Handle(utils::ItpMsg &msg);
@@ -29,7 +30,10 @@ struct StrategyEvent {
 
   void TimeLimitReqHandle(utils::ItpMsg &msg);
 
-  std::map<std::string, std::function<void(utils::ItpMsg &msg)>> msg_func_map;
+  void InstrumentReqHandle(utils::ItpMsg &msg);
+
+ private:
+  std::map<std::string, std::function<void(utils::ItpMsg &msg)>> msg_func_map_;
 };
 
 #endif /* WORKSPACE_MARKET_INTERFACE_STRATEGYEVENT_STRATEGYEVENT_H_ */

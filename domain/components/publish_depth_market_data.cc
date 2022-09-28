@@ -21,6 +21,8 @@ void PublishData::DirectForwardDataToStrategy(CThostFtdcDepthMarketDataField *p_
         OnceFromDataflow(item_p_c, p_d);
       }
     }
+  } else if (pos == market_ser.ROLE(ControlPara).publish_ctrl_map.end()) {
+    ERROR_LOG("can not find ins from control para: %s", p_d->InstrumentID);
   }
 }
 
@@ -153,7 +155,7 @@ void PublishData::HeartBeatDetect() {
       }
     }
 
-    std::this_thread::sleep_for(1000ms);
+    std::this_thread::sleep_for(std::chrono::seconds(1));
   }
 }
 
@@ -215,8 +217,11 @@ void PublishData::OnceFromDefault(const PublishControl &p_c, const string &keyna
 bool PublishData::IsValidLevel1Data(const PublishControl &p_c, CThostFtdcDepthMarketDataField *p_d) {
   bool ret = false;
 
-  float ticksize = Max2zero(p_d->AskPrice1) - Max2zero(p_d->BidPrice1);
-  if (fabs(ticksize - p_c.ticksize) < 1e-6 && fabs(ticksize - 0) > 1e-6) {
+  auto &market_ser = MarketService::GetInstance();
+  float ticksize_from_instrument_info = market_ser.ROLE(InstrumentInfo).GetTickSize(p_d->InstrumentID);
+  float ticksize_from_rawtick = Max2zero(p_d->AskPrice1) - Max2zero(p_d->BidPrice1);
+
+  if (fabs(ticksize_from_rawtick - ticksize_from_instrument_info) < 1e-6 && fabs(ticksize_from_rawtick - 0) > 1e-6) {
     ret = true;
   }
 
@@ -232,6 +237,8 @@ void PublishData::DirectForwardDataToStrategy(XTPMD *p_d) {
         OnceFromDataflow(item_p_c, p_d);
       }
     }
+  } else if (pos == market_ser.ROLE(ControlPara).publish_ctrl_map.end()) {
+    ERROR_LOG("can not find ins from control para: %s", p_d->ticker);
   }
 }
 
@@ -349,8 +356,140 @@ void PublishData::OnceFromDataflowSelectLevel1(const PublishControl &p_c, XTPMD 
 bool PublishData::IsValidLevel1Data(const PublishControl &p_c, XTPMD *p_d) {
   bool ret = false;
 
-  float ticksize = Max2zero(p_d->ask[0]) - Max2zero(p_d->bid[0]);
-  if (fabs(ticksize - p_c.ticksize) < 1e-6 && fabs(ticksize - 0) > 1e-6) {
+  auto &market_ser = MarketService::GetInstance();
+  float ticksize_from_instrument_info = market_ser.ROLE(InstrumentInfo).GetTickSize(p_d->ticker);
+  float ticksize_from_rawtick = Max2zero(p_d->ask[0]) - Max2zero(p_d->bid[0]);
+
+  if (fabs(ticksize_from_rawtick - ticksize_from_instrument_info) < 1e-6 && fabs(ticksize_from_rawtick - 0) > 1e-6) {
+    ret = true;
+  }
+
+  return ret;
+}
+
+void PublishData::DirectForwardDataToStrategy(BtpMarketDataStruct *p_d) {
+  auto &market_ser = MarketService::GetInstance();
+  auto pos = market_ser.ROLE(ControlPara).publish_ctrl_map.find(p_d->instrument_id);
+  if (pos != market_ser.ROLE(ControlPara).publish_ctrl_map.end() && market_ser.login_state == kLoginState) {
+    for (auto &item_p_c : pos->second) {
+      if (item_p_c.indication == strategy_market::TickStartStopIndication_MessageType_start && stoi(item_p_c.prid) == p_d->prid) {
+        OnceFromDataflow(item_p_c, p_d);
+      }
+    }
+  } else if (pos == market_ser.ROLE(ControlPara).publish_ctrl_map.end()) {
+    ERROR_LOG("can not find ins from control para: %s", p_d->instrument_id);
+  }
+}
+void PublishData::OnceFromDataflow(const PublishControl &p_c, BtpMarketDataStruct *p_d) {
+  if (p_c.source == "rawtick") {
+    OnceFromDataflowSelectRawtick(p_c, p_d);
+  } else if (p_c.source == "level1") {
+    OnceFromDataflowSelectLevel1(p_c, p_d);
+  }
+}
+
+void PublishData::OnceFromDataflowSelectRawtick(const PublishControl &p_c, BtpMarketDataStruct *p_d) {
+  strategy_market::message tick;
+  auto tick_data = tick.mutable_tick_data();
+
+  tick_data->set_time_point(p_d->date_time);
+
+  auto iter = tick_data->add_tick_list();
+  if (p_d->state == 1) {
+    iter->set_state(strategy_market::TickData_TickState_active);
+  } else {
+    iter->set_state(strategy_market::TickData_TickState_inactive);
+  }
+
+  iter->set_instrument_id(p_d->instrument_id);
+  iter->set_last_price(Max2zero(p_d->last_price));
+  iter->set_bid_price1(Max2zero(p_d->bid_price[0]));
+  iter->set_bid_volume1(p_d->bid_volume[0]);
+  iter->set_ask_price1(Max2zero(p_d->ask_price[0]));
+  iter->set_ask_volume1(p_d->ask_volume[0]);
+  if (kDataLevel_ == 2) {
+    iter->set_bid_price2(Max2zero(p_d->bid_price[1]));
+    iter->set_bid_volume2(p_d->bid_volume[1]);
+    iter->set_ask_price2(Max2zero(p_d->ask_price[1]));
+    iter->set_ask_volume2(p_d->ask_volume[1]);
+    iter->set_bid_price3(Max2zero(p_d->bid_price[2]));
+    iter->set_bid_volume3(p_d->bid_volume[2]);
+    iter->set_ask_price3(Max2zero(p_d->ask_price[2]));
+    iter->set_ask_volume3(p_d->ask_volume[2]);
+    iter->set_bid_price4(Max2zero(p_d->bid_price[3]));
+    iter->set_bid_volume4(p_d->bid_volume[3]);
+    iter->set_ask_price4(Max2zero(p_d->ask_price[3]));
+    iter->set_ask_volume4(p_d->ask_volume[3]);
+    iter->set_bid_price5(Max2zero(p_d->bid_price[4]));
+    iter->set_bid_volume5(p_d->bid_volume[4]);
+    iter->set_ask_price5(Max2zero(p_d->ask_price[4]));
+    iter->set_ask_volume5(p_d->ask_volume[4]);
+  }
+  // iter->set_open_price(Max2zero(p_d->open_price));
+  iter->set_volume(p_d->volume);
+
+  utils::ItpMsg msg;
+  tick.SerializeToString(&msg.pb_msg);
+  msg.session_name = "strategy_market";
+  msg.msg_name = "TickData." + p_c.prid;
+  auto &recer_sender = RecerSender::GetInstance();
+  recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
+}
+void PublishData::OnceFromDataflowSelectLevel1(const PublishControl &p_c, BtpMarketDataStruct *p_d) {
+  if (IsValidLevel1Data(p_c, p_d) == false) {
+    return;
+  }
+
+  strategy_market::message tick;
+  auto tick_data = tick.mutable_tick_data();
+
+  tick_data->set_time_point(p_d->date_time);
+
+  auto iter = tick_data->add_tick_list();
+  iter->set_state(strategy_market::TickData_TickState_active);
+  iter->set_instrument_id(p_d->instrument_id);
+  iter->set_last_price(Max2zero(p_d->last_price));
+  iter->set_bid_price1(Max2zero(p_d->bid_price[0]));
+  iter->set_bid_volume1(p_d->bid_volume[0]);
+  iter->set_ask_price1(Max2zero(p_d->ask_price[0]));
+  iter->set_ask_volume1(p_d->ask_volume[0]);
+  if (kDataLevel_ == 2) {
+    iter->set_bid_price2(Max2zero(p_d->bid_price[1]));
+    iter->set_bid_volume2(p_d->bid_volume[1]);
+    iter->set_ask_price2(Max2zero(p_d->ask_price[1]));
+    iter->set_ask_volume2(p_d->ask_volume[1]);
+    iter->set_bid_price3(Max2zero(p_d->bid_price[2]));
+    iter->set_bid_volume3(p_d->bid_volume[2]);
+    iter->set_ask_price3(Max2zero(p_d->ask_price[2]));
+    iter->set_ask_volume3(p_d->ask_volume[2]);
+    iter->set_bid_price4(Max2zero(p_d->bid_price[3]));
+    iter->set_bid_volume4(p_d->bid_volume[3]);
+    iter->set_ask_price4(Max2zero(p_d->ask_price[3]));
+    iter->set_ask_volume4(p_d->ask_volume[3]);
+    iter->set_bid_price5(Max2zero(p_d->bid_price[4]));
+    iter->set_bid_volume5(p_d->bid_volume[4]);
+    iter->set_ask_price5(Max2zero(p_d->ask_price[4]));
+    iter->set_ask_volume5(p_d->ask_volume[4]);
+  }
+  // iter->set_open_price(Max2zero(p_d->open_price));
+  iter->set_volume(p_d->volume);
+
+  utils::ItpMsg msg;
+  tick.SerializeToString(&msg.pb_msg);
+  msg.session_name = "strategy_market";
+  msg.msg_name = "TickData." + p_c.prid;
+  auto &recer_sender = RecerSender::GetInstance();
+  recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
+}
+
+bool PublishData::IsValidLevel1Data(const PublishControl &p_c, BtpMarketDataStruct *p_d) {
+  bool ret = false;
+
+  auto &market_ser = MarketService::GetInstance();
+  float ticksize_from_instrument_info = market_ser.ROLE(InstrumentInfo).GetTickSize(p_d->instrument_id);
+  float ticksize_from_rawtick = Max2zero(p_d->ask_price[0]) - Max2zero(p_d->bid_price[0]);
+
+  if (fabs(ticksize_from_rawtick - ticksize_from_instrument_info) < 1e-6 && fabs(ticksize_from_rawtick - 0) > 1e-6) {
     ret = true;
   }
 

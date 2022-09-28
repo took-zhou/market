@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+#include "common/extern//btp/inc/btp_market_struct.h"
 #include "common/extern/ctp/inc/ThostFtdcUserApiStruct.h"
 #include "common/extern/xtp/inc/xtp_quote_api.h"
 
@@ -43,6 +44,16 @@ struct PublishData : public MarketData {
   void OnceFromDataflowSelectRawtick(const PublishControl &p_c, XTPMD *p_d);
   void OnceFromDataflowSelectLevel1(const PublishControl &p_c, XTPMD *p_d);
   bool IsValidLevel1Data(const PublishControl &p_c, XTPMD *p_d);
+
+  // btp深度行情发送
+ public:
+  void DirectForwardDataToStrategy(BtpMarketDataStruct *p_d);
+  void OnceFromDataflow(const PublishControl &p_c, BtpMarketDataStruct *p_d);
+
+ private:
+  void OnceFromDataflowSelectRawtick(const PublishControl &p_c, BtpMarketDataStruct *p_d);
+  void OnceFromDataflowSelectLevel1(const PublishControl &p_c, BtpMarketDataStruct *p_d);
+  bool IsValidLevel1Data(const PublishControl &p_c, BtpMarketDataStruct *p_d);
 
  private:
   const uint8_t kDataLevel_ = 1;

@@ -24,7 +24,7 @@ BaseZmq::BaseZmq() {
   utils::GetLocalIp(local_ip);
   string sub_ipaddport = "tcp://" + local_ip + ":8100";
   int result = zmq_connect(receiver, sub_ipaddport.c_str());
-  std::this_thread::sleep_for(1000ms);
+  std::this_thread::sleep_for(std::chrono::seconds(1));
   INFO_LOG("zmq_connect receiver result = %d", result);
   if (result != 0) {
     ERROR_LOG("receiver connect to %s failed", sub_ipaddport.c_str());

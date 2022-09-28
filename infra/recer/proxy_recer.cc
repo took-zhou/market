@@ -18,6 +18,7 @@ ProxyRecer::ProxyRecer() {
   topic_list.push_back("strategy_market.TickSubscribeReq");
   topic_list.push_back("strategy_market.TickStartStopIndication");
   topic_list.push_back("strategy_market.ActiveSafetyRsp");
+  topic_list.push_back("strategy_market.InstrumentReq");
 
   // market_market
   topic_list.push_back("market_market.HeartBeat");

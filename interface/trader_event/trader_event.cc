@@ -8,7 +8,9 @@
 #include "market/interface/trader_event/trader_event.h"
 #include "common/extern/log/log.h"
 #include "common/self/protobuf/market-trader.pb.h"
+#include "common/self/semaphore.h"
 #include "common/self/utils.h"
+#include "market/domain/components/instrument_info.h"
 #include "market/domain/market_service.h"
 
 TraderEvent::TraderEvent() { RegMsgFun(); }
@@ -36,35 +38,26 @@ void TraderEvent::RegMsgFun() {
 }
 
 void TraderEvent::QryInstrumentRspHandle(utils::ItpMsg &msg) {
-  static int instrument_count;
-  static vector<utils::InstrumtntID> ins_vec;
   auto &market_server = MarketService::GetInstance();
 
   market_trader::message message;
   message.ParseFromString(msg.pb_msg);
-
   auto &rsp = message.qry_instrument_rsp();
 
-  utils::InstrumtntID instrumtnt_id;
-  instrumtnt_id.exch = rsp.exchange_id();
-  instrumtnt_id.ins = rsp.instrument_id();
+  InstrumentInfo::Info instrument_info;
+  instrument_info.exch = rsp.exchange_id();
+  instrument_info.is_trading = rsp.is_trade();
+  instrument_info.tradeuint = rsp.tradeuint();
+  instrument_info.ticksize = rsp.ticksize();
+  instrument_info.max_limit_order_volume = rsp.max_limit_volume();
+  instrument_info.min_limit_order_volume = rsp.min_limit_volume();
+  instrument_info.max_market_order_volume = rsp.max_market_volume();
+  instrument_info.min_market_order_volume = rsp.min_market_volume();
 
-  if (instrumtnt_id.ins.find(" ") == instrumtnt_id.ins.npos) {
-    market_server.ROLE(LoadData).InsertInsExchPair(instrumtnt_id.ins, instrumtnt_id.exch);
-    ins_vec.push_back(instrumtnt_id);
-
-    instrument_count++;
-  }
+  market_server.ROLE(InstrumentInfo).BuildInstrumentInfo(rsp.instrument_id(), instrument_info);
 
   if (rsp.finish_flag() == true) {
-    market_server.ROLE(SubscribeManager).SubscribeInstrument(ins_vec);
-    market_server.ROLE(LoadData).ShowInsExchPair();
-    INFO_LOG("The number of trading contracts is: %d.", instrument_count);
-    instrument_count = 0;
-    ins_vec.clear();
-  } else if (ins_vec.size() >= 500) {
-    INFO_LOG("The number of trading contracts is: %d.", instrument_count);
-    market_server.ROLE(SubscribeManager).SubscribeInstrument(ins_vec);
-    ins_vec.clear();
+    auto &global_sem = GlobalSem::GetInstance();
+    global_sem.PostSemBySemName(GlobalSem::kUpdateInstrumentInfo);
   }
 }

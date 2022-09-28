@@ -30,11 +30,14 @@ struct CtpEvent {
   // 处理登出事件处理
   void OnRspUserLogoutHandle(utils::ItpMsg &msg);
 
+  void OnRspInstrumentInfoHandle(utils::ItpMsg &msg);
+
   void SetBlockControl(ctpview_market::BlockControl_Command command);
 
   std::map<std::string, std::function<void(utils::ItpMsg &msg)>> msg_func_map;
 
  private:
+  void UpdateInstrumentInfoFromTrader();
   std::string req_instrument_from_ = "local";
   ctpview_market::BlockControl_Command block_control_ = ctpview_market::BlockControl_Command_unblock;
 };

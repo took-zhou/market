@@ -33,6 +33,7 @@ void XtpEvent::RegMsgFun() {
   msg_func_map["OnRspUserLogin"] = [this](utils::ItpMsg &msg) { OnRspUserLoginHandle(msg); };
   msg_func_map["OnRspUserLogout"] = [this](utils::ItpMsg &msg) { OnRspUserLogoutHandle(msg); };
   msg_func_map["OnQueryAllTickers"] = [this](utils::ItpMsg &msg) { OnQueryAllTickersHandle(msg); };
+  msg_func_map["OnRspInstrumentInfo"] = [this](utils::ItpMsg &msg) { OnRspInstrumentInfoHandle(msg); };
 
   for (auto &iter : msg_func_map) {
     INFO_LOG("msg_func_map[%d] key is [%s]", cnt, iter.first.c_str());
@@ -85,7 +86,7 @@ void XtpEvent::OnRspUserLoginHandle(utils::ItpMsg &msg) {
       market_ser.ROLE(SubscribeManager).ReqInstrumentsFromLocal();
     } else if (req_instrument_from_ == "api") {
       INFO_LOG("reqInstrumentsFromMarket");
-      market_ser.ROLE(SubscribeManager).ReqInstrumentsFromMarket();
+      market_ser.ROLE(SubscribeManager).ReqInstrumentsFromApi();
     } else if (req_instrument_from_ == "strategy") {
       market_ser.ROLE(SubscribeManager).ReqInstrumrntFromControlPara();
     }
@@ -106,13 +107,13 @@ void XtpEvent::OnRspUserLogoutHandle(utils::ItpMsg &msg) {
     auto &market_ser = MarketService::GetInstance();
     market_ser.ROLE(SubscribeManager).UnSubscribeAll();
 
-    std::this_thread::sleep_for(1000ms);
+    std::this_thread::sleep_for(std::chrono::seconds(1));
 
     if (req_instrument_from_ == "trader" && market_ser.ROLE(MarketTimeState).GetTimeState() == kLogoutTime) {
       market_ser.ROLE(LoadData).ClassifyContractFiles();
     }
 
-    market_ser.ROLE(LoadData).ClearInsExchPair();
+    market_ser.ROLE(InstrumentInfo).EraseAllInstrumentInfo();
 
     market_ser.ROLE(PublishState).PublishEvent();
   }
@@ -123,43 +124,53 @@ void XtpEvent::OnQueryAllTickersHandle(utils::ItpMsg &msg) {
   message.ParseFromString(msg.pb_msg);
   auto &itp_msg = message.itp_msg();
   auto xtpqsi = reinterpret_cast<XTPQSI *>(itp_msg.address());
-  static int instrument_count;
-  static vector<utils::InstrumtntID> ins_vec;
+
+  InstrumentInfo::Info instrument_info;
+  instrument_info.exch = xtpqsi->exchange_id;
+  instrument_info.is_trading = true;
+  instrument_info.tradeuint = xtpqsi->buy_qty_unit;
+  instrument_info.ticksize = xtpqsi->price_tick;
+  instrument_info.max_limit_order_volume = xtpqsi->buy_qty_unit * 1000000;
+  instrument_info.min_limit_order_volume = xtpqsi->buy_qty_unit;
+  instrument_info.max_market_order_volume = xtpqsi->buy_qty_unit * 1000000;
+  instrument_info.min_market_order_volume = xtpqsi->buy_qty_unit;
+
   auto &market_server = MarketService::GetInstance();
+  market_server.ROLE(InstrumentInfo).BuildInstrumentInfo(xtpqsi->ticker, instrument_info);
 
-  if (!itp_msg.is_last()) {
-    utils::InstrumtntID instrumtnt_id;
-    if (xtpqsi->exchange_id == XTP_EXCHANGE_SH) {
-      instrumtnt_id.exch = "SHSE";
-      instrumtnt_id.ins = xtpqsi->ticker;
-    } else if (xtpqsi->exchange_id == XTP_EXCHANGE_SZ) {
-      instrumtnt_id.exch = "SZSE";
-      instrumtnt_id.ins = xtpqsi->ticker;
-    } else {
-      return;
-    }
-
-    if (instrumtnt_id.ins.find(" ") == instrumtnt_id.ins.npos) {
-      auto &market_ser = MarketService::GetInstance();
-      market_ser.ROLE(LoadData).InsertInsExchPair(instrumtnt_id.ins, instrumtnt_id.exch);
-      ins_vec.push_back(instrumtnt_id);
-
-      instrument_count++;
-    }
-
-    if (ins_vec.size() >= 500) {
-      INFO_LOG("The number of trading contracts is: %d.", instrument_count);
-      market_server.ROLE(SubscribeManager).SubscribeInstrument(ins_vec);
-      ins_vec.clear();
-    }
-  } else {
-    if (instrument_count > 0) {
-      market_server.ROLE(SubscribeManager).SubscribeInstrument(ins_vec);
-      INFO_LOG("The number of trading contracts is: %d.", instrument_count);
-      instrument_count = 0;
-      ins_vec.clear();
-    }
+  if (itp_msg.is_last()) {
+    auto &global_sem = GlobalSem::GetInstance();
+    global_sem.PostSemBySemName(GlobalSem::kUpdateInstrumentInfo);
   }
+}
+
+void XtpEvent::OnRspInstrumentInfoHandle(utils::ItpMsg &msg) {
+  ipc::message message;
+  message.ParseFromString(msg.pb_msg);
+  auto &itp_msg = message.itp_msg();
+
+  auto ticker_info = reinterpret_cast<XTPQSI *>(itp_msg.address());
+  auto &market_ser = MarketService::GetInstance();
+
+  auto info = market_ser.ROLE(InstrumentInfo).GetInstrumentInfo(ticker_info->ticker);
+
+  strategy_market::message rsp;
+  auto *instrument_rsp = rsp.mutable_instrument_rsp();
+
+  instrument_rsp->set_result(strategy_market::Result::success);
+  instrument_rsp->set_is_trading(info->is_trading);
+  instrument_rsp->set_max_limit_order_volume(info->max_limit_order_volume);
+  instrument_rsp->set_max_market_order_volume(info->max_market_order_volume);
+  instrument_rsp->set_min_limit_order_volume(info->max_limit_order_volume);
+  instrument_rsp->set_min_market_order_volume(info->min_market_order_volume);
+  instrument_rsp->set_price_tick(info->ticksize);
+  instrument_rsp->set_volume_multiple(info->tradeuint);
+
+  rsp.SerializeToString(&msg.pb_msg);
+  msg.session_name = "strategy_market";
+  msg.msg_name = "InstrumentRsp." + std::to_string(itp_msg.request_id());
+  auto &recer_sender = RecerSender::GetInstance();
+  recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
 }
 
 void XtpEvent::SetBlockControl(ctpview_market::BlockControl_Command command) { block_control_ = command; }

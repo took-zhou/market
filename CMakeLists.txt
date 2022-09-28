@@ -9,10 +9,11 @@ file(GLOB_RECURSE maket_source
 add_library(marketlib STATIC ${maket_source})
 target_link_libraries(marketlib 
     thostmduserapi_se_6.5.1
-    thosttraderapi_se_6.5.1
     xtpquoteapi
-    xtptraderapi
+    btpmarketapi
     commonlib
     zmq
     protobuf
+    pybind11::embed
+    python3.8
  )

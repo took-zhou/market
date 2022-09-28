@@ -33,6 +33,7 @@ void CtpEvent::RegMsgFun() {
   msg_func_map["OnRtnDepthMarketData"] = [this](utils::ItpMsg &msg) { DeepMarktDataHandle(msg); };
   msg_func_map["OnRspUserLogin"] = [this](utils::ItpMsg &msg) { OnRspUserLoginHandle(msg); };
   msg_func_map["OnRspUserLogout"] = [this](utils::ItpMsg &msg) { OnRspUserLogoutHandle(msg); };
+  msg_func_map["OnRspInstrumentInfo"] = [this](utils::ItpMsg &msg) { OnRspInstrumentInfoHandle(msg); };
 
   for (auto &iter : msg_func_map) {
     INFO_LOG("msg_func_map[%d] key is [%s]", cnt, iter.first.c_str());
@@ -80,13 +81,18 @@ void CtpEvent::OnRspUserLoginHandle(utils::ItpMsg &msg) {
     ERROR_LOG("Failed to login, errorcode=%d errormsg=%s", rsp_info->ErrorID, errormsg);
     exit(-1);
   } else {
+    // 同步全局合约信息
+    UpdateInstrumentInfoFromTrader();
+    auto &global_sem = GlobalSem::GetInstance();
+    global_sem.WaitSemBySemName(GlobalSem::kUpdateInstrumentInfo);
+
     auto &market_ser = MarketService::GetInstance();
     market_ser.ROLE(PublishState).PublishEvent();
 
     if (req_instrument_from_ == "local") {
       market_ser.ROLE(SubscribeManager).ReqInstrumentsFromLocal();
     } else if (req_instrument_from_ == "api") {
-      market_ser.ROLE(SubscribeManager).ReqInstrumentsFromTrader();
+      market_ser.ROLE(SubscribeManager).ReqInstrumentsFromApi();
     } else if (req_instrument_from_ == "strategy") {
       market_ser.ROLE(SubscribeManager).ReqInstrumrntFromControlPara();
     }
@@ -110,16 +116,58 @@ void CtpEvent::OnRspUserLogoutHandle(utils::ItpMsg &msg) {
     auto &market_ser = MarketService::GetInstance();
     market_ser.ROLE(SubscribeManager).UnSubscribeAll();
 
-    std::this_thread::sleep_for(1000ms);
+    std::this_thread::sleep_for(std::chrono::seconds(1));
 
     if (req_instrument_from_ == "trader" && market_ser.ROLE(MarketTimeState).GetTimeState() == kLogoutTime) {
       market_ser.ROLE(LoadData).ClassifyContractFiles();
     }
 
-    market_ser.ROLE(LoadData).ClearInsExchPair();
+    market_ser.ROLE(InstrumentInfo).EraseAllInstrumentInfo();
 
     market_ser.ROLE(PublishState).PublishEvent();
   }
+}
+
+void CtpEvent::OnRspInstrumentInfoHandle(utils::ItpMsg &msg) {
+  ipc::message message;
+  message.ParseFromString(msg.pb_msg);
+  auto &itp_msg = message.itp_msg();
+
+  auto ticker_info = reinterpret_cast<CThostFtdcInstrumentField *>(itp_msg.address());
+  auto &market_ser = MarketService::GetInstance();
+
+  auto info = market_ser.ROLE(InstrumentInfo).GetInstrumentInfo(ticker_info->InstrumentID);
+
+  strategy_market::message rsp;
+  auto *instrument_rsp = rsp.mutable_instrument_rsp();
+
+  instrument_rsp->set_result(strategy_market::Result::success);
+  instrument_rsp->set_is_trading(info->is_trading);
+  instrument_rsp->set_max_limit_order_volume(info->max_limit_order_volume);
+  instrument_rsp->set_max_market_order_volume(info->max_market_order_volume);
+  instrument_rsp->set_min_limit_order_volume(info->max_limit_order_volume);
+  instrument_rsp->set_min_market_order_volume(info->min_market_order_volume);
+  instrument_rsp->set_price_tick(info->ticksize);
+  instrument_rsp->set_volume_multiple(info->tradeuint);
+
+  rsp.SerializeToString(&msg.pb_msg);
+  msg.session_name = "strategy_market";
+  msg.msg_name = "InstrumentRsp." + std::to_string(itp_msg.request_id());
+  auto &recer_sender = RecerSender::GetInstance();
+  recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
+}
+
+void CtpEvent::UpdateInstrumentInfoFromTrader() {
+  market_trader::message req_msg;
+  auto req_instrument = req_msg.mutable_qry_instrument_req();
+  req_instrument->set_identity("all");
+
+  utils::ItpMsg msg;
+  req_msg.SerializeToString(&msg.pb_msg);
+  msg.session_name = "market_trader";
+  msg.msg_name = "QryInstrumentReq";
+  auto &recer_sender = RecerSender::GetInstance();
+  recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
 }
 
 void CtpEvent::SetBlockControl(ctpview_market::BlockControl_Command command) { block_control_ = command; }

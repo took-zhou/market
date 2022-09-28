@@ -11,7 +11,9 @@
 struct PublishControl {
   std::string prid;
   std::string exch;
-  float ticksize;
+  std::string begin;
+  std::string end;
+  uint32_t speed;
   strategy_market::TickStartStopIndication_MessageType indication = strategy_market::TickStartStopIndication_MessageType_reserve;
   uint32_t interval = 0;
   bool directforward = false;
@@ -23,8 +25,9 @@ struct ControlPara {
   ControlPara();
   ~ControlPara(){};
 
-  std::vector<utils::InstrumtntID> GetInstrumentList(void);
+  std::vector<utils::InstrumtntID> GetInstrumentList(const std::string &prid = "");
   std::vector<std::string> GetPridList(void);
+  int GetInstrumentSubscribedCount(const utils::InstrumtntID &instruemtn_id);
   void SetStartStopIndication(const std::string keyname, strategy_market::TickStartStopIndication_MessageType indication);
 
   void BuildControlPara(const std::string &keyname, const PublishControl &para);

@@ -15,10 +15,6 @@ struct MarketData {
   bool IsValidTickData(CThostFtdcDepthMarketDataField *p_d);
   bool IsValidTickData(XTPMD *p_d);
 
-  bool InsertInsExchPair(const std::string &ins, const std::string &exch);
-  bool ClearInsExchPair(void);
-  bool ShowInsExchPair(void);
-  std::string FindExchange(const std::string &ins);
   double Max2zero(double num);
 
   bool GetLocalTime(char *t_arr);

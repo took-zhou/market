@@ -16,7 +16,7 @@ void SubscribeManager::ReqInstrumentsFromLocal() {
   ins.exch = "SZSE";
   ins_vec.push_back(ins);
 
-  ins_vec = RemoveSubscribed(ins_vec);
+  AddSubscribed(ins_vec);
   auto& recer_sender = RecerSender::GetInstance();
   recer_sender.ROLE(Sender).ROLE(ItpSender).SubscribeMarketData(ins_vec);
 }
@@ -25,67 +25,77 @@ void SubscribeManager::ReqInstrumrntFromControlPara() {
   auto& market_ser = MarketService::GetInstance();
   auto ins_vec = market_ser.ROLE(ControlPara).GetInstrumentList();
 
-  ins_vec = RemoveSubscribed(ins_vec);
+  AddSubscribed(ins_vec);
   auto& recer_sender = RecerSender::GetInstance();
   recer_sender.ROLE(Sender).ROLE(ItpSender).SubscribeMarketData(ins_vec);
 }
 
-void SubscribeManager::ReqInstrumentsFromMarket() {
-  utils::InstrumtntID ins;
+void SubscribeManager::ReqInstrumentsFromApi() {
+  static int instrument_count;
+  static vector<utils::InstrumtntID> ins_vec;
+  auto& market_server = MarketService::GetInstance();
 
-  ins.ins = "*";
-  ins.exch = "SHSE";
-  auto& recer_sender = RecerSender::GetInstance();
-  recer_sender.ROLE(Sender).ROLE(ItpSender).ReqInstrumentInfo(ins);
+  auto instrument_info = market_server.ROLE(InstrumentInfo).GetInstrumentList();
+  for (auto& ins : instrument_info) {
+    utils::InstrumtntID instrumtnt_id;
 
-  ins.ins = "*";
-  ins.exch = "SZSE";
-  recer_sender.ROLE(Sender).ROLE(ItpSender).ReqInstrumentInfo(ins);
+    instrumtnt_id.exch = market_server.ROLE(InstrumentInfo).GetExchange(ins);
+    instrumtnt_id.ins = ins;
+
+    ins_vec.push_back(instrumtnt_id);
+    instrument_count++;
+
+    if (ins_vec.size() >= 500) {
+      SubscribeInstrument(ins_vec);
+      ins_vec.clear();
+    }
+  }
+
+  if (ins_vec.size() > 0) {
+    SubscribeInstrument(ins_vec);
+    INFO_LOG("The number of trading contracts is: %d.", instrument_count);
+    instrument_count = 0;
+    ins_vec.clear();
+  }
 }
 
-void SubscribeManager::ReqInstrumentsFromTrader() {
-  market_trader::message req_msg;
-  auto req_instrument = req_msg.mutable_qry_instrument_req();
-  req_instrument->set_identity("all");
-
-  utils::ItpMsg msg;
-  req_msg.SerializeToString(&msg.pb_msg);
-  msg.session_name = "market_trader";
-  msg.msg_name = "QryInstrumentReq";
+void SubscribeManager::SubscribeInstrument(std::vector<utils::InstrumtntID>& name_vec, int request_id) {
   auto& recer_sender = RecerSender::GetInstance();
-  recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
+  AddSubscribed(name_vec);
+  recer_sender.ROLE(Sender).ROLE(ItpSender).SubscribeMarketData(name_vec, request_id);
 }
 
-void SubscribeManager::SubscribeInstrument(std::vector<utils::InstrumtntID>& name_vec) {
-  auto& market_ser = MarketService::GetInstance();
-
+void SubscribeManager::UnSubscribeInstrument(std::vector<utils::InstrumtntID>& name_vec, int request_id) {
   auto& recer_sender = RecerSender::GetInstance();
-  name_vec = RemoveSubscribed(name_vec);
-  recer_sender.ROLE(Sender).ROLE(ItpSender).SubscribeMarketData(name_vec);
-}
-
-void SubscribeManager::UnSubscribeInstrument(std::vector<utils::InstrumtntID>& name_vec) {
-  auto& recer_sender = RecerSender::GetInstance();
-  name_vec = RemoveSubscribed(name_vec);
-  recer_sender.ROLE(Sender).ROLE(ItpSender).UnSubscribeMarketData(name_vec);
+  RemoveSubscribed(name_vec);
+  recer_sender.ROLE(Sender).ROLE(ItpSender).UnSubscribeMarketData(name_vec, request_id);
 }
 
 void SubscribeManager::UnSubscribeAll() {
   int count = 0;
   std::vector<utils::InstrumtntID> ins_vec;
 
-  for (auto iter = subscribed_.instrument_ids.begin(); iter != subscribed_.instrument_ids.end(); iter++) {
-    ins_vec.push_back(*iter);
+  auto& recer_sender = RecerSender::GetInstance();
+  for (auto& item : subscribed_.instrument_ids) {
+    ins_vec.push_back(item);
+    if (ins_vec.size() >= 500) {
+      recer_sender.ROLE(Sender).ROLE(ItpSender).UnSubscribeMarketData(ins_vec);
+      ins_vec.clear();
+    }
     count++;
   }
+  if (ins_vec.size() != 0) {
+    recer_sender.ROLE(Sender).ROLE(ItpSender).UnSubscribeMarketData(ins_vec);
+    ins_vec.clear();
+  }
 
-  ins_vec = RemoveSubscribed(ins_vec);
-  auto& recer_sender = RecerSender::GetInstance();
-  recer_sender.ROLE(Sender).ROLE(ItpSender).UnSubscribeMarketData(ins_vec);
+  int i_k = pthread_mutex_lock(&(subscribed_.sm_mutex));
+  subscribed_.instrument_ids.clear();
+  i_k = pthread_mutex_unlock(&(subscribed_.sm_mutex));
   INFO_LOG("The number of contracts being unsubscribe is: %d.", count);
 }
 
-const std::vector<utils::InstrumtntID> SubscribeManager::RemoveSubscribed(std::vector<utils::InstrumtntID>& name_vec) {
+void SubscribeManager::AddSubscribed(std::vector<utils::InstrumtntID>& name_vec) {
   int i_k = pthread_mutex_lock(&(subscribed_.sm_mutex));
 
   for (auto iter = name_vec.begin(); iter != name_vec.end();) {
@@ -97,10 +107,9 @@ const std::vector<utils::InstrumtntID> SubscribeManager::RemoveSubscribed(std::v
     }
   }
   i_k = pthread_mutex_unlock(&(subscribed_.sm_mutex));
-  return name_vec;
 }
 
-const std::vector<utils::InstrumtntID> SubscribeManager::RemoveUnsubscribed(std::vector<utils::InstrumtntID>& name_vec) {
+void SubscribeManager::RemoveSubscribed(std::vector<utils::InstrumtntID>& name_vec) {
   int i_k = pthread_mutex_lock(&(subscribed_.sm_mutex));
   for (auto iter = name_vec.begin(); iter != name_vec.end();) {
     if (subscribed_.instrument_ids.find(*iter) == end(subscribed_.instrument_ids)) {
@@ -111,6 +120,4 @@ const std::vector<utils::InstrumtntID> SubscribeManager::RemoveUnsubscribed(std:
     }
   }
   i_k = pthread_mutex_unlock(&(subscribed_.sm_mutex));
-
-  return name_vec;
 }

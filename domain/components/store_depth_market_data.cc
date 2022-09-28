@@ -24,6 +24,7 @@
 #include "common/self/file_util.h"
 #include "common/self/utils.h"
 #include "market/domain/components/store_depth_market_data.h"
+#include "market/domain/market_service.h"
 
 LoadData::LoadData() {
   auto &json_cfg = utils::JsonConfig::GetInstance();
@@ -310,9 +311,10 @@ bool LoadData::ClassifyContractFiles(void) {
       continue;
     }
 
-    string ins = FindExchange(file_name);
-    if (ins != "") {
-      MoveContractToFolder(contract_file, FindExchange(file_name));
+    auto &market_ser = MarketService::GetInstance();
+    string exch = market_ser.ROLE(InstrumentInfo).GetExchange(file_name);
+    if (exch != "") {
+      MoveContractToFolder(contract_file, exch);
       usleep(1000);
     } else {
       WARNING_LOG("not found fileName:%s", file_name.c_str());

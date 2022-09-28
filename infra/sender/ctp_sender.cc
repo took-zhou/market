@@ -6,6 +6,7 @@
  */
 
 #include "market/infra/sender/ctp_sender.h"
+#include <cstddef>
 #include <string>
 #include "common/extern/log/log.h"
 #include "common/self/file_util.h"
@@ -55,12 +56,15 @@ bool CtpSender::Init(void) {
 
 bool CtpSender::Release() {
   INFO_LOG("Is going to release market_api.");
-  market_api->Release();
+  if (market_api != nullptr) {
+    market_api->Release();
+    market_api = nullptr;
+  }
 
   // 释放UserSpi实例
-  if (market_spi) {
+  if (market_spi != nullptr) {
     delete market_spi;
-    market_spi = NULL;
+    market_spi = nullptr;
   }
 
   is_init_ = false;
@@ -105,6 +109,7 @@ bool CtpSender::ReqUserLogout() {
   CThostFtdcUserLogoutField req_user_logout = {0};
   auto &json_cfg = utils::JsonConfig::GetInstance();
 
+  INFO_LOG("logout time, is going to logout.");
   auto users = json_cfg.GetConfig("market", "User");
   for (auto &user : users) {
     std::string user_id = json_cfg.GetDeepConfig("users", (std::string)user, "UserID").get<std::string>();
@@ -112,15 +117,17 @@ bool CtpSender::ReqUserLogout() {
     strcpy(req_user_logout.UserID, user_id.c_str());
     strcpy(req_user_logout.BrokerID, broker_id.c_str());
 
-    int result = market_api->ReqUserLogout(&req_user_logout, request_id_++);
-    if (result != 0) {
-      INFO_LOG("ReqUserLogout send result is [%d]", result);
-    } else {
-      auto &global_sem = GlobalSem::GetInstance();
-      if (global_sem.WaitSemBySemName(GlobalSem::kLoginLogout, 3) != 0) {
-        market_spi->OnRspUserLogout();
+    if (market_api != nullptr) {
+      int result = market_api->ReqUserLogout(&req_user_logout, request_id_++);
+      if (result != 0) {
+        INFO_LOG("ReqUserLogout send result is [%d]", result);
+      } else {
+        auto &global_sem = GlobalSem::GetInstance();
+        if (global_sem.WaitSemBySemName(GlobalSem::kLoginLogout, 3) != 0) {
+          market_spi->OnRspUserLogout();
+        }
+        Release();
       }
-      Release();
     }
 
     break;
@@ -128,7 +135,7 @@ bool CtpSender::ReqUserLogout() {
   return ret;
 }
 
-bool CtpSender::SubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec) {
+bool CtpSender::SubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id) {
   int result = 0;
   int md_num = 0;
 
@@ -137,7 +144,7 @@ bool CtpSender::SubscribeMarketData(std::vector<utils::InstrumtntID> const &name
     return result;
   }
 
-  char **pp_instrument_id = new char *[5000];
+  char **pp_instrument_id = new char *[name_vec.size()];
 
   for (auto &neme : name_vec) {
     pp_instrument_id[md_num] = const_cast<char *>(neme.ins.c_str());
@@ -160,7 +167,7 @@ bool CtpSender::SubscribeMarketData(std::vector<utils::InstrumtntID> const &name
   return result;
 }
 
-bool CtpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec) {
+bool CtpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id) {
   int result = 0;
   int md_num = 0;
 
@@ -169,7 +176,7 @@ bool CtpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &na
     return result;
   }
 
-  char **pp_instrument_id = new char *[5000];
+  char **pp_instrument_id = new char *[name_vec.size()];
 
   for (auto &name : name_vec) {
     pp_instrument_id[md_num] = const_cast<char *>(name.ins.c_str());
@@ -195,8 +202,11 @@ bool CtpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &na
   return result;
 };
 
-bool CtpSender::ReqInstrumentInfo(const utils::InstrumtntID &ins) {
-  INFO_LOG("not support.");
+bool CtpSender::ReqInstrumentInfo(const utils::InstrumtntID &ins, int request_id) {
+  CThostFtdcInstrumentField field;
+  strcpy(field.InstrumentID, ins.ins.c_str());
+  strcpy(field.ExchangeID, ins.exch.c_str());
+  market_spi->OnRspInstrumentInfo(&field, request_id);
   return true;
 }
 
