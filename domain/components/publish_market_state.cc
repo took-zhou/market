@@ -16,7 +16,7 @@ PublishState::PublishState() {
 
 void PublishState::PublishEvent(void) {
   PublishToManage();
-  std::this_thread::sleep_for(std::chrono::seconds(10));
+  std::this_thread::sleep_for(std::chrono::seconds(1));
   PublishToStrategy();
 }
 
@@ -79,18 +79,24 @@ void PublishState::PublishToManage(void) {
     INFO_LOG("Publish makret state: night_open, date: %s to manage.", date_buff);
   }
 
-  manage_market::message tick;
-  auto market_state = tick.mutable_market_state();
+  auto key_name_kist = market_ser.ROLE(ControlPara).GetPridList();
+  for (auto &keyname : key_name_kist) {
+    manage_market::message tick;
+    auto market_state = tick.mutable_market_state();
 
-  market_state->set_market_state(state);
-  market_state->set_date(date_buff);
+    market_state->set_market_state(state);
+    market_state->set_date(date_buff);
+    market_state->set_process_random_id(keyname);
 
-  utils::ItpMsg msg;
-  tick.SerializeToString(&msg.pb_msg);
-  msg.session_name = "manage_market";
-  msg.msg_name = "TickMarketState.00000000000";
-  auto &recer_sender = RecerSender::GetInstance();
-  recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
+    utils::ItpMsg msg;
+    tick.SerializeToString(&msg.pb_msg);
+    msg.session_name = "manage_market";
+    msg.msg_name = "TickMarketState.00000000000";
+    auto &recer_sender = RecerSender::GetInstance();
+    recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
 }
 
 int PublishState::IsLeapYear(int year) {
@@ -103,7 +109,7 @@ int PublishState::IsLeapYear(int year) {
 
 void PublishState::PublishEvent(BtpLoginLogoutStruct *login_logout) {
   PublishToManage(login_logout);
-  std::this_thread::sleep_for(std::chrono::seconds(10));
+  std::this_thread::sleep_for(std::chrono::seconds(1));
   PublishToStrategy(login_logout);
 }
 
@@ -164,6 +170,7 @@ void PublishState::PublishToManage(BtpLoginLogoutStruct *login_logout) {
 
   market_state->set_market_state(state);
   market_state->set_date(login_logout->date);
+  market_state->set_process_random_id(to_string(login_logout->prid));
 
   utils::ItpMsg msg;
   tick.SerializeToString(&msg.pb_msg);

@@ -4,7 +4,7 @@
 void InstrumentInfo::BuildInstrumentInfo(const std::string &keyname, const Info &info) {
   auto iter = info_map_.find(keyname);
   if (iter != info_map_.end()) {
-    INFO_LOG("upfate instrument info: %s.", keyname.c_str());
+    INFO_LOG("update instrument info: %s.", keyname.c_str());
   } else {
     INFO_LOG("build instrument info: %s.", keyname.c_str());
   }
