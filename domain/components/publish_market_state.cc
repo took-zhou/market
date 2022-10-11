@@ -79,24 +79,18 @@ void PublishState::PublishToManage(void) {
     INFO_LOG("Publish makret state: night_open, date: %s to manage.", date_buff);
   }
 
-  auto key_name_kist = market_ser.ROLE(ControlPara).GetPridList();
-  for (auto &keyname : key_name_kist) {
-    manage_market::message tick;
-    auto market_state = tick.mutable_market_state();
+  manage_market::message tick;
+  auto market_state = tick.mutable_market_state();
 
-    market_state->set_market_state(state);
-    market_state->set_date(date_buff);
-    market_state->set_process_random_id(keyname);
+  market_state->set_market_state(state);
+  market_state->set_date(date_buff);
 
-    utils::ItpMsg msg;
-    tick.SerializeToString(&msg.pb_msg);
-    msg.session_name = "manage_market";
-    msg.msg_name = "TickMarketState.00000000000";
-    auto &recer_sender = RecerSender::GetInstance();
-    recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-  }
+  utils::ItpMsg msg;
+  tick.SerializeToString(&msg.pb_msg);
+  msg.session_name = "manage_market";
+  msg.msg_name = "TickMarketState.00000000000";
+  auto &recer_sender = RecerSender::GetInstance();
+  recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
 }
 
 int PublishState::IsLeapYear(int year) {

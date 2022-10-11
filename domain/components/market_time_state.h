@@ -24,11 +24,11 @@ struct MarketTimeState {
   TimeState time_state_ = kReserve;
   TimeState debug_time_state_ = kReserve;
 
-  uint32_t now_mins_;
-  uint32_t day_login_mins_;
-  uint32_t day_logout_mins_;
-  uint32_t night_login_mins_;
-  uint32_t night_logout_mins_;
+  int32_t now_mins_;
+  int32_t day_login_mins_;
+  int32_t day_logout_mins_;
+  int32_t night_login_mins_;
+  int32_t night_logout_mins_;
 
   uint8_t IsDuringDayLogoutTime(void);
   uint8_t IsDuringNightLogoutTime(void);

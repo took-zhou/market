@@ -17,7 +17,8 @@ uint8_t MarketTimeState::IsDuringDayLogoutTime(void) {
   uint8_t out;
   out = 0U;
 
-  if (((day_logout_mins_ < now_mins_) && (now_mins_ < night_login_mins_)) || (debug_time_state_ == kLogoutTime)) {
+  if (((day_logout_mins_ < now_mins_) && (now_mins_ < night_login_mins_ || night_login_mins_ == -1)) ||
+      (debug_time_state_ == kLogoutTime)) {
     out = 1U;
   }
 
@@ -28,7 +29,8 @@ uint8_t MarketTimeState::IsDuringNightLogoutTime(void) {
   uint8_t out;
   out = 0U;
 
-  if (((night_logout_mins_ < now_mins_) && (now_mins_ < day_login_mins_)) || (debug_time_state_ == kLogoutTime)) {
+  if (((night_logout_mins_ < now_mins_ && night_logout_mins_ != -1) && (now_mins_ < day_login_mins_)) ||
+      (debug_time_state_ == kLogoutTime)) {
     out = 1U;
   }
 
@@ -50,7 +52,8 @@ uint8_t MarketTimeState::IsDuringNightLoginTime(void) {
   uint8_t out;
   out = 0U;
 
-  if (((night_login_mins_ <= now_mins_) || (now_mins_ <= night_logout_mins_)) && (debug_time_state_ != kLogoutTime)) {
+  if (((night_login_mins_ <= now_mins_ && night_login_mins_ != -1) || (now_mins_ <= night_logout_mins_ && night_logout_mins_ != -1)) &&
+      (debug_time_state_ != kLogoutTime)) {
     out = 1U;
   }
 
@@ -157,8 +160,8 @@ MarketTimeState::MarketTimeState() {
 
     day_login_mins_ = stoi(day_start_str_split[0]) * 60 + stoi(day_start_str_split[1]);
     day_logout_mins_ = stoi(day_end_str_split[0]) * 60 + stoi(day_end_str_split[1]);
-    night_login_mins_ = day_login_mins_ + 30;
-    night_logout_mins_ = day_logout_mins_ - 30;
+    night_login_mins_ = -1;
+    night_logout_mins_ = -1;
   } else if (time_duration_splited.size() == 2) {
     vector<string> day_time_str_split = utils::SplitString(time_duration_splited[0], "-");
     vector<string> night_time_str_split = utils::SplitString(time_duration_splited[1], "-");
