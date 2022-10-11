@@ -190,14 +190,18 @@ bool XtpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &na
 
   if (sh_count > 0) {
     result = quote_api->UnSubscribeMarketData(pp_instrument_id_sh, sh_count, XTP_EXCHANGE_SH);
-    if (result != 0) {
+    if (result == 0) {
+      INFO_LOG("UnSubscription request ......Send a success, total number: %d", sh_count);
+    } else {
       ERROR_LOG("subscribeMarketData fail, error code[%d]", result);
     }
   }
 
   if (sz_sount > 0) {
     result = quote_api->UnSubscribeMarketData(pp_instrument_id_sz, sz_sount, XTP_EXCHANGE_SZ);
-    if (result != 0) {
+    if (result == 0) {
+      INFO_LOG("UnSubscription request ......Send a success, total number: %d", sz_sount);
+    } else {
       ERROR_LOG("subscribeMarketData fail, error code[%d]", result);
     }
   }

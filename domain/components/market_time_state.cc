@@ -137,11 +137,11 @@ void MarketTimeState::Update(void) {
 
 void MarketTimeState::SetTimeState(int command) {
   if (command == ctpview_market::LoginControl_Command_login) {
-    time_state_ = kLoginTime;
+    debug_time_state_ = kLoginTime;
   } else if (command == ctpview_market::LoginControl_Command_logout) {
-    time_state_ = kLogoutTime;
+    debug_time_state_ = kLogoutTime;
   } else if (command == ctpview_market::LoginControl_Command_reserve) {
-    time_state_ = kReserve;
+    debug_time_state_ = kReserve;
   }
 }
 
@@ -150,17 +150,30 @@ MarketTimeState::MarketTimeState() {
 
   string time_str = json_cfg.GetConfig("market", "LogInTimeList").get<std::string>();
   vector<string> time_duration_splited = utils::SplitString(time_str, ";");
-  vector<string> day_time_str_split = utils::SplitString(time_duration_splited[0], "-");
-  vector<string> night_time_str_split = utils::SplitString(time_duration_splited[1], "-");
-  vector<string> day_start_str_split = utils::SplitString(day_time_str_split[0], ":");
-  vector<string> day_end_str_split = utils::SplitString(day_time_str_split[1], ":");
-  vector<string> night_start_str_split = utils::SplitString(night_time_str_split[0], ":");
-  vector<string> night_end_str_split = utils::SplitString(night_time_str_split[1], ":");
+  if (time_duration_splited.size() == 1) {
+    vector<string> day_time_str_split = utils::SplitString(time_duration_splited[0], "-");
+    vector<string> day_start_str_split = utils::SplitString(day_time_str_split[0], ":");
+    vector<string> day_end_str_split = utils::SplitString(day_time_str_split[1], ":");
 
-  day_login_mins_ = stoi(day_start_str_split[0]) * 60 + stoi(day_start_str_split[1]);
-  day_logout_mins_ = stoi(day_end_str_split[0]) * 60 + stoi(day_end_str_split[1]);
-  night_login_mins_ = stoi(night_start_str_split[0]) * 60 + stoi(night_start_str_split[1]);
-  night_logout_mins_ = stoi(night_end_str_split[0]) * 60 + stoi(night_end_str_split[1]);
+    day_login_mins_ = stoi(day_start_str_split[0]) * 60 + stoi(day_start_str_split[1]);
+    day_logout_mins_ = stoi(day_end_str_split[0]) * 60 + stoi(day_end_str_split[1]);
+    night_login_mins_ = day_login_mins_ + 30;
+    night_logout_mins_ = day_logout_mins_ - 30;
+  } else if (time_duration_splited.size() == 2) {
+    vector<string> day_time_str_split = utils::SplitString(time_duration_splited[0], "-");
+    vector<string> night_time_str_split = utils::SplitString(time_duration_splited[1], "-");
+    vector<string> day_start_str_split = utils::SplitString(day_time_str_split[0], ":");
+    vector<string> day_end_str_split = utils::SplitString(day_time_str_split[1], ":");
+    vector<string> night_start_str_split = utils::SplitString(night_time_str_split[0], ":");
+    vector<string> night_end_str_split = utils::SplitString(night_time_str_split[1], ":");
+
+    day_login_mins_ = stoi(day_start_str_split[0]) * 60 + stoi(day_start_str_split[1]);
+    day_logout_mins_ = stoi(day_end_str_split[0]) * 60 + stoi(day_end_str_split[1]);
+    night_login_mins_ = stoi(night_start_str_split[0]) * 60 + stoi(night_start_str_split[1]);
+    night_logout_mins_ = stoi(night_end_str_split[0]) * 60 + stoi(night_end_str_split[1]);
+  } else {
+    ERROR_LOG("time string: %s is error.", time_str.c_str());
+  }
 
   INFO_LOG("%d %d %d %d", day_login_mins_, day_logout_mins_, night_login_mins_, night_logout_mins_);
 }
