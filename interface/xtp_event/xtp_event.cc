@@ -85,7 +85,6 @@ void XtpEvent::OnRspUserLoginHandle(utils::ItpMsg &msg) {
     if (req_instrument_from_ == "local") {
       market_ser.ROLE(SubscribeManager).ReqInstrumentsFromLocal();
     } else if (req_instrument_from_ == "api") {
-      INFO_LOG("reqInstrumentsFromMarket");
       market_ser.ROLE(SubscribeManager).ReqInstrumentsFromApi();
     } else if (req_instrument_from_ == "strategy") {
       market_ser.ROLE(SubscribeManager).ReqInstrumrntFromControlPara();
@@ -126,7 +125,14 @@ void XtpEvent::OnQueryAllTickersHandle(utils::ItpMsg &msg) {
   auto xtpqsi = reinterpret_cast<XTPQSI *>(itp_msg.address());
 
   InstrumentInfo::Info instrument_info;
-  instrument_info.exch = xtpqsi->exchange_id;
+  if (xtpqsi->exchange_id == XTP_EXCHANGE_SH) {
+    instrument_info.exch = "SHSE";
+  } else if (xtpqsi->exchange_id == XTP_EXCHANGE_SZ) {
+    instrument_info.exch = "SZSE";
+  } else {
+    ERROR_LOG("not exist exch: %d", xtpqsi->exchange_id);
+    instrument_info.exch = "";
+  }
   instrument_info.is_trading = true;
   instrument_info.tradeuint = xtpqsi->buy_qty_unit;
   instrument_info.ticksize = xtpqsi->price_tick;
@@ -139,6 +145,8 @@ void XtpEvent::OnQueryAllTickersHandle(utils::ItpMsg &msg) {
   market_server.ROLE(InstrumentInfo).BuildInstrumentInfo(xtpqsi->ticker, instrument_info);
 
   if (itp_msg.is_last()) {
+    market_server.ROLE(InstrumentInfo).ShowInstrumentInfo();
+
     auto &global_sem = GlobalSem::GetInstance();
     global_sem.PostSemBySemName(GlobalSem::kUpdateInstrumentInfo);
   }

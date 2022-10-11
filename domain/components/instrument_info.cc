@@ -1,15 +1,7 @@
 #include "market/domain/components/instrument_info.h"
 #include "common/extern/log/log.h"
 
-void InstrumentInfo::BuildInstrumentInfo(const std::string &keyname, const Info &info) {
-  auto iter = info_map_.find(keyname);
-  if (iter != info_map_.end()) {
-    INFO_LOG("update instrument info: %s.", keyname.c_str());
-  } else {
-    INFO_LOG("build instrument info: %s.", keyname.c_str());
-  }
-  info_map_[keyname] = info;
-}
+void InstrumentInfo::BuildInstrumentInfo(const std::string &keyname, const Info &info) { info_map_[keyname] = info; }
 
 void InstrumentInfo::EraseAllInstrumentInfo(void) {
   info_map_.clear();
@@ -54,3 +46,5 @@ InstrumentInfo::Info *InstrumentInfo::GetInstrumentInfo(const std::string &ins) 
     return nullptr;
   }
 }
+
+void InstrumentInfo::ShowInstrumentInfo() { INFO_LOG("the size of info_map_ is: %d", static_cast<int>(info_map_.size())); }

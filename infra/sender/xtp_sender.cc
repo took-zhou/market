@@ -70,6 +70,7 @@ bool XtpSender::ReqUserLogin(void) {
       Release();
       ret = false;
     } else {
+      UpdateInstrumentInfoFromMarket();
       auto &global_sem = GlobalSem::GetInstance();
       if (global_sem.WaitSemBySemName(GlobalSem::kLoginLogout, 3) != 0) {
         quote_spi->OnRspUserLogin();
@@ -142,14 +143,18 @@ bool XtpSender::SubscribeMarketData(std::vector<utils::InstrumtntID> const &name
 
   if (sh_count > 0) {
     result = quote_api->SubscribeMarketData(pp_instrument_id_sh, sh_count, XTP_EXCHANGE_SH);
-    if (result != 0) {
+    if (result == 0) {
+      INFO_LOG("Subscription request ......Send a success, total number: %d", sh_count);
+    } else {
       ERROR_LOG("subscribeMarketData fail, error code[%d]", result);
     }
   }
 
   if (sz_sount > 0) {
     result = quote_api->SubscribeMarketData(pp_instrument_id_sz, sz_sount, XTP_EXCHANGE_SZ);
-    if (result != 0) {
+    if (result == 0) {
+      INFO_LOG("Subscription request ......Send a success, total number: %d", sz_sount);
+    } else {
       ERROR_LOG("subscribeMarketData fail, error code[%d]", result);
     }
   }
@@ -203,20 +208,22 @@ bool XtpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &na
   return true;
 }
 
-void XtpSender::UpdateInstrumentInfoFromTrader() {
+void XtpSender::UpdateInstrumentInfoFromMarket() {
+  auto &global_sem = GlobalSem::GetInstance();
+
   int result = quote_api->QueryAllTickers(XTP_EXCHANGE_SH);
   if (result != 0) {
     ERROR_LOG("request full shse market instruments, result[%d]", result);
   }
+  global_sem.WaitSemBySemName(GlobalSem::kUpdateInstrumentInfo);
 
   result = quote_api->QueryAllTickers(XTP_EXCHANGE_SZ);
   if (result != 0) {
     ERROR_LOG("request full szse market instruments, result[%d]", result);
   }
-
-  auto &global_sem = GlobalSem::GetInstance();
   global_sem.WaitSemBySemName(GlobalSem::kUpdateInstrumentInfo);
-  INFO_LOG("UpdateInstrumentInfoFromTrader ok");
+
+  INFO_LOG("UpdateInstrumentInfoFromMarket ok");
 }
 
 bool XtpSender::ReqInstrumentInfo(const utils::InstrumtntID &ins, const int request_id) {

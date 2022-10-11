@@ -57,6 +57,8 @@ void TraderEvent::QryInstrumentRspHandle(utils::ItpMsg &msg) {
   market_server.ROLE(InstrumentInfo).BuildInstrumentInfo(rsp.instrument_id(), instrument_info);
 
   if (rsp.finish_flag() == true) {
+    market_server.ROLE(InstrumentInfo).ShowInstrumentInfo();
+
     auto &global_sem = GlobalSem::GetInstance();
     global_sem.PostSemBySemName(GlobalSem::kUpdateInstrumentInfo);
   }

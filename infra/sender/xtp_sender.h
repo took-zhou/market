@@ -27,7 +27,7 @@ struct XtpSender : SendApi {
   static XtpQuoteSpi *quote_spi;
 
  private:
-  void UpdateInstrumentInfoFromTrader();
+  void UpdateInstrumentInfoFromMarket();
   bool Init(void);
   bool Release(void);
 

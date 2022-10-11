@@ -27,6 +27,7 @@ struct InstrumentInfo {
   std::string GetExchange(const std::string &ins);
   float GetTickSize(const std::string &ins);
   Info *GetInstrumentInfo(const std::string &ins);
+  void ShowInstrumentInfo();
 
  private:
   std::unordered_map<std::string, Info> info_map_;
