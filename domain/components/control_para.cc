@@ -113,10 +113,10 @@ void ControlPara::BuildControlPara(const std::string &keyname, const PublishCont
   WriteToJson();
 }
 
-void ControlPara::EraseControlPara(const std::string &keyname) {
+void ControlPara::EraseControlPara(const std::string &keyname, const std::string &ins) {
   for (auto &item_pc : publish_ctrl_map) {
     for (auto iter = item_pc.second.begin(); iter != item_pc.second.end();) {
-      if (iter->prid == keyname) {
+      if (iter->prid == keyname && (item_pc.first == ins || ins == "")) {
         INFO_LOG("ins: %s, prid: %s doesn't exist anymore, will not subscribe.", item_pc.first.c_str(), keyname.c_str());
         item_pc.second.erase(iter);
       } else {

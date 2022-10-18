@@ -48,31 +48,29 @@ void StrategyEvent::TickSubscribeReqHandle(utils::ItpMsg &msg) {
   message.ParseFromString(msg.pb_msg);
   auto req_info = message.tick_sub_req();
 
-  for (int i = 0; i < req_info.instrument_info_list_size(); i++) {
-    utils::InstrumtntID ins_id;
+  utils::InstrumtntID ins_id;
 
-    ins_id.ins = req_info.instrument_info_list(i).instrument_id();
-    ins_id.exch = req_info.instrument_info_list(i).exchange_id();
-    ins_vec.push_back(ins_id);
+  ins_id.ins = req_info.instrument_info().instrument_id();
+  ins_id.exch = req_info.instrument_info().exchange_id();
+  ins_vec.push_back(ins_id);
 
-    PublishControl p_c;
-    p_c.prid = req_info.process_random_id();
-    p_c.exch = req_info.instrument_info_list(i).exchange_id();
-    p_c.indication = strategy_market::TickStartStopIndication_MessageType_reserve;
-    p_c.source = req_info.source();
-    p_c.heartbeat = 0;
-    p_c.begin = req_info.begin_time();
-    p_c.end = req_info.end_time();
-    p_c.speed = req_info.speed();
+  PublishControl p_c;
+  p_c.prid = req_info.process_random_id();
+  p_c.exch = req_info.instrument_info().exchange_id();
+  p_c.indication = strategy_market::TickStartStopIndication_MessageType_reserve;
+  p_c.source = req_info.source();
+  p_c.heartbeat = 0;
+  p_c.begin = req_info.begin_time();
+  p_c.end = req_info.end_time();
+  p_c.speed = req_info.speed();
 
-    if (req_info.interval() == "raw") {
-      p_c.directforward = true;
-    } else {
-      p_c.directforward = false;
-      p_c.interval = float(std::atof(req_info.interval().c_str()));
-    }
-    market_ser.ROLE(ControlPara).BuildControlPara(ins_id.ins, p_c);
+  if (req_info.interval() == "raw") {
+    p_c.directforward = true;
+  } else {
+    p_c.directforward = false;
+    p_c.interval = float(std::atof(req_info.interval().c_str()));
   }
+  market_ser.ROLE(ControlPara).BuildControlPara(ins_id.ins, p_c);
 
   if (market_ser.login_state == kLoginState) {
     market_ser.ROLE(SubscribeManager).SubscribeInstrument(ins_vec, stoi(req_info.process_random_id()));
@@ -87,6 +85,7 @@ void StrategyEvent::TickStartStopIndicationHandle(utils::ItpMsg &msg) {
   auto indication = message.tick_start_stop_indication();
 
   string prid = indication.process_random_id();
+  string ins = indication.instrument_info().instrument_id();
   auto &market_ser = MarketService::GetInstance();
   market_ser.ROLE(ControlPara).SetStartStopIndication(prid, indication.type());
   if (indication.type() == strategy_market::TickStartStopIndication_MessageType_finish) {
@@ -99,7 +98,7 @@ void StrategyEvent::TickStartStopIndicationHandle(utils::ItpMsg &msg) {
       }
     }
 
-    market_ser.ROLE(ControlPara).EraseControlPara(prid);
+    market_ser.ROLE(ControlPara).EraseControlPara(prid, ins);
   }
 }
 

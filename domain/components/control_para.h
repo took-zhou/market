@@ -1,5 +1,5 @@
-#ifndef CONTROL_PARA_H
-#define CONTROL_PARA_H
+#ifndef MARKET_CONTROL_PARA_H
+#define MARKET_CONTROL_PARA_H
 
 #include <string>
 #include <unordered_map>
@@ -31,7 +31,7 @@ struct ControlPara {
   void SetStartStopIndication(const std::string keyname, strategy_market::TickStartStopIndication_MessageType indication);
 
   void BuildControlPara(const std::string &keyname, const PublishControl &para);
-  void EraseControlPara(const std::string &keyname);
+  void EraseControlPara(const std::string &keyname, const std::string &ins = "");
 
   std::unordered_map<std::string, std::vector<PublishControl>> publish_ctrl_map;
 

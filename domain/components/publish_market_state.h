@@ -8,11 +8,9 @@ struct PublishState {
   PublishState();
   void PublishEvent(void);
   void PublishToStrategy(void);
-  void PublishToManage(void);
 
   void PublishEvent(BtpLoginLogoutStruct *login_logout);
   void PublishToStrategy(BtpLoginLogoutStruct *login_logout);
-  void PublishToManage(BtpLoginLogoutStruct *login_logout);
 
   ~PublishState(){};
 

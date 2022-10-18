@@ -104,6 +104,8 @@ void BtpEvent::OnRspInstrumentInfoHandle(utils::ItpMsg &msg) {
   strategy_market::message rsp;
   auto *instrument_rsp = rsp.mutable_instrument_rsp();
 
+  instrument_rsp->set_exchange_id(info->exch);
+  instrument_rsp->set_instrument_id(btpqsi->instrument_id);
   instrument_rsp->set_result(strategy_market::Result::success);
   instrument_rsp->set_is_trading(info->is_trading);
   instrument_rsp->set_max_limit_order_volume(info->max_limit_order_volume);
