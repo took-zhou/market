@@ -102,42 +102,37 @@ void CtpviewEvent::SimulateMarketStateHandle(utils::ItpMsg &msg) {
   message.ParseFromString(msg.pb_msg);
   auto simulate_market_state = message.simulate_market_state();
 
-  if (simulate_market_state.target() == "strategy") {
-    strategy_market::TickMarketState_MarketState state = strategy_market::TickMarketState_MarketState_reserve;
-    if (simulate_market_state.market_state() == ctpview_market::SimulateMarketState_MarketState_day_open) {
-      state = strategy_market::TickMarketState_MarketState_day_open;
-      INFO_LOG("Publish makret state: day_open, date: %s  to strategy.", simulate_market_state.date().c_str());
-    } else if (simulate_market_state.market_state() == ctpview_market::SimulateMarketState_MarketState_day_close) {
-      state = strategy_market::TickMarketState_MarketState_day_close;
-      INFO_LOG("Publish makret state: day_close, date: %s  to strategy.", simulate_market_state.date().c_str());
-    } else if (simulate_market_state.market_state() == ctpview_market::SimulateMarketState_MarketState_night_open) {
-      state = strategy_market::TickMarketState_MarketState_night_open;
-      INFO_LOG("Publish makret state: night_open, date: %s  to strategy.", simulate_market_state.date().c_str());
-    } else if (simulate_market_state.market_state() == ctpview_market::SimulateMarketState_MarketState_night_close) {
-      state = strategy_market::TickMarketState_MarketState_night_close;
-      INFO_LOG("Publish makret state: night_close, date: %s  to strategy.", simulate_market_state.date().c_str());
-    }
+  strategy_market::TickMarketState_MarketState state = strategy_market::TickMarketState_MarketState_reserve;
+  if (simulate_market_state.market_state() == ctpview_market::SimulateMarketState_MarketState_day_open) {
+    state = strategy_market::TickMarketState_MarketState_day_open;
+    INFO_LOG("Publish makret state: day_open, date: %s  to strategy.", simulate_market_state.date().c_str());
+  } else if (simulate_market_state.market_state() == ctpview_market::SimulateMarketState_MarketState_day_close) {
+    state = strategy_market::TickMarketState_MarketState_day_close;
+    INFO_LOG("Publish makret state: day_close, date: %s  to strategy.", simulate_market_state.date().c_str());
+  } else if (simulate_market_state.market_state() == ctpview_market::SimulateMarketState_MarketState_night_open) {
+    state = strategy_market::TickMarketState_MarketState_night_open;
+    INFO_LOG("Publish makret state: night_open, date: %s  to strategy.", simulate_market_state.date().c_str());
+  } else if (simulate_market_state.market_state() == ctpview_market::SimulateMarketState_MarketState_night_close) {
+    state = strategy_market::TickMarketState_MarketState_night_close;
+    INFO_LOG("Publish makret state: night_close, date: %s  to strategy.", simulate_market_state.date().c_str());
+  }
 
-    auto &market_ser = MarketService::GetInstance();
-    auto key_name_list = market_ser.ROLE(ControlPara).GetPridList();
-    for (auto &keyname : key_name_list) {
-      strategy_market::message tick;
-      auto market_state = tick.mutable_market_state();
+  auto &market_ser = MarketService::GetInstance();
+  auto key_name_list = market_ser.ROLE(ControlPara).GetPridList();
+  for (auto &keyname : key_name_list) {
+    strategy_market::message tick;
+    auto market_state = tick.mutable_market_state();
 
-      market_state->set_market_state(state);
-      market_state->set_date(simulate_market_state.date());
+    market_state->set_market_state(state);
+    market_state->set_date(simulate_market_state.date());
 
-      utils::ItpMsg msg;
-      tick.SerializeToString(&msg.pb_msg);
-      msg.session_name = "strategy_market";
-      msg.msg_name = "TickMarketState." + keyname;
-      auto &recer_sender = RecerSender::GetInstance();
-      recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
+    utils::ItpMsg msg;
+    tick.SerializeToString(&msg.pb_msg);
+    msg.session_name = "strategy_market";
+    msg.msg_name = "TickMarketState." + keyname;
+    auto &recer_sender = RecerSender::GetInstance();
+    recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
 
-      std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    }
-
-  } else {
-    ERROR_LOG("not find target: %s.", simulate_market_state.target().c_str());
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
 }
