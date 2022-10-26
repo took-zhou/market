@@ -1,5 +1,5 @@
-#ifndef ACTIVE_SAFETY_H
-#define ACTIVE_SAFETY_H
+#ifndef MARKET_ACTIVE_SAFETY_H
+#define MARKET_ACTIVE_SAFETY_H
 
 #include <string>
 

@@ -140,18 +140,23 @@ void CtpEvent::OnRspInstrumentInfoHandle(utils::ItpMsg &msg) {
 
   strategy_market::message rsp;
   auto *instrument_rsp = rsp.mutable_instrument_rsp();
-
-  instrument_rsp->set_instrument_id(ticker_info->InstrumentID);
-  instrument_rsp->set_exchange_id(info->exch);
-  instrument_rsp->set_result(strategy_market::Result::success);
-  instrument_rsp->set_is_trading(info->is_trading);
-  instrument_rsp->set_max_limit_order_volume(info->max_limit_order_volume);
-  instrument_rsp->set_max_market_order_volume(info->max_market_order_volume);
-  instrument_rsp->set_min_limit_order_volume(info->max_limit_order_volume);
-  instrument_rsp->set_min_market_order_volume(info->min_market_order_volume);
-  instrument_rsp->set_price_tick(info->ticksize);
-  instrument_rsp->set_volume_multiple(info->tradeuint);
-
+  if (info == nullptr) {
+    instrument_rsp->set_instrument_id(ticker_info->InstrumentID);
+    instrument_rsp->set_exchange_id(ticker_info->ExchangeID);
+    instrument_rsp->set_result(strategy_market::Result::failed);
+    instrument_rsp->set_failedreason("not find instrument info.");
+  } else {
+    instrument_rsp->set_instrument_id(ticker_info->InstrumentID);
+    instrument_rsp->set_exchange_id(info->exch);
+    instrument_rsp->set_result(strategy_market::Result::success);
+    instrument_rsp->set_is_trading(info->is_trading);
+    instrument_rsp->set_max_limit_order_volume(info->max_limit_order_volume);
+    instrument_rsp->set_max_market_order_volume(info->max_market_order_volume);
+    instrument_rsp->set_min_limit_order_volume(info->min_limit_order_volume);
+    instrument_rsp->set_min_market_order_volume(info->min_market_order_volume);
+    instrument_rsp->set_price_tick(info->ticksize);
+    instrument_rsp->set_volume_multiple(info->tradeuint);
+  }
   rsp.SerializeToString(&msg.pb_msg);
   msg.session_name = "strategy_market";
   msg.msg_name = "InstrumentRsp." + std::to_string(itp_msg.request_id());

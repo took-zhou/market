@@ -171,7 +171,7 @@ void XtpEvent::OnRspInstrumentInfoHandle(utils::ItpMsg &msg) {
   instrument_rsp->set_is_trading(info->is_trading);
   instrument_rsp->set_max_limit_order_volume(info->max_limit_order_volume);
   instrument_rsp->set_max_market_order_volume(info->max_market_order_volume);
-  instrument_rsp->set_min_limit_order_volume(info->max_limit_order_volume);
+  instrument_rsp->set_min_limit_order_volume(info->min_limit_order_volume);
   instrument_rsp->set_min_market_order_volume(info->min_market_order_volume);
   instrument_rsp->set_price_tick(info->ticksize);
   instrument_rsp->set_volume_multiple(info->tradeuint);
