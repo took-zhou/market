@@ -144,18 +144,18 @@ bool XtpSender::SubscribeMarketData(std::vector<utils::InstrumtntID> const &name
   if (sh_count > 0) {
     result = quote_api->SubscribeMarketData(pp_instrument_id_sh, sh_count, XTP_EXCHANGE_SH);
     if (result == 0) {
-      INFO_LOG("Subscription request ......Send a success, total number: %d", sh_count);
+      INFO_LOG("SubscribeMarketData request ......Send a success, total number: %d", sh_count);
     } else {
-      ERROR_LOG("subscribeMarketData fail, error code[%d]", result);
+      ERROR_LOG("SubscribeMarketData fail, error code[%d]", result);
     }
   }
 
   if (sz_sount > 0) {
     result = quote_api->SubscribeMarketData(pp_instrument_id_sz, sz_sount, XTP_EXCHANGE_SZ);
     if (result == 0) {
-      INFO_LOG("Subscription request ......Send a success, total number: %d", sz_sount);
+      INFO_LOG("SubscribeMarketData request ......Send a success, total number: %d", sz_sount);
     } else {
-      ERROR_LOG("subscribeMarketData fail, error code[%d]", result);
+      ERROR_LOG("SubscribeMarketData fail, error code[%d]", result);
     }
   }
 
@@ -168,7 +168,7 @@ bool XtpSender::SubscribeMarketData(std::vector<utils::InstrumtntID> const &name
 bool XtpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id) {
   int result = true;
   if (name_vec.size() > 500) {
-    WARNING_LOG("too much instruments to unSubscription.");
+    WARNING_LOG("too much instruments to UnSubscription.");
     return result;
   }
 
@@ -193,7 +193,7 @@ bool XtpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &na
     if (result == 0) {
       INFO_LOG("UnSubscription request ......Send a success, total number: %d", sh_count);
     } else {
-      ERROR_LOG("subscribeMarketData fail, error code[%d]", result);
+      ERROR_LOG("UnSubscription fail, error code[%d]", result);
     }
   }
 
@@ -202,7 +202,7 @@ bool XtpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &na
     if (result == 0) {
       INFO_LOG("UnSubscription request ......Send a success, total number: %d", sz_sount);
     } else {
-      ERROR_LOG("subscribeMarketData fail, error code[%d]", result);
+      ERROR_LOG("UnSubscription fail, error code[%d]", result);
     }
   }
 

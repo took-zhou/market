@@ -118,7 +118,7 @@ void CtpEvent::OnRspUserLogoutHandle(utils::ItpMsg &msg) {
 
     std::this_thread::sleep_for(std::chrono::seconds(1));
 
-    if (req_instrument_from_ == "trader" && market_ser.ROLE(MarketTimeState).GetTimeState() == kLogoutTime) {
+    if (req_instrument_from_ == "api" && market_ser.ROLE(MarketTimeState).GetTimeState() == kLogoutTime) {
       market_ser.ROLE(LoadData).ClassifyContractFiles();
     }
 

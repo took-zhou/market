@@ -94,7 +94,7 @@ bool BtpSender::SubscribeMarketData(std::vector<utils::InstrumtntID> const &name
   if (count > 0) {
     result = market_api->SubscribeMarketData(pp_instrument_id, count, request_id);
     if (result != 0) {
-      ERROR_LOG("subscribeMarketData fail, error code[%d]", result);
+      ERROR_LOG("SubscribeMarketData fail, error code[%d]", result);
     }
   }
 
