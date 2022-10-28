@@ -215,8 +215,8 @@ bool PublishData::IsValidLevel1Data(const PublishControl &p_c, CThostFtdcDepthMa
   bool ret = false;
 
   auto &market_ser = MarketService::GetInstance();
-  float ticksize_from_instrument_info = market_ser.ROLE(InstrumentInfo).GetTickSize(p_d->InstrumentID);
-  float ticksize_from_rawtick = Max2zero(p_d->AskPrice1) - Max2zero(p_d->BidPrice1);
+  double ticksize_from_instrument_info = market_ser.ROLE(InstrumentInfo).GetTickSize(p_d->InstrumentID);
+  double ticksize_from_rawtick = Max2zero(p_d->AskPrice1) - Max2zero(p_d->BidPrice1);
 
   if (fabs(ticksize_from_rawtick - ticksize_from_instrument_info) < 1e-6 && fabs(ticksize_from_rawtick - 0) > 1e-6) {
     ret = true;
@@ -352,8 +352,8 @@ bool PublishData::IsValidLevel1Data(const PublishControl &p_c, XTPMD *p_d) {
   bool ret = false;
 
   auto &market_ser = MarketService::GetInstance();
-  float ticksize_from_instrument_info = market_ser.ROLE(InstrumentInfo).GetTickSize(p_d->ticker);
-  float ticksize_from_rawtick = Max2zero(p_d->ask[0]) - Max2zero(p_d->bid[0]);
+  double ticksize_from_instrument_info = market_ser.ROLE(InstrumentInfo).GetTickSize(p_d->ticker);
+  double ticksize_from_rawtick = Max2zero(p_d->ask[0]) - Max2zero(p_d->bid[0]);
 
   if (fabs(ticksize_from_rawtick - ticksize_from_instrument_info) < 1e-6 && fabs(ticksize_from_rawtick - 0) > 1e-6) {
     ret = true;
@@ -479,8 +479,8 @@ bool PublishData::IsValidLevel1Data(const PublishControl &p_c, BtpMarketDataStru
   bool ret = false;
 
   auto &market_ser = MarketService::GetInstance();
-  float ticksize_from_instrument_info = market_ser.ROLE(InstrumentInfo).GetTickSize(p_d->instrument_id);
-  float ticksize_from_rawtick = Max2zero(p_d->ask_price[0]) - Max2zero(p_d->bid_price[0]);
+  double ticksize_from_instrument_info = market_ser.ROLE(InstrumentInfo).GetTickSize(p_d->instrument_id);
+  double ticksize_from_rawtick = Max2zero(p_d->ask_price[0]) - Max2zero(p_d->bid_price[0]);
 
   if (fabs(ticksize_from_rawtick - ticksize_from_instrument_info) < 1e-6 && fabs(ticksize_from_rawtick - 0) > 1e-6) {
     ret = true;

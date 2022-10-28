@@ -68,7 +68,7 @@ void StrategyEvent::TickSubscribeReqHandle(utils::ItpMsg &msg) {
     p_c.directforward = true;
   } else {
     p_c.directforward = false;
-    p_c.interval = float(std::atof(req_info.interval().c_str()));
+    p_c.interval = stoi(req_info.interval().c_str());
   }
   market_ser.ROLE(ControlPara).BuildControlPara(ins_id.ins, p_c);
 

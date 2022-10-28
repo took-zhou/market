@@ -136,9 +136,9 @@ void XtpEvent::OnQueryAllTickersHandle(utils::ItpMsg &msg) {
   instrument_info.is_trading = true;
   instrument_info.tradeuint = xtpqsi->buy_qty_unit;
   instrument_info.ticksize = xtpqsi->price_tick;
-  instrument_info.max_limit_order_volume = xtpqsi->buy_qty_unit * 1000000;
+  instrument_info.max_limit_order_volume = xtpqsi->buy_qty_unit;
   instrument_info.min_limit_order_volume = xtpqsi->buy_qty_unit;
-  instrument_info.max_market_order_volume = xtpqsi->buy_qty_unit * 1000000;
+  instrument_info.max_market_order_volume = xtpqsi->buy_qty_unit;
   instrument_info.min_market_order_volume = xtpqsi->buy_qty_unit;
 
   auto &market_server = MarketService::GetInstance();

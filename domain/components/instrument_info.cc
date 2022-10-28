@@ -27,7 +27,7 @@ std::string InstrumentInfo::GetExchange(const std::string &ins) {
   }
 }
 
-float InstrumentInfo::GetTickSize(const std::string &ins) {
+double InstrumentInfo::GetTickSize(const std::string &ins) {
   auto iter = info_map_.find(ins);
   if (iter != info_map_.end()) {
     return iter->second.ticksize;

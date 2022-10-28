@@ -89,13 +89,11 @@ bool MarketData::IsValidTickData(XTPMD *p_d) {
 }
 
 double MarketData::Max2zero(double num) {
-  double ret;
   if (num >= 100000000) {
-    ret = 0;
+    return 0.0;
   } else {
-    ret = num;
+    return num;
   }
-  return ret;
 }
 
 bool MarketData::GetLocalTime(char *t_arr) {

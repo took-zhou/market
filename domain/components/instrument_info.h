@@ -8,7 +8,7 @@
 struct InstrumentInfo {
   struct Info {
     std::string exch;
-    float ticksize;
+    double ticksize;
     int32_t max_market_order_volume;
     int32_t min_market_order_volume;
     int32_t max_limit_order_volume;
@@ -25,7 +25,7 @@ struct InstrumentInfo {
   void EraseAllInstrumentInfo(void);
   std::vector<std::string> GetInstrumentList(void);
   std::string GetExchange(const std::string &ins);
-  float GetTickSize(const std::string &ins);
+  double GetTickSize(const std::string &ins);
   Info *GetInstrumentInfo(const std::string &ins);
   void ShowInstrumentInfo();
 
