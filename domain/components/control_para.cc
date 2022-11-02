@@ -128,17 +128,21 @@ void ControlPara::EraseControlPara(const std::string &keyname, const std::string
   WriteToJson();
 }
 
-void ControlPara::SetStartStopIndication(const std::string keyname, strategy_market::TickStartStopIndication_MessageType indication) {
-  for (auto &item_pc : publish_ctrl_map) {
-    for (auto &item_id : item_pc.second) {
+void ControlPara::SetStartStopIndication(const std::string &keyname, const std::string &ins,
+                                         strategy_market::TickStartStopIndication_MessageType indication) {
+  auto iter = publish_ctrl_map.find(ins);
+  if (iter != publish_ctrl_map.end()) {
+    for (auto &item_id : iter->second) {
       if (item_id.prid == keyname) {
         item_id.indication = indication;
-        INFO_LOG("ins: %s, prid: %s, setStartStopIndication %d.", item_pc.first.c_str(), keyname.c_str(), indication);
+        INFO_LOG("ins: %s, prid: %s, setStartStopIndication %d.", ins.c_str(), keyname.c_str(), indication);
       }
     }
-  }
 
-  WriteToJson();
+    WriteToJson();
+  } else {
+    INFO_LOG("not find ins: %s.", ins.c_str());
+  }
 }
 
 std::vector<utils::InstrumtntID> ControlPara::GetInstrumentList(const std::string &prid) {

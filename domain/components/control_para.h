@@ -28,7 +28,8 @@ struct ControlPara {
   std::vector<utils::InstrumtntID> GetInstrumentList(const std::string &prid = "");
   std::vector<std::string> GetPridList(void);
   int GetInstrumentSubscribedCount(const utils::InstrumtntID &instruemtn_id);
-  void SetStartStopIndication(const std::string keyname, strategy_market::TickStartStopIndication_MessageType indication);
+  void SetStartStopIndication(const std::string &keyname, const std::string &ins,
+                              strategy_market::TickStartStopIndication_MessageType indication);
 
   void BuildControlPara(const std::string &keyname, const PublishControl &para);
   void EraseControlPara(const std::string &keyname, const std::string &ins = "");

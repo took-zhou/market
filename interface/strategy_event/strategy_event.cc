@@ -84,10 +84,10 @@ void StrategyEvent::TickStartStopIndicationHandle(utils::ItpMsg &msg) {
   message.ParseFromString(msg.pb_msg);
   auto indication = message.tick_start_stop_indication();
 
-  string prid = indication.process_random_id();
-  string ins = indication.instrument_info().instrument_id();
+  std::string prid = indication.process_random_id();
+  std::string ins = indication.instrument_info().instrument_id();
   auto &market_ser = MarketService::GetInstance();
-  market_ser.ROLE(ControlPara).SetStartStopIndication(prid, indication.type());
+  market_ser.ROLE(ControlPara).SetStartStopIndication(prid, ins, indication.type());
   if (indication.type() == strategy_market::TickStartStopIndication_MessageType_finish) {
     auto instrument_list = market_ser.ROLE(ControlPara).GetInstrumentList(prid);
     for (auto &item : instrument_list) {
