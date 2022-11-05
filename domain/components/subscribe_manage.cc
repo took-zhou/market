@@ -23,7 +23,7 @@ void SubscribeManager::ReqInstrumentsFromLocal() {
 
 void SubscribeManager::ReqInstrumrntFromControlPara() {
   auto& market_ser = MarketService::GetInstance();
-  auto ins_vec = market_ser.ROLE(ControlPara).GetInstrumentList();
+  auto ins_vec = market_ser.ROLE(PublishControl).GetInstrumentList();
 
   AddSubscribed(ins_vec);
   auto& recer_sender = RecerSender::GetInstance();

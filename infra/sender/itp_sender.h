@@ -17,7 +17,6 @@ struct ItpSender {
   bool ReqUserLogout();
   bool SubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id = 0);
   bool UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id = 0);
-  bool ReqInstrumentInfo(const utils::InstrumtntID &ins, int request_id);
   bool LossConnection();
 
  private:

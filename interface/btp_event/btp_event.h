@@ -29,7 +29,7 @@ struct BtpEvent {
   // 处理登出事件处理
   void OnRspUserLogoutHandle(utils::ItpMsg &msg);
 
-  void OnRspInstrumentInfoHandle(utils::ItpMsg &msg);
+  void OnRspAllInstrumentInfoHandle(utils::ItpMsg &msg);
 
   std::map<std::string, std::function<void(utils::ItpMsg &msg)>> msg_func_map;
 };

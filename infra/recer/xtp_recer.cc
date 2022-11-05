@@ -61,22 +61,6 @@ void XtpQuoteSpi::OnRspUserLogout(void) {
   global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
 }
 
-void XtpQuoteSpi::OnRspInstrumentInfo(XTPQSI *ticker_info, int request_id) {
-  ipc::message req_msg;
-  auto send_msg = req_msg.mutable_itp_msg();
-  send_msg->set_address(reinterpret_cast<int64_t>(ticker_info));
-  send_msg->set_request_id(request_id);
-  utils::ItpMsg msg;
-  req_msg.SerializeToString(&msg.pb_msg);
-  msg.session_name = "xtp_market";
-  msg.msg_name = "OnRspInstrumentInfo";
-
-  auto &global_sem = GlobalSem::GetInstance();
-  auto &inner_zmq = InnerZmq::GetInstance();
-  inner_zmq.PushTask(msg);
-  global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
-}
-
 void XtpQuoteSpi::OnDepthMarketData(XTPMD *market_data, int64_t bid1_qty[], int32_t bid1_count, int32_t max_bid1_count, int64_t ask1_qty[],
                                     int32_t ask1_count, int32_t max_ask1_count) {
 #ifdef BENCH_TEST

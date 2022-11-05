@@ -24,5 +24,4 @@ bool ItpSender::SubscribeMarketData(std::vector<utils::InstrumtntID> const &name
 bool ItpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id) {
   return send_api_->UnSubscribeMarketData(name_vec, request_id);
 }
-bool ItpSender::ReqInstrumentInfo(const utils::InstrumtntID &ins, int request_id) { return send_api_->ReqInstrumentInfo(ins, request_id); }
 bool ItpSender::LossConnection() { return send_api_->LossConnection(); }

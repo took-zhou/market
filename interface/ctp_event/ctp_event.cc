@@ -33,7 +33,6 @@ void CtpEvent::RegMsgFun() {
   msg_func_map["OnRtnDepthMarketData"] = [this](utils::ItpMsg &msg) { DeepMarktDataHandle(msg); };
   msg_func_map["OnRspUserLogin"] = [this](utils::ItpMsg &msg) { OnRspUserLoginHandle(msg); };
   msg_func_map["OnRspUserLogout"] = [this](utils::ItpMsg &msg) { OnRspUserLogoutHandle(msg); };
-  msg_func_map["OnRspInstrumentInfo"] = [this](utils::ItpMsg &msg) { OnRspInstrumentInfoHandle(msg); };
 
   for (auto &iter : msg_func_map) {
     INFO_LOG("msg_func_map[%d] key is [%s]", cnt, iter.first.c_str());
@@ -126,42 +125,6 @@ void CtpEvent::OnRspUserLogoutHandle(utils::ItpMsg &msg) {
 
     market_ser.ROLE(PublishState).PublishEvent();
   }
-}
-
-void CtpEvent::OnRspInstrumentInfoHandle(utils::ItpMsg &msg) {
-  ipc::message message;
-  message.ParseFromString(msg.pb_msg);
-  auto &itp_msg = message.itp_msg();
-
-  auto ticker_info = reinterpret_cast<CThostFtdcInstrumentField *>(itp_msg.address());
-  auto &market_ser = MarketService::GetInstance();
-
-  auto info = market_ser.ROLE(InstrumentInfo).GetInstrumentInfo(ticker_info->InstrumentID);
-
-  strategy_market::message rsp;
-  auto *instrument_rsp = rsp.mutable_instrument_rsp();
-  if (info == nullptr) {
-    instrument_rsp->set_instrument_id(ticker_info->InstrumentID);
-    instrument_rsp->set_exchange_id(ticker_info->ExchangeID);
-    instrument_rsp->set_result(strategy_market::Result::failed);
-    instrument_rsp->set_failedreason("not find instrument info.");
-  } else {
-    instrument_rsp->set_instrument_id(ticker_info->InstrumentID);
-    instrument_rsp->set_exchange_id(info->exch);
-    instrument_rsp->set_result(strategy_market::Result::success);
-    instrument_rsp->set_is_trading(info->is_trading);
-    instrument_rsp->set_max_limit_order_volume(info->max_limit_order_volume);
-    instrument_rsp->set_max_market_order_volume(info->max_market_order_volume);
-    instrument_rsp->set_min_limit_order_volume(info->min_limit_order_volume);
-    instrument_rsp->set_min_market_order_volume(info->min_market_order_volume);
-    instrument_rsp->set_price_tick(info->ticksize);
-    instrument_rsp->set_volume_multiple(info->tradeuint);
-  }
-  rsp.SerializeToString(&msg.pb_msg);
-  msg.session_name = "strategy_market";
-  msg.msg_name = "InstrumentRsp." + std::to_string(itp_msg.request_id());
-  auto &recer_sender = RecerSender::GetInstance();
-  recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
 }
 
 void CtpEvent::UpdateInstrumentInfoFromTrader() {

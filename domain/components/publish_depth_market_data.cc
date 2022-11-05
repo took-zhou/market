@@ -14,27 +14,25 @@ PublishData::PublishData() { ; }
 
 void PublishData::DirectForwardDataToStrategy(CThostFtdcDepthMarketDataField *p_d) {
   auto &market_ser = MarketService::GetInstance();
-  auto pos = market_ser.ROLE(ControlPara).publish_ctrl_map.find(p_d->InstrumentID);
-  if (pos != market_ser.ROLE(ControlPara).publish_ctrl_map.end() && market_ser.login_state == kLoginState) {
+  auto pos = market_ser.ROLE(PublishControl).publish_para_map.find(p_d->InstrumentID);
+  if (pos != market_ser.ROLE(PublishControl).publish_para_map.end() && market_ser.login_state == kLoginState) {
     for (auto &item_p_c : pos->second) {
-      if (item_p_c.indication == strategy_market::TickStartStopIndication_MessageType_start) {
-        OnceFromDataflow(item_p_c, p_d);
-      }
+      OnceFromDataflow(item_p_c, p_d);
     }
-  } else if (pos == market_ser.ROLE(ControlPara).publish_ctrl_map.end()) {
+  } else if (pos == market_ser.ROLE(PublishControl).publish_para_map.end()) {
     ERROR_LOG("can not find ins from control para: %s", p_d->InstrumentID);
   }
 }
 
-void PublishData::OnceFromDataflow(const PublishControl &p_c, CThostFtdcDepthMarketDataField *p_d) {
-  if (p_c.source == "rawtick") {
+void PublishData::OnceFromDataflow(const PublishPara &p_c, CThostFtdcDepthMarketDataField *p_d) {
+  if (p_c.source == strategy_market::TickSubscribeReq_Source_rawtick) {
     OnceFromDataflowSelectRawtick(p_c, p_d);
-  } else if (p_c.source == "level1") {
+  } else if (p_c.source == strategy_market::TickSubscribeReq_Source_level1) {
     OnceFromDataflowSelectLevel1(p_c, p_d);
   }
 }
 
-void PublishData::OnceFromDataflowSelectRawtick(const PublishControl &p_c, CThostFtdcDepthMarketDataField *p_d) {
+void PublishData::OnceFromDataflowSelectRawtick(const PublishPara &p_c, CThostFtdcDepthMarketDataField *p_d) {
   if (IsValidTickData(p_d) == false) {
     return;
   }
@@ -84,7 +82,7 @@ void PublishData::OnceFromDataflowSelectRawtick(const PublishControl &p_c, CThos
   p_c.heartbeat = 0;
 }
 
-void PublishData::OnceFromDataflowSelectLevel1(const PublishControl &p_c, CThostFtdcDepthMarketDataField *p_d) {
+void PublishData::OnceFromDataflowSelectLevel1(const PublishPara &p_c, CThostFtdcDepthMarketDataField *p_d) {
   if (IsValidTickData(p_d) == false) {
     return;
   }
@@ -142,9 +140,9 @@ void PublishData::OnceFromDataflowSelectLevel1(const PublishControl &p_c, CThost
 void PublishData::HeartBeatDetect() {
   auto &market_ser = MarketService::GetInstance();
   while (1) {
-    for (auto &item_p_c : market_ser.ROLE(ControlPara).publish_ctrl_map) {
-      for (auto &item_id : item_p_c.second) {
-        if (market_ser.login_state == kLoginState && item_id.indication == strategy_market::TickStartStopIndication_MessageType_start) {
+    if (market_ser.login_state == kLoginState) {
+      for (auto &item_p_c : market_ser.ROLE(PublishControl).publish_para_map) {
+        for (auto &item_id : item_p_c.second) {
           item_id.heartbeat++;
           if (item_id.heartbeat >= kHeartBeatWaitTime_) {
             OnceFromDefault(item_id, item_p_c.first);
@@ -157,7 +155,7 @@ void PublishData::HeartBeatDetect() {
   }
 }
 
-void PublishData::OnceFromDefault(const PublishControl &p_c, const string &keyname) {
+void PublishData::OnceFromDefault(const PublishPara &p_c, const string &ins) {
   char time_array[100] = {0};
   strategy_market::message tick;
   auto tick_data = tick.mutable_tick_data();
@@ -166,7 +164,7 @@ void PublishData::OnceFromDefault(const PublishControl &p_c, const string &keyna
   tick_data->set_time_point(time_array);
 
   tick_data->set_state(strategy_market::TickData_TickState_inactive);
-  tick_data->set_instrument_id(keyname);
+  tick_data->set_instrument_id(ins);
   tick_data->set_last_price(Max2zero(0.0));
   tick_data->set_bid_price1(Max2zero(0.0));
   tick_data->set_bid_volume1(0);
@@ -211,7 +209,7 @@ void PublishData::OnceFromDefault(const PublishControl &p_c, const string &keyna
   p_c.heartbeat = 0;
 }
 
-bool PublishData::IsValidLevel1Data(const PublishControl &p_c, CThostFtdcDepthMarketDataField *p_d) {
+bool PublishData::IsValidLevel1Data(const PublishPara &p_c, CThostFtdcDepthMarketDataField *p_d) {
   bool ret = false;
 
   auto &market_ser = MarketService::GetInstance();
@@ -227,27 +225,25 @@ bool PublishData::IsValidLevel1Data(const PublishControl &p_c, CThostFtdcDepthMa
 
 void PublishData::DirectForwardDataToStrategy(XTPMD *p_d) {
   auto &market_ser = MarketService::GetInstance();
-  auto pos = market_ser.ROLE(ControlPara).publish_ctrl_map.find(p_d->ticker);
-  if (pos != market_ser.ROLE(ControlPara).publish_ctrl_map.end() && market_ser.login_state == kLoginState) {
+  auto pos = market_ser.ROLE(PublishControl).publish_para_map.find(p_d->ticker);
+  if (pos != market_ser.ROLE(PublishControl).publish_para_map.end() && market_ser.login_state == kLoginState) {
     for (auto &item_p_c : pos->second) {
-      if (item_p_c.indication == strategy_market::TickStartStopIndication_MessageType_start) {
-        OnceFromDataflow(item_p_c, p_d);
-      }
+      OnceFromDataflow(item_p_c, p_d);
     }
-  } else if (pos == market_ser.ROLE(ControlPara).publish_ctrl_map.end()) {
+  } else if (pos == market_ser.ROLE(PublishControl).publish_para_map.end()) {
     ERROR_LOG("can not find ins from control para: %s", p_d->ticker);
   }
 }
 
-void PublishData::OnceFromDataflow(const PublishControl &p_c, XTPMD *p_d) {
-  if (p_c.source == "rawtick") {
+void PublishData::OnceFromDataflow(const PublishPara &p_c, XTPMD *p_d) {
+  if (p_c.source == strategy_market::TickSubscribeReq_Source_rawtick) {
     OnceFromDataflowSelectRawtick(p_c, p_d);
-  } else if (p_c.source == "level1") {
+  } else if (p_c.source == strategy_market::TickSubscribeReq_Source_level1) {
     OnceFromDataflowSelectLevel1(p_c, p_d);
   }
 }
 
-void PublishData::OnceFromDataflowSelectRawtick(const PublishControl &p_c, XTPMD *p_d) {
+void PublishData::OnceFromDataflowSelectRawtick(const PublishPara &p_c, XTPMD *p_d) {
   if (IsValidTickData(p_d) == false) {
     return;
   }
@@ -296,7 +292,7 @@ void PublishData::OnceFromDataflowSelectRawtick(const PublishControl &p_c, XTPMD
 }
 
 // 无法获取最小变动单位，暂不实现该功能
-void PublishData::OnceFromDataflowSelectLevel1(const PublishControl &p_c, XTPMD *p_d) {
+void PublishData::OnceFromDataflowSelectLevel1(const PublishPara &p_c, XTPMD *p_d) {
   if (IsValidTickData(p_d) == false) {
     return;
   }
@@ -348,7 +344,7 @@ void PublishData::OnceFromDataflowSelectLevel1(const PublishControl &p_c, XTPMD 
   recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
 }
 
-bool PublishData::IsValidLevel1Data(const PublishControl &p_c, XTPMD *p_d) {
+bool PublishData::IsValidLevel1Data(const PublishPara &p_c, XTPMD *p_d) {
   bool ret = false;
 
   auto &market_ser = MarketService::GetInstance();
@@ -364,26 +360,31 @@ bool PublishData::IsValidLevel1Data(const PublishControl &p_c, XTPMD *p_d) {
 
 void PublishData::DirectForwardDataToStrategy(BtpMarketDataStruct *p_d) {
   auto &market_ser = MarketService::GetInstance();
-  auto pos = market_ser.ROLE(ControlPara).publish_ctrl_map.find(p_d->instrument_id);
-  if (pos != market_ser.ROLE(ControlPara).publish_ctrl_map.end() && market_ser.login_state == kLoginState) {
+  auto pos = market_ser.ROLE(PublishControl).publish_para_map.find(p_d->instrument_id);
+  if (pos != market_ser.ROLE(PublishControl).publish_para_map.end() && market_ser.login_state == kLoginState) {
     for (auto &item_p_c : pos->second) {
-      if (item_p_c.indication == strategy_market::TickStartStopIndication_MessageType_start && stoi(item_p_c.prid) == p_d->prid) {
+      if (p_d->state == 0) {
+        item_p_c.heartbeat++;
+        if (item_p_c.heartbeat >= 60) {
+          OnceFromDefault(item_p_c, p_d);
+        }
+      } else {
         OnceFromDataflow(item_p_c, p_d);
       }
     }
-  } else if (pos == market_ser.ROLE(ControlPara).publish_ctrl_map.end()) {
+  } else if (pos == market_ser.ROLE(PublishControl).publish_para_map.end()) {
     ERROR_LOG("can not find ins from control para: %s", p_d->instrument_id);
   }
 }
-void PublishData::OnceFromDataflow(const PublishControl &p_c, BtpMarketDataStruct *p_d) {
-  if (p_c.source == "rawtick") {
+void PublishData::OnceFromDataflow(const PublishPara &p_c, BtpMarketDataStruct *p_d) {
+  if (p_c.source == strategy_market::TickSubscribeReq_Source_rawtick) {
     OnceFromDataflowSelectRawtick(p_c, p_d);
-  } else if (p_c.source == "level1") {
+  } else if (p_c.source == strategy_market::TickSubscribeReq_Source_level1) {
     OnceFromDataflowSelectLevel1(p_c, p_d);
   }
 }
 
-void PublishData::OnceFromDataflowSelectRawtick(const PublishControl &p_c, BtpMarketDataStruct *p_d) {
+void PublishData::OnceFromDataflowSelectRawtick(const PublishPara &p_c, BtpMarketDataStruct *p_d) {
   strategy_market::message tick;
   auto tick_data = tick.mutable_tick_data();
 
@@ -428,8 +429,11 @@ void PublishData::OnceFromDataflowSelectRawtick(const PublishControl &p_c, BtpMa
   msg.msg_name = "TickData." + p_c.prid;
   auto &recer_sender = RecerSender::GetInstance();
   recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
+
+  p_c.heartbeat = 0;
 }
-void PublishData::OnceFromDataflowSelectLevel1(const PublishControl &p_c, BtpMarketDataStruct *p_d) {
+
+void PublishData::OnceFromDataflowSelectLevel1(const PublishPara &p_c, BtpMarketDataStruct *p_d) {
   if (IsValidLevel1Data(p_c, p_d) == false) {
     return;
   }
@@ -473,9 +477,63 @@ void PublishData::OnceFromDataflowSelectLevel1(const PublishControl &p_c, BtpMar
   msg.msg_name = "TickData." + p_c.prid;
   auto &recer_sender = RecerSender::GetInstance();
   recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
+
+  p_c.heartbeat = 0;
 }
 
-bool PublishData::IsValidLevel1Data(const PublishControl &p_c, BtpMarketDataStruct *p_d) {
+void PublishData::OnceFromDefault(const PublishPara &p_c, BtpMarketDataStruct *p_d) {
+  strategy_market::message tick;
+  auto tick_data = tick.mutable_tick_data();
+
+  tick_data->set_time_point(p_d->date_time);
+
+  tick_data->set_state(strategy_market::TickData_TickState_inactive);
+  tick_data->set_instrument_id(p_d->instrument_id);
+  tick_data->set_last_price(Max2zero(0.0));
+  tick_data->set_bid_price1(Max2zero(0.0));
+  tick_data->set_bid_volume1(0);
+  tick_data->set_ask_price1(Max2zero(0.0));
+  tick_data->set_ask_volume1(0);
+  if (kDataLevel_ == 2) {
+    tick_data->set_bid_price2(Max2zero(0.0));
+    tick_data->set_bid_volume2(0);
+    tick_data->set_ask_price2(Max2zero(0.0));
+    tick_data->set_ask_volume2(0);
+    tick_data->set_bid_price3(Max2zero(0.0));
+    tick_data->set_bid_volume3(0);
+    tick_data->set_ask_price3(Max2zero(0.0));
+    tick_data->set_ask_volume3(0);
+    tick_data->set_bid_price4(Max2zero(0.0));
+    tick_data->set_bid_volume4(0);
+    tick_data->set_ask_price4(Max2zero(0.0));
+    tick_data->set_ask_volume4(0);
+    tick_data->set_bid_price5(Max2zero(0.0));
+    tick_data->set_bid_volume5(0);
+    tick_data->set_ask_price5(Max2zero(0.0));
+    tick_data->set_ask_volume5(0);
+    tick_data->set_turnover(0);
+    tick_data->set_open_interest(0);
+    tick_data->set_upper_limit_price(Max2zero(0.0));
+    tick_data->set_lower_limit_price(Max2zero(0.0));
+    tick_data->set_pre_settlement_price(Max2zero(0.0));
+    tick_data->set_pre_close_price(Max2zero(0.0));
+    tick_data->set_pre_open_interest(0);
+  }
+  tick_data->set_open_price(Max2zero(0.0));
+
+  tick_data->set_volume(0);
+
+  utils::ItpMsg msg;
+  tick.SerializeToString(&msg.pb_msg);
+  msg.session_name = "strategy_market";
+  msg.msg_name = "TickData." + p_c.prid;
+  auto &recer_sender = RecerSender::GetInstance();
+  recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
+
+  p_c.heartbeat = 0;
+}
+
+bool PublishData::IsValidLevel1Data(const PublishPara &p_c, BtpMarketDataStruct *p_d) {
   bool ret = false;
 
   auto &market_ser = MarketService::GetInstance();

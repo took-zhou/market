@@ -22,15 +22,14 @@ struct StrategyEvent {
   // 处理策略端请求的合约信息
   void TickSubscribeReqHandle(utils::ItpMsg &msg);
 
-  // 发布tick数据进度控制
-  void TickStartStopIndicationHandle(utils::ItpMsg &msg);
-
   // 策略是否运行回复处理
   void StrategyAliveRspHandle(utils::ItpMsg &msg);
 
   void TimeLimitReqHandle(utils::ItpMsg &msg);
 
   void InstrumentReqHandle(utils::ItpMsg &msg);
+
+  void MarketStateRspHandle(utils::ItpMsg &msg);
 
  private:
   std::map<std::string, std::function<void(utils::ItpMsg &msg)>> msg_func_map_;

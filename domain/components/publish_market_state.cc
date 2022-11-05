@@ -1,6 +1,7 @@
 #include "market/domain/components/publish_market_state.h"
 #include "common/extern/log/log.h"
 #include "common/self/protobuf/strategy-market.pb.h"
+#include "common/self/semaphore.h"
 #include "market/domain/components/market_time_state.h"
 #include "market/domain/market_service.h"
 #include "market/infra/recer_sender.h"
@@ -20,25 +21,25 @@ void PublishState::PublishToStrategy(void) {
   GetTradeData(date_buff);
   auto &market_ser = MarketService::GetInstance();
 
-  strategy_market::TickMarketState_MarketState state = strategy_market::TickMarketState_MarketState_reserve;
+  strategy_market::MarketStateReq_MarketState state = strategy_market::MarketStateReq_MarketState_reserve;
   if (market_ser.ROLE(MarketTimeState).GetSubTimeState() == kInDayLogout) {
-    state = strategy_market::TickMarketState_MarketState_day_close;
+    state = strategy_market::MarketStateReq_MarketState_day_close;
     INFO_LOG("Publish makret state: day_close, date: %s to strategy.", date_buff);
   } else if (market_ser.ROLE(MarketTimeState).GetSubTimeState() == kInNightLogout) {
-    state = strategy_market::TickMarketState_MarketState_night_close;
+    state = strategy_market::MarketStateReq_MarketState_night_close;
     INFO_LOG("Publish makret state: night_close, date: %s to strategy.", date_buff);
   } else if (market_ser.ROLE(MarketTimeState).GetSubTimeState() == kInDayLogin) {
-    state = strategy_market::TickMarketState_MarketState_day_open;
+    state = strategy_market::MarketStateReq_MarketState_day_open;
     INFO_LOG("Publish makret state: day_open, date: %s to strategy.", date_buff);
   } else if (market_ser.ROLE(MarketTimeState).GetSubTimeState() == kInNightLogin) {
-    state = strategy_market::TickMarketState_MarketState_night_open;
+    state = strategy_market::MarketStateReq_MarketState_night_open;
     INFO_LOG("Publish makret state: night_open, date: %s to strategy.", date_buff);
   }
 
-  auto key_name_kist = market_ser.ROLE(ControlPara).GetPridList();
+  auto key_name_kist = market_ser.ROLE(PublishControl).GetPridList();
   for (auto &keyname : key_name_kist) {
     strategy_market::message tick;
-    auto market_state = tick.mutable_market_state();
+    auto market_state = tick.mutable_market_state_req();
 
     market_state->set_market_state(state);
     market_state->set_date(date_buff);
@@ -46,11 +47,12 @@ void PublishState::PublishToStrategy(void) {
     utils::ItpMsg msg;
     tick.SerializeToString(&msg.pb_msg);
     msg.session_name = "strategy_market";
-    msg.msg_name = "TickMarketState." + keyname;
+    msg.msg_name = "MarketStateReq." + keyname;
     auto &recer_sender = RecerSender::GetInstance();
     recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    auto &global_sem = GlobalSem::GetInstance();
+    global_sem.WaitSemBySemName(GlobalSem::kStrategyRsp, 60);
   }
 }
 
@@ -67,23 +69,23 @@ void PublishState::PublishEvent(BtpLoginLogoutStruct *login_logout) { PublishToS
 void PublishState::PublishToStrategy(BtpLoginLogoutStruct *login_logout) {
   auto &market_ser = MarketService::GetInstance();
 
-  strategy_market::TickMarketState_MarketState state = strategy_market::TickMarketState_MarketState_reserve;
+  strategy_market::MarketStateReq_MarketState state = strategy_market::MarketStateReq_MarketState_reserve;
   if (strcmp(login_logout->market_state, "day_close") == 0) {
-    state = strategy_market::TickMarketState_MarketState_day_close;
+    state = strategy_market::MarketStateReq_MarketState_day_close;
     INFO_LOG("Publish makret state: day_close, date: %s to strategy.", login_logout->date);
   } else if (strcmp(login_logout->market_state, "night_close") == 0) {
-    state = strategy_market::TickMarketState_MarketState_night_close;
+    state = strategy_market::MarketStateReq_MarketState_night_close;
     INFO_LOG("Publish makret state: night_close, date: %s to strategy.", login_logout->date);
   } else if (strcmp(login_logout->market_state, "day_open") == 0) {
-    state = strategy_market::TickMarketState_MarketState_day_open;
+    state = strategy_market::MarketStateReq_MarketState_day_open;
     INFO_LOG("Publish makret state: day_open, date: %s to strategy.", login_logout->date);
   } else if (strcmp(login_logout->market_state, "night_open") == 0) {
-    state = strategy_market::TickMarketState_MarketState_night_open;
+    state = strategy_market::MarketStateReq_MarketState_night_open;
     INFO_LOG("Publish makret state: night_open, date: %s to strategy.", login_logout->date);
   }
 
   strategy_market::message tick;
-  auto market_state = tick.mutable_market_state();
+  auto market_state = tick.mutable_market_state_req();
 
   market_state->set_market_state(state);
   market_state->set_date(login_logout->date);
@@ -91,11 +93,12 @@ void PublishState::PublishToStrategy(BtpLoginLogoutStruct *login_logout) {
   utils::ItpMsg msg;
   tick.SerializeToString(&msg.pb_msg);
   msg.session_name = "strategy_market";
-  msg.msg_name = "TickMarketState." + to_string(login_logout->prid);
+  msg.msg_name = "MarketStateReq." + to_string(login_logout->prid);
   auto &recer_sender = RecerSender::GetInstance();
   recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  auto &global_sem = GlobalSem::GetInstance();
+  global_sem.WaitSemBySemName(GlobalSem::kStrategyRsp, 60);
 }
 
 void PublishState::GetTradeData(char *buff) {

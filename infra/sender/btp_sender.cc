@@ -19,8 +19,9 @@ bool BtpSender::Init(void) {
     auto users = json_cfg.GetConfig("market", "User");
     for (auto &user : users) {
       std::string temp_folder = json_cfg.GetConfig("market", "ControlParaFilePath").get<std::string>();
-      std::string json_path = temp_folder + "/" + (std::string)user + "/controlPara/control.json";
-      market_api = btp::api::MarketApi::CreateMarketApi(json_path.c_str());
+      std::string publish_path = temp_folder + "/" + (std::string)user + "/PublishControl/control.json";
+      std::string backtest_path = temp_folder + "/" + (std::string)user + "/BacktestControl/control.json";
+      market_api = btp::api::MarketApi::CreateMarketApi(publish_path.c_str(), backtest_path.c_str());
 
       market_spi = new BtpMarketSpi();
       market_api->RegisterSpi(market_spi);
@@ -91,7 +92,7 @@ bool BtpSender::SubscribeMarketData(std::vector<utils::InstrumtntID> const &name
     count++;
   }
 
-  if (count > 0) {
+  if (count >= 0) {
     result = market_api->SubscribeMarketData(pp_instrument_id, count, request_id);
     if (result != 0) {
       ERROR_LOG("SubscribeMarketData fail, error code[%d]", result);
@@ -118,7 +119,7 @@ bool BtpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &na
     count++;
   }
 
-  if (count > 0) {
+  if (count >= 0) {
     result = market_api->UnSubscribeMarketData(pp_instrument_id, count, request_id);
     if (result == 0) {
       INFO_LOG("UnSubscription request ......Send a success, total number: %d", count);
@@ -128,15 +129,6 @@ bool BtpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &na
   }
 
   delete[] pp_instrument_id;
-
-  return true;
-}
-
-bool BtpSender::ReqInstrumentInfo(const utils::InstrumtntID &ins, int request_id) {
-  BtpQryInstrumentInfoField field;
-  strcpy(field.instrument_id, ins.ins.c_str());
-  strcpy(field.exchange_id, ins.exch.c_str());
-  market_api->QryInstrumentInfo(&field, request_id);
 
   return true;
 }

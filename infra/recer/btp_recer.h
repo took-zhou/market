@@ -18,7 +18,7 @@ class BtpMarketSpi : public btp::api::MarketSpi {
   void OnRspUserLogin(const BtpLoginLogoutStruct *login_info);
   void OnRspUserLogout(const BtpLoginLogoutStruct *login_info);
   void OnDepthMarketData(const BtpMarketDataStruct *market_data);
-  void OnRspInstrumentInfo(BtpInstrumentInfo *instrument_info);
+  void OnRspAllInstrumentInfo(BtpInstrumentInfo *ticker_info);
 };
 
 #endif /* WORKSPACE_MARKET_INFRA_CTPRECER_H_ */

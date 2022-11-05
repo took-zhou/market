@@ -19,9 +19,9 @@ void StrategyEvent::RegMsgFun() {
   int cnt = 0;
   msg_func_map_.clear();
   msg_func_map_["TickSubscribeReq"] = [this](utils::ItpMsg &msg) { TickSubscribeReqHandle(msg); };
-  msg_func_map_["TickStartStopIndication"] = [this](utils::ItpMsg &msg) { TickStartStopIndicationHandle(msg); };
   msg_func_map_["ActiveSafetyRsp"] = [this](utils::ItpMsg &msg) { StrategyAliveRspHandle(msg); };
   msg_func_map_["InstrumentReq"] = [this](utils::ItpMsg &msg) { InstrumentReqHandle(msg); };
+  msg_func_map_["MarketStateRsp"] = [this](utils::ItpMsg &msg) { MarketStateRspHandle(msg); };
 
   for (auto &iter : msg_func_map_) {
     INFO_LOG("msg_func_map_[%d] key is [%s]", cnt, iter.first.c_str());
@@ -41,64 +41,52 @@ void StrategyEvent::Handle(utils::ItpMsg &msg) {
 
 void StrategyEvent::TickSubscribeReqHandle(utils::ItpMsg &msg) {
   auto &market_ser = MarketService::GetInstance();
-  vector<utils::InstrumtntID> ins_vec;
-  ins_vec.clear();
-
   strategy_market::message message;
   message.ParseFromString(msg.pb_msg);
   auto req_info = message.tick_sub_req();
 
-  utils::InstrumtntID ins_id;
+  if (req_info.action() == strategy_market::TickSubscribeReq_Action_sub) {
+    vector<utils::InstrumtntID> ins_vec;
+    ins_vec.clear();
+    utils::InstrumtntID ins_id;
 
-  ins_id.ins = req_info.instrument_info().instrument_id();
-  ins_id.exch = req_info.instrument_info().exchange_id();
-  ins_vec.push_back(ins_id);
+    ins_id.ins = req_info.instrument_info().instrument_id();
+    ins_id.exch = req_info.instrument_info().exchange_id();
+    ins_vec.push_back(ins_id);
 
-  PublishControl p_c;
-  p_c.prid = req_info.process_random_id();
-  p_c.exch = req_info.instrument_info().exchange_id();
-  p_c.indication = strategy_market::TickStartStopIndication_MessageType_reserve;
-  p_c.source = req_info.source();
-  p_c.heartbeat = 0;
-  p_c.begin = req_info.begin_time();
-  p_c.end = req_info.end_time();
-  p_c.speed = req_info.speed();
+    PublishPara p_a;
+    p_a.prid = req_info.process_random_id();
+    p_a.exch = req_info.instrument_info().exchange_id();
+    p_a.source = req_info.source();
+    p_a.heartbeat = 0;
 
-  if (req_info.interval() == "raw") {
-    p_c.directforward = true;
-  } else {
-    p_c.directforward = false;
-    p_c.interval = stoi(req_info.interval().c_str());
-  }
-  market_ser.ROLE(ControlPara).BuildControlPara(ins_id.ins, p_c);
+    market_ser.ROLE(PublishControl).BuildPublishPara(ins_id.ins, p_a);
 
-  if (market_ser.login_state == kLoginState) {
-    market_ser.ROLE(SubscribeManager).SubscribeInstrument(ins_vec, stoi(req_info.process_random_id()));
-  } else {
-    WARNING_LOG("now is logout, wait login to subscribe new instruments");
-  }
-}
+    if (req_info.mode() == strategy_market::TickSubscribeReq_Mode_realtime) {
+      if (market_ser.login_state == kLoginState) {
+        market_ser.ROLE(SubscribeManager).SubscribeInstrument(ins_vec, stoi(req_info.process_random_id()));
+      } else {
+        WARNING_LOG("now is logout, wait login to subscribe new instruments");
+      }
+    }
+  } else if (req_info.action() == strategy_market::TickSubscribeReq_Action_unsub) {
+    utils::InstrumtntID ins_id;
+    ins_id.exch = req_info.instrument_info().exchange_id();
+    ins_id.ins = req_info.instrument_info().instrument_id();
+    std::string prid = req_info.process_random_id();
 
-void StrategyEvent::TickStartStopIndicationHandle(utils::ItpMsg &msg) {
-  strategy_market::message message;
-  message.ParseFromString(msg.pb_msg);
-  auto indication = message.tick_start_stop_indication();
+    // 清除该合约 该进程对应的记录
+    market_ser.ROLE(PublishControl).ErasePublishPara(prid, ins_id.ins);
 
-  std::string prid = indication.process_random_id();
-  std::string ins = indication.instrument_info().instrument_id();
-  auto &market_ser = MarketService::GetInstance();
-  market_ser.ROLE(ControlPara).SetStartStopIndication(prid, ins, indication.type());
-  if (indication.type() == strategy_market::TickStartStopIndication_MessageType_finish) {
-    auto instrument_list = market_ser.ROLE(ControlPara).GetInstrumentList(prid);
-    for (auto &item : instrument_list) {
-      if (market_ser.ROLE(ControlPara).GetInstrumentSubscribedCount(item) == 1) {
+    if (req_info.mode() == strategy_market::TickSubscribeReq_Mode_realtime) {
+      if (market_ser.ROLE(PublishControl).GetInstrumentSubscribedCount(ins_id.ins) == 1) {
         vector<utils::InstrumtntID> ins_vec;
-        ins_vec.push_back(item);
+        ins_vec.push_back(ins_id);
+
+        // 如果只有这一个合约订阅这个合约，取消订阅
         market_ser.ROLE(SubscribeManager).UnSubscribeInstrument(ins_vec, stoi(prid));
       }
     }
-
-    market_ser.ROLE(ControlPara).EraseControlPara(prid, ins);
   }
 }
 
@@ -106,18 +94,51 @@ void StrategyEvent::InstrumentReqHandle(utils::ItpMsg &msg) {
   strategy_market::message message;
   message.ParseFromString(msg.pb_msg);
   auto prid = message.instrument_req().process_random_id();
+  std::string ins = message.instrument_req().instrument_info().instrument_id();
   auto &market_ser = MarketService::GetInstance();
   if (market_ser.login_state != kLoginState) {
     ERROR_LOG("itp not login!");
     return;
   }
 
-  utils::InstrumtntID ins_exch;
-  ins_exch.ins = message.instrument_req().instrument_info().instrument_id();
-  ins_exch.exch = message.instrument_req().instrument_info().exchange_id();
+  auto info = market_ser.ROLE(InstrumentInfo).GetInstrumentInfo(ins);
 
+  strategy_market::message rsp;
+  auto *instrument_rsp = rsp.mutable_instrument_rsp();
+  if (info == nullptr) {
+    instrument_rsp->set_instrument_id(info->exch);
+    instrument_rsp->set_exchange_id(ins);
+    instrument_rsp->set_result(strategy_market::Result::failed);
+    instrument_rsp->set_failedreason("not find instrument info.");
+  } else {
+    instrument_rsp->set_instrument_id(ins);
+    instrument_rsp->set_exchange_id(info->exch);
+    instrument_rsp->set_result(strategy_market::Result::success);
+    instrument_rsp->set_is_trading(info->is_trading);
+    instrument_rsp->set_max_limit_order_volume(info->max_limit_order_volume);
+    instrument_rsp->set_max_market_order_volume(info->max_market_order_volume);
+    instrument_rsp->set_min_limit_order_volume(info->min_limit_order_volume);
+    instrument_rsp->set_min_market_order_volume(info->min_market_order_volume);
+    instrument_rsp->set_price_tick(info->ticksize);
+    instrument_rsp->set_volume_multiple(info->tradeuint);
+  }
+
+  rsp.SerializeToString(&msg.pb_msg);
+  msg.session_name = "strategy_market";
+  msg.msg_name = "InstrumentRsp." + prid;
   auto &recer_sender = RecerSender::GetInstance();
-  recer_sender.ROLE(Sender).ROLE(ItpSender).ReqInstrumentInfo(ins_exch, stoi(prid));
+  recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
 }
 
-void StrategyEvent::StrategyAliveRspHandle(utils::ItpMsg &msg) { GlobalSem::GetInstance().PostSemBySemName(GlobalSem::kViewDebug); }
+void StrategyEvent::StrategyAliveRspHandle(utils::ItpMsg &msg) { GlobalSem::GetInstance().PostSemBySemName(GlobalSem::kStrategyRsp); }
+
+void StrategyEvent::MarketStateRspHandle(utils::ItpMsg &msg) {
+  strategy_market::message message;
+  message.ParseFromString(msg.pb_msg);
+  auto result = message.market_state_rsp().result();
+  if (result == 0) {
+    ERROR_LOG("market rsq return error.");
+  }
+
+  GlobalSem::GetInstance().PostSemBySemName(GlobalSem::kStrategyRsp);
+}

@@ -26,9 +26,6 @@ class CtpMarketSpi : public CThostFtdcMdSpi {
   // market端ctp登出没有反馈，主动调用反馈接口
   void OnRspUserLogout(void);
 
-  // market端没有获取合约信息接口，主动调用反馈接口
-  void OnRspInstrumentInfo(CThostFtdcInstrumentField *rsp_info, int request_id);
-
   void OnRspError(CThostFtdcRspInfoField *rsp_info, int request_id, bool is_last){};
 
   void OnRspSubMarketData(CThostFtdcSpecificInstrumentField *specific_instrument, CThostFtdcRspInfoField *rsp_info, int request_id,

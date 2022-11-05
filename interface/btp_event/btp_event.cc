@@ -28,7 +28,7 @@ void BtpEvent::RegMsgFun() {
   msg_func_map["OnDepthMarketData"] = [this](utils::ItpMsg &msg) { OnDepthMarketDataHandle(msg); };
   msg_func_map["OnRspUserLogin"] = [this](utils::ItpMsg &msg) { OnRspUserLoginHandle(msg); };
   msg_func_map["OnRspUserLogout"] = [this](utils::ItpMsg &msg) { OnRspUserLogoutHandle(msg); };
-  msg_func_map["OnRspInstrumentInfo"] = [this](utils::ItpMsg &msg) { OnRspInstrumentInfoHandle(msg); };
+  msg_func_map["OnRspAllInstrumentInfo"] = [this](utils::ItpMsg &msg) { OnRspAllInstrumentInfoHandle(msg); };
 
   for (auto &iter : msg_func_map) {
     INFO_LOG("msg_func_map[%d] key is [%s]", cnt, iter.first.c_str());
@@ -79,13 +79,13 @@ void BtpEvent::OnRspUserLogoutHandle(utils::ItpMsg &msg) {
   market_ser.ROLE(PublishState).PublishEvent(rsp_info);
 }
 
-// btp 具备合约单个信息获取功能，不具备所有合约信息获取功能；将返回合约信息以及构建instrument_info放在一个函数里
-void BtpEvent::OnRspInstrumentInfoHandle(utils::ItpMsg &msg) {
+void BtpEvent::OnRspAllInstrumentInfoHandle(utils::ItpMsg &msg) {
   ipc::message message;
   message.ParseFromString(msg.pb_msg);
   auto &itp_msg = message.itp_msg();
 
   auto btpqsi = reinterpret_cast<BtpInstrumentInfo *>(itp_msg.address());
+
   InstrumentInfo::Info instrument_info;
   instrument_info.exch = btpqsi->exchange_id;
   instrument_info.is_trading = true;
@@ -99,25 +99,7 @@ void BtpEvent::OnRspInstrumentInfoHandle(utils::ItpMsg &msg) {
   auto &market_ser = MarketService::GetInstance();
   market_ser.ROLE(InstrumentInfo).BuildInstrumentInfo(btpqsi->instrument_id, instrument_info);
 
-  auto info = market_ser.ROLE(InstrumentInfo).GetInstrumentInfo(btpqsi->instrument_id);
-
-  strategy_market::message rsp;
-  auto *instrument_rsp = rsp.mutable_instrument_rsp();
-
-  instrument_rsp->set_exchange_id(info->exch);
-  instrument_rsp->set_instrument_id(btpqsi->instrument_id);
-  instrument_rsp->set_result(strategy_market::Result::success);
-  instrument_rsp->set_is_trading(info->is_trading);
-  instrument_rsp->set_max_limit_order_volume(info->max_limit_order_volume);
-  instrument_rsp->set_max_market_order_volume(info->max_market_order_volume);
-  instrument_rsp->set_min_limit_order_volume(info->min_limit_order_volume);
-  instrument_rsp->set_min_market_order_volume(info->min_market_order_volume);
-  instrument_rsp->set_price_tick(info->ticksize);
-  instrument_rsp->set_volume_multiple(info->tradeuint);
-
-  rsp.SerializeToString(&msg.pb_msg);
-  msg.session_name = "strategy_market";
-  msg.msg_name = "InstrumentRsp." + std::to_string(itp_msg.request_id());
-  auto &recer_sender = RecerSender::GetInstance();
-  recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
+  if (btpqsi->is_last == true) {
+    market_ser.ROLE(InstrumentInfo).ShowInstrumentInfo();
+  }
 }

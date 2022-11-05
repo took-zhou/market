@@ -31,8 +31,6 @@ struct XtpEvent {
 
   void OnQueryAllTickersHandle(utils::ItpMsg &msg);
 
-  void OnRspInstrumentInfoHandle(utils::ItpMsg &msg);
-
   void SetBlockControl(ctpview_market::BlockControl_Command command);
 
   std::map<std::string, std::function<void(utils::ItpMsg &msg)>> msg_func_map;

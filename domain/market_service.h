@@ -9,9 +9,10 @@
 
 #include "common/self/dci/role.h"
 #include "market/domain/components/active_safety.h"
-#include "market/domain/components/control_para.h"
+#include "market/domain/components/backtest_control.h"
 #include "market/domain/components/instrument_info.h"
 #include "market/domain/components/market_time_state.h"
+#include "market/domain/components/publish_control.h"
 #include "market/domain/components/publish_depth_market_data.h"
 #include "market/domain/components/publish_market_state.h"
 #include "market/domain/components/store_depth_market_data.h"
@@ -20,7 +21,15 @@
 
 enum MarketLoginState { kErrorState = 0, kLoginState = 1, kLogoutState = 2 };
 
-struct MarketService : MarketTimeState, LoadData, ControlPara, PublishData, PublishState, ActiveSafety, SubscribeManager, InstrumentInfo {
+struct MarketService : MarketTimeState,
+                       LoadData,
+                       PublishControl,
+                       BacktestControl,
+                       PublishData,
+                       PublishState,
+                       ActiveSafety,
+                       SubscribeManager,
+                       InstrumentInfo {
   MarketService();
   MarketService(const MarketService &) = delete;
   MarketService &operator=(const MarketService &) = delete;
@@ -31,7 +40,8 @@ struct MarketService : MarketTimeState, LoadData, ControlPara, PublishData, Publ
 
   IMPL_ROLE(MarketTimeState);
   IMPL_ROLE(LoadData);
-  IMPL_ROLE(ControlPara);
+  IMPL_ROLE(PublishControl);
+  IMPL_ROLE(BacktestControl);
   IMPL_ROLE(PublishData);
   IMPL_ROLE(PublishState);
   IMPL_ROLE(ActiveSafety);

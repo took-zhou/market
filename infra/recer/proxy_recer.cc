@@ -19,6 +19,7 @@ ProxyRecer::ProxyRecer() {
   topic_list.push_back("strategy_market.TickStartStopIndication");
   topic_list.push_back("strategy_market.ActiveSafetyRsp");
   topic_list.push_back("strategy_market.InstrumentReq");
+  topic_list.push_back("strategy_market.MarketStateRsp");
 
   // market_market
   topic_list.push_back("market_market.HeartBeat");
@@ -33,6 +34,8 @@ ProxyRecer::ProxyRecer() {
   topic_list.push_back("ctpview_market.BlockControl");
   topic_list.push_back("ctpview_market.BugInjection");
   topic_list.push_back("ctpview_market.SimulateMarketState");
+  topic_list.push_back("ctpview_market.BackTestControl");
+  topic_list.push_back("ctpview_market.TickStartStopIndication");
 
   auto &zmq_base = BaseZmq::GetInstance();
   for (auto &topic : topic_list) {

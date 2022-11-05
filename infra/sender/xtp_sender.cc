@@ -230,19 +230,4 @@ void XtpSender::UpdateInstrumentInfoFromMarket() {
   INFO_LOG("UpdateInstrumentInfoFromMarket ok");
 }
 
-bool XtpSender::ReqInstrumentInfo(const utils::InstrumtntID &ins, const int request_id) {
-  XTPQSI ticker_info;
-  strcpy(ticker_info.ticker, ins.ins.c_str());
-  if (ins.exch == "SZSE") {
-    ticker_info.exchange_id = XTP_EXCHANGE_SZ;
-  } else if (ins.exch == "SHSE") {
-    ticker_info.exchange_id = XTP_EXCHANGE_SH;
-  } else {
-    ticker_info.exchange_id = XTP_EXCHANGE_UNKNOWN;
-  }
-
-  quote_spi->OnRspInstrumentInfo(&ticker_info, request_id);
-  return true;
-}
-
 bool XtpSender::LossConnection() { return (quote_spi != nullptr && quote_spi->front_disconnected == true); }

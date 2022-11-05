@@ -35,7 +35,7 @@ void ActiveSafety::ReqAlive() {
   INFO_LOG("is going to check target is alive.");
 
   auto &market_ser = MarketService::GetInstance();
-  auto key_name_list = market_ser.ROLE(ControlPara).GetPridList();
+  auto key_name_list = market_ser.ROLE(PublishControl).GetPridList();
   for (auto &keyname : key_name_list) {
     strategy_market::message req_msg;
     auto active_safety = req_msg.mutable_active_req();
@@ -51,7 +51,7 @@ void ActiveSafety::ReqAlive() {
     recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
 
     auto &global_sem = GlobalSem::GetInstance();
-    if (global_sem.WaitSemBySemName(GlobalSem::kViewDebug, 3) != 0) {
+    if (global_sem.WaitSemBySemName(GlobalSem::kStrategyRsp, 3) != 0) {
       ReqAliveTimeout(keyname);
     }
     std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -62,5 +62,5 @@ void ActiveSafety::ReqAlive() {
 
 void ActiveSafety::ReqAliveTimeout(const string &keyname) {
   auto &market_ser = MarketService::GetInstance();
-  market_ser.ROLE(ControlPara).EraseControlPara(keyname);
+  market_ser.ROLE(PublishControl).ErasePublishPara(keyname);
 }

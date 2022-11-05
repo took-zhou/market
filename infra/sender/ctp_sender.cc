@@ -202,12 +202,4 @@ bool CtpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &na
   return result;
 };
 
-bool CtpSender::ReqInstrumentInfo(const utils::InstrumtntID &ins, int request_id) {
-  CThostFtdcInstrumentField field;
-  strcpy(field.InstrumentID, ins.ins.c_str());
-  strcpy(field.ExchangeID, ins.exch.c_str());
-  market_spi->OnRspInstrumentInfo(&field, request_id);
-  return true;
-}
-
 bool CtpSender::LossConnection() { return (market_spi != nullptr && market_spi->front_disconnected == true); }
