@@ -31,6 +31,10 @@ struct StrategyEvent {
 
   void MarketStateRspHandle(utils::ItpMsg &msg);
 
+  void InsertControlParaReqHandle(utils::ItpMsg &msg);
+
+  void EraseControlParaReqHandle(utils::ItpMsg &msg);
+
  private:
   std::map<std::string, std::function<void(utils::ItpMsg &msg)>> msg_func_map_;
 };

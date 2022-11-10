@@ -21,7 +21,6 @@ struct PublishControl {
   ~PublishControl(){};
 
   std::vector<utils::InstrumtntID> GetInstrumentList(const std::string &prid = "");
-  std::vector<std::string> GetPridList(void);
   int GetInstrumentSubscribedCount(const std::string &ins);
 
   void BuildPublishPara(const std::string &keyname, const PublishPara &para);

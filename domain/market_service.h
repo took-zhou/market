@@ -10,6 +10,7 @@
 #include "common/self/dci/role.h"
 #include "market/domain/components/active_safety.h"
 #include "market/domain/components/backtest_control.h"
+#include "market/domain/components/control_para.h"
 #include "market/domain/components/instrument_info.h"
 #include "market/domain/components/market_time_state.h"
 #include "market/domain/components/publish_control.h"
@@ -25,6 +26,7 @@ struct MarketService : MarketTimeState,
                        LoadData,
                        PublishControl,
                        BacktestControl,
+                       ControlPara,
                        PublishData,
                        PublishState,
                        ActiveSafety,
@@ -42,6 +44,7 @@ struct MarketService : MarketTimeState,
   IMPL_ROLE(LoadData);
   IMPL_ROLE(PublishControl);
   IMPL_ROLE(BacktestControl);
+  IMPL_ROLE(ControlPara);
   IMPL_ROLE(PublishData);
   IMPL_ROLE(PublishState);
   IMPL_ROLE(ActiveSafety);

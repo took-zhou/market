@@ -35,7 +35,7 @@ void ActiveSafety::ReqAlive() {
   INFO_LOG("is going to check target is alive.");
 
   auto &market_ser = MarketService::GetInstance();
-  auto key_name_list = market_ser.ROLE(PublishControl).GetPridList();
+  auto key_name_list = market_ser.ROLE(ControlPara).GetPridList();
   for (auto &keyname : key_name_list) {
     strategy_market::message req_msg;
     auto active_safety = req_msg.mutable_active_req();
@@ -63,4 +63,5 @@ void ActiveSafety::ReqAlive() {
 void ActiveSafety::ReqAliveTimeout(const string &keyname) {
   auto &market_ser = MarketService::GetInstance();
   market_ser.ROLE(PublishControl).ErasePublishPara(keyname);
+  market_ser.ROLE(ControlPara).EraseControlPara(keyname);
 }

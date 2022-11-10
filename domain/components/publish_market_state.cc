@@ -36,7 +36,7 @@ void PublishState::PublishToStrategy(void) {
     INFO_LOG("Publish makret state: night_open, date: %s to strategy.", date_buff);
   }
 
-  auto key_name_kist = market_ser.ROLE(PublishControl).GetPridList();
+  auto key_name_kist = market_ser.ROLE(ControlPara).GetPridList();
   for (auto &keyname : key_name_kist) {
     strategy_market::message tick;
     auto market_state = tick.mutable_market_state_req();
@@ -52,7 +52,7 @@ void PublishState::PublishToStrategy(void) {
     recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
 
     auto &global_sem = GlobalSem::GetInstance();
-    global_sem.WaitSemBySemName(GlobalSem::kStrategyRsp, 60);
+    global_sem.WaitSemBySemName(GlobalSem::kStrategyRsp, 300);
   }
 }
 

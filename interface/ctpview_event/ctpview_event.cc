@@ -9,6 +9,7 @@
 #include "common/extern/log/log.h"
 #include "common/self/protobuf/ctpview-market.pb.h"
 #include "common/self/protobuf/strategy-market.pb.h"
+#include "common/self/semaphore.h"
 #include "market/domain/market_service.h"
 #include "market/infra/recer_sender.h"
 #include "market/interface/market_event.h"
@@ -120,7 +121,7 @@ void CtpviewEvent::SimulateMarketStateHandle(utils::ItpMsg &msg) {
   }
 
   auto &market_ser = MarketService::GetInstance();
-  auto key_name_list = market_ser.ROLE(PublishControl).GetPridList();
+  auto key_name_list = market_ser.ROLE(ControlPara).GetPridList();
   for (auto &keyname : key_name_list) {
     strategy_market::message tick;
     auto market_state = tick.mutable_market_state_req();
@@ -131,11 +132,12 @@ void CtpviewEvent::SimulateMarketStateHandle(utils::ItpMsg &msg) {
     utils::ItpMsg msg;
     tick.SerializeToString(&msg.pb_msg);
     msg.session_name = "strategy_market";
-    msg.msg_name = "TickMarketState." + keyname;
+    msg.msg_name = "MarketStateReq." + keyname;
     auto &recer_sender = RecerSender::GetInstance();
     recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    auto &global_sem = GlobalSem::GetInstance();
+    global_sem.WaitSemBySemName(GlobalSem::kStrategyRsp, 60);
   }
 }
 

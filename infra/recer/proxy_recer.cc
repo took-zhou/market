@@ -20,14 +20,13 @@ ProxyRecer::ProxyRecer() {
   topic_list.push_back("strategy_market.ActiveSafetyRsp");
   topic_list.push_back("strategy_market.InstrumentReq");
   topic_list.push_back("strategy_market.MarketStateRsp");
-
+  topic_list.push_back("strategy_market.InsertControlParaReq");
+  topic_list.push_back("strategy_market.EraseControlParaReq");
   // market_market
   topic_list.push_back("market_market.HeartBeat");
 
   // market_trader
   topic_list.push_back("market_trader.QryInstrumentRsp");
-
-  topic_list.push_back("manage_market.TickMarketStateReq");
 
   topic_list.push_back("ctpview_market.LoginControl");
   topic_list.push_back("ctpview_market.CheckStrategyAlive");

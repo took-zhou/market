@@ -142,23 +142,6 @@ std::vector<utils::InstrumtntID> PublishControl::GetInstrumentList(const std::st
   return instrument_vec;
 }
 
-std::vector<std::string> PublishControl::GetPridList(void) {
-  std::vector<std::string> temp_vec;
-  temp_vec.clear();
-
-  std::set<std::string> temp_set;
-  temp_set.clear();
-
-  for (auto &item_pc : publish_para_map) {
-    for (auto &item_id : item_pc.second) {
-      temp_set.insert(item_id.prid);
-    }
-  }
-
-  temp_vec.assign(temp_set.begin(), temp_set.end());
-  return temp_vec;
-}
-
 int PublishControl::GetInstrumentSubscribedCount(const std::string &ins) {
   int find_count = 0;
 
