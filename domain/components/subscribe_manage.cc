@@ -95,6 +95,15 @@ void SubscribeManager::UnSubscribeAll() {
   INFO_LOG("The number of contracts being unsubscribe is: %d.", count);
 }
 
+void SubscribeManager::EraseAllSubscribed() {
+  int count = 0;
+  count = subscribed_.instrument_ids.size();
+  int i_k = pthread_mutex_lock(&(subscribed_.sm_mutex));
+  subscribed_.instrument_ids.clear();
+  i_k = pthread_mutex_unlock(&(subscribed_.sm_mutex));
+  INFO_LOG("The number of contracts being erased is: %d.", count);
+}
+
 void SubscribeManager::AddSubscribed(std::vector<utils::InstrumtntID>& name_vec) {
   int i_k = pthread_mutex_lock(&(subscribed_.sm_mutex));
 

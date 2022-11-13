@@ -21,6 +21,7 @@ struct SubscribeManager {
   void SubscribeInstrument(std::vector<utils::InstrumtntID>& name_vec, int request_id = 0);
   void UnSubscribeInstrument(std::vector<utils::InstrumtntID>& name_vec, int request_id = 0);
   void UnSubscribeAll();
+  void EraseAllSubscribed();
 
  private:
   void AddSubscribed(std::vector<utils::InstrumtntID>& name_vec);

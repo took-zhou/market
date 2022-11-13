@@ -79,7 +79,6 @@ void XtpEvent::OnRspUserLoginHandle(utils::ItpMsg &msg) {
     exit(-1);
   } else {
     auto &market_ser = MarketService::GetInstance();
-    market_ser.ROLE(PublishState).PublishEvent();
 
     if (req_instrument_from_ == "local") {
       market_ser.ROLE(SubscribeManager).ReqInstrumentsFromLocal();
@@ -88,6 +87,8 @@ void XtpEvent::OnRspUserLoginHandle(utils::ItpMsg &msg) {
     } else if (req_instrument_from_ == "strategy") {
       market_ser.ROLE(SubscribeManager).ReqInstrumrntFromControlPara();
     }
+
+    market_ser.ROLE(PublishState).PublishEvent();
   }
 }
 

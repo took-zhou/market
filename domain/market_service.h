@@ -52,6 +52,9 @@ struct MarketService : MarketTimeState,
   IMPL_ROLE(InstrumentInfo);
 
   MarketLoginState login_state = kLogoutState;
+
+ private:
+  bool HandleAccountExitException();
 };
 
 #endif /* WORKSPACE_MARKET_DOMAIN_MARKETSERVICE_H_ */

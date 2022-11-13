@@ -86,8 +86,6 @@ void CtpEvent::OnRspUserLoginHandle(utils::ItpMsg &msg) {
     global_sem.WaitSemBySemName(GlobalSem::kUpdateInstrumentInfo);
 
     auto &market_ser = MarketService::GetInstance();
-    market_ser.ROLE(PublishState).PublishEvent();
-
     if (req_instrument_from_ == "local") {
       market_ser.ROLE(SubscribeManager).ReqInstrumentsFromLocal();
     } else if (req_instrument_from_ == "api") {
@@ -95,6 +93,8 @@ void CtpEvent::OnRspUserLoginHandle(utils::ItpMsg &msg) {
     } else if (req_instrument_from_ == "strategy") {
       market_ser.ROLE(SubscribeManager).ReqInstrumrntFromControlPara();
     }
+
+    market_ser.ROLE(PublishState).PublishEvent();
   }
 }
 

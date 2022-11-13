@@ -55,7 +55,7 @@ MarketService::MarketService() {
           recer_sender.ROLE(Sender).ROLE(ItpSender).ReqUserLogout();
           login_state = kLogoutState;
         } else if (recer_sender.ROLE(Sender).ROLE(ItpSender).LossConnection() && login_state != kLogoutState) {
-          recer_sender.ROLE(Sender).ROLE(ItpSender).ReqUserLogin();
+          HandleAccountExitException();
         }
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -64,4 +64,14 @@ MarketService::MarketService() {
     std::thread(market_log_in_out_fuc).detach();
     INFO_LOG("market_log_in_out_fuc prepare ok");
   }
+}
+
+bool MarketService::HandleAccountExitException() {
+  bool ret = true;
+  auto &recer_sender = RecerSender::GetInstance();
+
+  ROLE(SubscribeManager).EraseAllSubscribed();
+  ROLE(InstrumentInfo).EraseAllInstrumentInfo();
+  recer_sender.ROLE(Sender).ROLE(ItpSender).ReqUserLogin();
+  return ret;
 }
