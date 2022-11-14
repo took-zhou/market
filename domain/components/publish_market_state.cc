@@ -81,21 +81,42 @@ void PublishState::PublishToStrategy(BtpLoginLogoutStruct *login_logout) {
     INFO_LOG("Publish makret state: night_open, date: %s to strategy.", login_logout->date);
   }
 
-  strategy_market::message tick;
-  auto market_state = tick.mutable_market_state_req();
+  if (login_logout->prid == 0) {
+    auto key_name_kist = market_ser.ROLE(ControlPara).GetPridList();
+    for (auto &keyname : key_name_kist) {
+      strategy_market::message tick;
+      auto market_state = tick.mutable_market_state_req();
 
-  market_state->set_market_state(state);
-  market_state->set_date(login_logout->date);
+      market_state->set_market_state(state);
+      market_state->set_date(login_logout->date);
 
-  utils::ItpMsg msg;
-  tick.SerializeToString(&msg.pb_msg);
-  msg.session_name = "strategy_market";
-  msg.msg_name = "MarketStateReq." + to_string(login_logout->prid);
-  auto &recer_sender = RecerSender::GetInstance();
-  recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
+      utils::ItpMsg msg;
+      tick.SerializeToString(&msg.pb_msg);
+      msg.session_name = "strategy_market";
+      msg.msg_name = "MarketStateReq." + keyname;
+      auto &recer_sender = RecerSender::GetInstance();
+      recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
 
-  auto &global_sem = GlobalSem::GetInstance();
-  global_sem.WaitSemBySemName(GlobalSem::kStrategyRsp, 300);
+      auto &global_sem = GlobalSem::GetInstance();
+      global_sem.WaitSemBySemName(GlobalSem::kStrategyRsp, 300);
+    }
+  } else {
+    strategy_market::message tick;
+    auto market_state = tick.mutable_market_state_req();
+
+    market_state->set_market_state(state);
+    market_state->set_date(login_logout->date);
+
+    utils::ItpMsg msg;
+    tick.SerializeToString(&msg.pb_msg);
+    msg.session_name = "strategy_market";
+    msg.msg_name = "MarketStateReq." + to_string(login_logout->prid);
+    auto &recer_sender = RecerSender::GetInstance();
+    recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
+
+    auto &global_sem = GlobalSem::GetInstance();
+    global_sem.WaitSemBySemName(GlobalSem::kStrategyRsp, 300);
+  }
 }
 
 void PublishState::GetTradeData(char *buff) {

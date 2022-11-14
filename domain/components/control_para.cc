@@ -61,7 +61,6 @@ bool ControlPara::LoadFromJson(void) {
       for (int i = 0; i < read_data[iter.key()].size(); i++) {
         std::string temp_prid;
         read_data[iter.key()][i].get_to(temp_prid);
-        INFO_LOG("load prid: %s.", iter.key().c_str());
         InsertControlPara(temp_prid);
       }
     }
