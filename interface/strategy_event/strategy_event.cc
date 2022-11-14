@@ -96,6 +96,7 @@ void StrategyEvent::InstrumentReqHandle(utils::ItpMsg &msg) {
   message.ParseFromString(msg.pb_msg);
   auto prid = message.instrument_req().process_random_id();
   std::string ins = message.instrument_req().instrument_info().instrument_id();
+  std::string exch = message.instrument_req().instrument_info().exchange_id();
   auto &market_ser = MarketService::GetInstance();
   if (market_ser.login_state != kLoginState) {
     ERROR_LOG("itp not login!");
@@ -107,13 +108,13 @@ void StrategyEvent::InstrumentReqHandle(utils::ItpMsg &msg) {
   strategy_market::message rsp;
   auto *instrument_rsp = rsp.mutable_instrument_rsp();
   if (info == nullptr) {
-    instrument_rsp->set_instrument_id(info->exch);
+    instrument_rsp->set_instrument_id(exch);
     instrument_rsp->set_exchange_id(ins);
     instrument_rsp->set_result(strategy_market::Result::failed);
     instrument_rsp->set_failedreason("not find instrument info.");
   } else {
     instrument_rsp->set_instrument_id(ins);
-    instrument_rsp->set_exchange_id(info->exch);
+    instrument_rsp->set_exchange_id(exch);
     instrument_rsp->set_result(strategy_market::Result::success);
     instrument_rsp->set_is_trading(info->is_trading);
     instrument_rsp->set_max_limit_order_volume(info->max_limit_order_volume);
@@ -138,10 +139,10 @@ void StrategyEvent::MarketStateRspHandle(utils::ItpMsg &msg) {
   message.ParseFromString(msg.pb_msg);
   auto result = message.market_state_rsp().result();
   if (result == 0) {
-    ERROR_LOG("market rsq return error.");
+    ERROR_LOG("market state rsp error.");
+  } else {
+    INFO_LOG("market state rsp success.");
   }
-
-  GlobalSem::GetInstance().PostSemBySemName(GlobalSem::kStrategyRsp);
 }
 
 void StrategyEvent::InsertControlParaReqHandle(utils::ItpMsg &msg) {
