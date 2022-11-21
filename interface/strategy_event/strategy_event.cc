@@ -24,6 +24,8 @@ void StrategyEvent::RegMsgFun() {
   msg_func_map_["MarketStateRsp"] = [this](utils::ItpMsg &msg) { MarketStateRspHandle(msg); };
   msg_func_map_["InsertControlParaReq"] = [this](utils::ItpMsg &msg) { InsertControlParaReqHandle(msg); };
   msg_func_map_["EraseControlParaReq"] = [this](utils::ItpMsg &msg) { EraseControlParaReqHandle(msg); };
+  msg_func_map_["PreProcessStateRsp"] = [this](utils::ItpMsg &msg) { PreProcessStateRspHandle(msg); };
+
   for (auto &iter : msg_func_map_) {
     INFO_LOG("msg_func_map_[%d] key is [%s]", cnt, iter.first.c_str());
     cnt++;
@@ -140,8 +142,6 @@ void StrategyEvent::MarketStateRspHandle(utils::ItpMsg &msg) {
   auto result = message.market_state_rsp().result();
   if (result == 0) {
     ERROR_LOG("market state rsp error.");
-  } else {
-    INFO_LOG("market state rsp success.");
   }
 }
 
@@ -161,4 +161,9 @@ void StrategyEvent::EraseControlParaReqHandle(utils::ItpMsg &msg) {
   auto prid = erase_para.process_random_id();
   auto &market_ser = MarketService::GetInstance();
   market_ser.ROLE(ControlPara).EraseControlPara(prid);
+}
+
+void StrategyEvent::PreProcessStateRspHandle(utils::ItpMsg &msg) {
+  INFO_LOG("post sem name: kStrategyRsp");
+  GlobalSem::GetInstance().PostSemBySemName(GlobalSem::kStrategyRsp);
 }

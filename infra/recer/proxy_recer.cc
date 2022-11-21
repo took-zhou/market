@@ -22,6 +22,7 @@ ProxyRecer::ProxyRecer() {
   topic_list.push_back("strategy_market.MarketStateRsp");
   topic_list.push_back("strategy_market.InsertControlParaReq");
   topic_list.push_back("strategy_market.EraseControlParaReq");
+  topic_list.push_back("strategy_market.PreProcessStateRsp");
   // market_market
   topic_list.push_back("market_market.HeartBeat");
 

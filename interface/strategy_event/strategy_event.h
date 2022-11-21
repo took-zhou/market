@@ -35,6 +35,8 @@ struct StrategyEvent {
 
   void EraseControlParaReqHandle(utils::ItpMsg &msg);
 
+  void PreProcessStateRspHandle(utils::ItpMsg &msg);
+
  private:
   std::map<std::string, std::function<void(utils::ItpMsg &msg)>> msg_func_map_;
 };

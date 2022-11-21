@@ -96,9 +96,6 @@ void PublishState::PublishToStrategy(BtpLoginLogoutStruct *login_logout) {
       msg.msg_name = "MarketStateReq." + keyname;
       auto &recer_sender = RecerSender::GetInstance();
       recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
-
-      auto &global_sem = GlobalSem::GetInstance();
-      global_sem.WaitSemBySemName(GlobalSem::kStrategyRsp, 300);
     }
   } else {
     strategy_market::message tick;
@@ -113,9 +110,6 @@ void PublishState::PublishToStrategy(BtpLoginLogoutStruct *login_logout) {
     msg.msg_name = "MarketStateReq." + to_string(login_logout->prid);
     auto &recer_sender = RecerSender::GetInstance();
     recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
-
-    auto &global_sem = GlobalSem::GetInstance();
-    global_sem.WaitSemBySemName(GlobalSem::kStrategyRsp, 300);
   }
 }
 

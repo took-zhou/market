@@ -108,20 +108,26 @@ void BacktestControl::EraseControlPara(const std::string &keyname) {
 }
 
 void BacktestControl::SetStartStopIndication(const std::string &keyname, ctpview_market::TickStartStopIndication_MessageType indication) {
-  if (keyname == "") {
-    for (auto &item : backtest_para_map) {
-      item.second.indication = indication;
-      INFO_LOG("prid: %s, setStartStopIndication %d.", item.first.c_str(), indication);
-    }
-    WriteToJson();
-  } else {
-    auto iter = backtest_para_map.find(keyname);
-    if (iter != backtest_para_map.end()) {
-      iter->second.indication = indication;
-      INFO_LOG("prid: %s, setStartStopIndication %d.", keyname.c_str(), indication);
-      WriteToJson();
-    } else {
-      INFO_LOG("not find prid: %s.", keyname.c_str());
+  FifoJson read_data;
+  std::ifstream out_file(json_path_, std::ios::binary);
+  out_file >> read_data;
+  if (read_data.size() > 0) {
+    for (auto iter = read_data.begin(); iter != read_data.end(); iter++) {
+      if (keyname == "") {
+        read_data[iter.key()].at("indication") = indication;
+      } else if (keyname == iter.key()) {
+        read_data[iter.key()].at("indication") = indication;
+        break;
+      }
     }
   }
+  out_file.close();
+
+  std::ofstream in_file(json_path_);
+  if (in_file.is_open()) {
+    in_file << std::setw(4) << read_data << std::endl;
+  } else {
+    std::cout << "file: " << json_path_ << " open error." << std::endl;
+  }
+  in_file.close();
 }
