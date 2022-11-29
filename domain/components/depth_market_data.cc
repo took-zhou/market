@@ -1,59 +1,40 @@
-// 线程控制相关
-#include <pthread.h>
-#include <semaphore.h>
-#include <unistd.h>
-
-// 定时器相关
-#include <signal.h>
-#include <sys/time.h>
-
-// 实时时间获取
-#include <stddef.h>
-#include <time.h>
-
-// 文件夹及文件操作相关
-#include <dirent.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <fstream>
-#include <sstream>
-#include <vector>
-
-//自定义头文件
+#include "market/domain/components/depth_market_data.h"
 #include "common/extern/log/log.h"
 #include "common/self/file_util.h"
+#include "common/self/profiler.h"
 #include "common/self/utils.h"
-#include "market/domain/components/depth_market_data.h"
+#include "market/domain/market_service.h"
 
 MarketData::MarketData() { instrument_exchange_map_.clear(); }
 
 bool MarketData::IsValidTickData(CThostFtdcDepthMarketDataField *p_d) {
+  PZone("IsValidTickData");
   tm tick_tm;
   bool ret = false;
   char update_time[27];
+  auto &market_ser = MarketService::GetInstance();
+  auto timenow = market_ser.ROLE(MarketTimeState).GetTimeNow();
+  if (timenow != nullptr) {
+    strptime(p_d->UpdateTime, "%H:%M:%S", &tick_tm);
 
-  utils::Gbk2Utf8(p_d->UpdateTime, update_time, sizeof(update_time));
-  strptime(update_time, "%H:%M:%S", &tick_tm);
+    int tick_second = tick_tm.tm_hour * 60 * 60 + tick_tm.tm_min * 60 + tick_tm.tm_sec;
+    int now_second = timenow->tm_hour * 60 * 60 + timenow->tm_min * 60 + timenow->tm_sec;
 
-  int tick_second = tick_tm.tm_hour * 60 * 60 + tick_tm.tm_min * 60 + tick_tm.tm_sec;
-  // system time
-  time_t now_time = time(NULL);
-  // local time
-  tm *local_time = localtime(&now_time);
-  int now_second = local_time->tm_hour * 60 * 60 + local_time->tm_min * 60 + local_time->tm_sec;
-
-  int delay_second = now_second - tick_second;
+    int delay_second = now_second - tick_second;
 
 #ifdef BENCH_TEST
-  if (delay_second != 0) {
-    INFO_LOG("%s local time: %02d:%02d:%02d--ctp time: %s delay_second %d", p_d->InstrumentID, local_time->tm_hour, local_time->tm_min,
-             local_time->tm_sec, p_d->UpdateTime, delay_second);
-  }
+    if (delay_second != 0) {
+      INFO_LOG("%s local time: %02d:%02d:%02d--ctp time: %s delay_second %d", p_d->InstrumentID, local_time->tm_hour, local_time->tm_min,
+               local_time->tm_sec, p_d->UpdateTime, delay_second);
+    }
 #endif
 
-  // INFO_LOG("ins: %s, BidPrice1: %f AskPrice1: %f", p_d->InstrumentID, p_d->BidPrice1, p_d->AskPrice1);
-  if (delay_second <= 180 && delay_second >= -180 && (p_d->BidPrice1 > 0.0 || p_d->AskPrice1 > 0.0)) {
-    ret = true;
+    // INFO_LOG("ins: %s, BidPrice1: %f AskPrice1: %f", p_d->InstrumentID, p_d->BidPrice1, p_d->AskPrice1);
+    if (delay_second <= 180 && delay_second >= -180 && (p_d->BidPrice1 > 0.0 || p_d->AskPrice1 > 0.0)) {
+      ret = true;
+    }
+  } else {
+    ret = false;
   }
 
   return ret;
@@ -62,27 +43,29 @@ bool MarketData::IsValidTickData(CThostFtdcDepthMarketDataField *p_d) {
 bool MarketData::IsValidTickData(XTPMD *p_d) {
   tm tick_tm;
   bool ret = false;
+  auto &market_ser = MarketService::GetInstance();
+  auto timenow = market_ser.ROLE(MarketTimeState).GetTimeNow();
+  if (timenow != nullptr) {
+    string data_time = std::to_string(p_d->data_time);
+    string update_time = data_time.substr(8, 6);
+    strptime(update_time.c_str(), "%H%M%S", &tick_tm);
 
-  string data_time = std::to_string(p_d->data_time);
-  string update_time = data_time.substr(8, 6);
-  strptime(update_time.c_str(), "%H%M%S", &tick_tm);
+    int tick_second = tick_tm.tm_hour * 60 * 60 + tick_tm.tm_min * 60 + tick_tm.tm_sec;
+    int now_second = timenow->tm_hour * 60 * 60 + timenow->tm_min * 60 + timenow->tm_sec;
 
-  int tick_second = tick_tm.tm_hour * 60 * 60 + tick_tm.tm_min * 60 + tick_tm.tm_sec;
-  // system time
-  time_t now_time = time(NULL);
-  // local time
-  tm *local_time = localtime(&now_time);
-  int now_second = local_time->tm_hour * 60 * 60 + local_time->tm_min * 60 + local_time->tm_sec;
-
-  int delay_second = now_second - tick_second;
+    int delay_second = now_second - tick_second;
 #ifdef BENCH_TEST
-  if (delay_second != 0) {
-    INFO_LOG("%s local time: %02d:%02d:%02d--ctp time:  %02d:%02d:%02d delay_second %d", p_d->ticker, local_time->tm_hour,
-             local_time->tm_min, local_time->tm_sec, tick_tm.tm_hour, tick_tm.tm_min, tick_tm.tm_sec, delay_second);
-  }
+    if (delay_second != 0) {
+      INFO_LOG("%s local time: %02d:%02d:%02d--ctp time:  %02d:%02d:%02d delay_second %d", p_d->ticker, local_time->tm_hour,
+               local_time->tm_min, local_time->tm_sec, tick_tm.tm_hour, tick_tm.tm_min, tick_tm.tm_sec, delay_second);
+    }
 #endif
-  if (delay_second <= 180 && delay_second >= -180 && p_d->bid_qty[0] > 0 && p_d->ask_qty[0] > 0 && p_d->bid[0] > 0.0 && p_d->ask[0] > 0.0) {
-    ret = true;
+    if (delay_second <= 180 && delay_second >= -180 && p_d->bid_qty[0] > 0 && p_d->ask_qty[0] > 0 && p_d->bid[0] > 0.0 &&
+        p_d->ask[0] > 0.0) {
+      ret = true;
+    }
+  } else {
+    ret = false;
   }
 
   return ret;
@@ -97,39 +80,31 @@ double MarketData::Max2zero(double num) {
 }
 
 bool MarketData::GetLocalTime(char *t_arr) {
-  struct timeval cur_time;
-  gettimeofday(&cur_time, NULL);
-  int milli = cur_time.tv_usec / 1000;
-
-  char buffer[80] = {0};
-  struct tm now_time;
-  localtime_r(&cur_time.tv_sec,
-              &now_time);  //把得到的值存入临时分配的内存中，线程安全
-  strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", &now_time);
-
-  sprintf(t_arr, "%s.%03d", buffer, milli);
-  return true;
-}
-
-bool MarketData::GetLocalTime(long &stamp) {
-  struct timeval time_value;
-  gettimeofday(&time_value, NULL);
-  stamp = time_value.tv_sec;
-  return true;
+  auto &market_ser = MarketService::GetInstance();
+  auto timenow = market_ser.ROLE(MarketTimeState).GetTimeNow();
+  if (timenow != nullptr) {
+    strftime(t_arr, sizeof(t_arr), "%Y-%m-%d %H:%M:%S.000", timenow);
+    return true;
+  } else {
+    return false;
+  }
 }
 
 bool MarketData::GetAssemblingTime(char *t_arr, CThostFtdcDepthMarketDataField *p_d) {
   int year, month, day;
-  time_t now_time = time(NULL);
-  // local time
-  tm *local_time = localtime(&now_time);
+  auto &market_ser = MarketService::GetInstance();
+  auto timenow = market_ser.ROLE(MarketTimeState).GetTimeNow();
 
-  year = 1900 + local_time->tm_year;
-  month = 1 + local_time->tm_mon;
-  day = local_time->tm_mday;
+  if (timenow != nullptr) {
+    year = 1900 + timenow->tm_year;
+    month = 1 + timenow->tm_mon;
+    day = timenow->tm_mday;
 
-  sprintf(t_arr, "%04d-%02d-%02d %s.%d", year, month, day, p_d->UpdateTime, p_d->UpdateMillisec);
-  return true;
+    sprintf(t_arr, "%04d-%02d-%02d %s.%d", year, month, day, p_d->UpdateTime, p_d->UpdateMillisec);
+    return true;
+  } else {
+    return false;
+  }
 }
 
 bool MarketData::GetAssemblingTime(char *t_arr, XTPMD *p_d) {

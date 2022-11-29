@@ -7,6 +7,7 @@
 #include "market/interface/ctpview_event/ctpview_event.h"
 #include <thread>
 #include "common/extern/log/log.h"
+#include "common/self/profiler.h"
 #include "common/self/protobuf/ctpview-market.pb.h"
 #include "common/self/protobuf/strategy-market.pb.h"
 #include "common/self/semaphore.h"
@@ -26,6 +27,7 @@ void CtpviewEvent::RegMsgFun() {
   msg_func_map["SimulateMarketState"] = [this](utils::ItpMsg &msg) { SimulateMarketStateHandle(msg); };
   msg_func_map["TickStartStopIndication"] = [this](utils::ItpMsg &msg) { TickStartStopIndicationHandle(msg); };
   msg_func_map["BackTestControl"] = [this](utils::ItpMsg &msg) { BackTestControlHandle(msg); };
+  msg_func_map["ProfilerControl"] = [this](utils::ItpMsg &msg) { ProfilerControlHandle(msg); };
 
   for (auto &iter : msg_func_map) {
     INFO_LOG("msg_func_map[%d] key is [%s]", cnt, iter.first.c_str());
@@ -191,4 +193,19 @@ void CtpviewEvent::BackTestControlHandle(utils::ItpMsg &msg) {
   b_p.speed = indication.speed();
   auto &market_ser = MarketService::GetInstance();
   market_ser.ROLE(BacktestControl).BuildControlPara(prid, b_p);
+}
+
+void CtpviewEvent::ProfilerControlHandle(utils::ItpMsg &msg) {
+  ctpview_market::message message;
+  message.ParseFromString(msg.pb_msg);
+  auto control = message.profiler_control();
+
+  auto action = control.profiler_action();
+  if (action == ctpview_market::ProfilerControl::start_write) {
+    profiler::FlameGraphWriter::Instance().StartAddData();
+    INFO_LOG("start write tracepoint");
+  } else if (action == ctpview_market::ProfilerControl::stop_write) {
+    profiler::FlameGraphWriter::Instance().StopAddData();
+    INFO_LOG("stop write tracepoint");
+  }
 }

@@ -18,7 +18,6 @@ struct MarketData {
   double Max2zero(double num);
 
   bool GetLocalTime(char *t_arr);
-  bool GetLocalTime(long &stamp);
   bool GetAssemblingTime(char *t_arr, CThostFtdcDepthMarketDataField *p_d);
   bool GetAssemblingTime(char *t_arr, XTPMD *p_d);
 

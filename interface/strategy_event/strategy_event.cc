@@ -82,7 +82,7 @@ void StrategyEvent::TickSubscribeReqHandle(utils::ItpMsg &msg) {
     market_ser.ROLE(PublishControl).ErasePublishPara(prid, ins_id.ins);
 
     if (req_info.mode() == strategy_market::TickSubscribeReq_Mode_realtime) {
-      if (market_ser.ROLE(PublishControl).GetInstrumentSubscribedCount(ins_id.ins) == 1) {
+      if (market_ser.ROLE(PublishControl).GetInstrumentSubscribedCount(ins_id.ins) == 0) {
         vector<utils::InstrumtntID> ins_vec;
         ins_vec.push_back(ins_id);
 
@@ -110,8 +110,8 @@ void StrategyEvent::InstrumentReqHandle(utils::ItpMsg &msg) {
   strategy_market::message rsp;
   auto *instrument_rsp = rsp.mutable_instrument_rsp();
   if (info == nullptr) {
-    instrument_rsp->set_instrument_id(exch);
-    instrument_rsp->set_exchange_id(ins);
+    instrument_rsp->set_instrument_id(ins);
+    instrument_rsp->set_exchange_id(exch);
     instrument_rsp->set_result(strategy_market::Result::failed);
     instrument_rsp->set_failedreason("not find instrument info.");
   } else {
@@ -140,8 +140,9 @@ void StrategyEvent::MarketStateRspHandle(utils::ItpMsg &msg) {
   strategy_market::message message;
   message.ParseFromString(msg.pb_msg);
   auto result = message.market_state_rsp().result();
+  auto &prid = message.market_state_rsp().process_random_id();
   if (result == 0) {
-    ERROR_LOG("market state rsp error.");
+    ERROR_LOG("prid: %s, market state rsp error.", prid.c_str());
   }
 }
 

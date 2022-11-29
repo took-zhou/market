@@ -11,19 +11,17 @@
 ActiveSafety::ActiveSafety() { ; }
 
 void ActiveSafety::CheckSafety() {
-  time_t now = {0};
-  struct tm *timenow = NULL;
   static int check_flag = false;
 
   while (1) {
-    time(&now);
-    timenow = localtime(&now);  //获取当前时间
+    auto &market_ser = MarketService::GetInstance();
+    auto timenow = market_ser.ROLE(MarketTimeState).GetTimeNow();
 
     // 固定在下午6点开始检测
-    if (timenow->tm_hour == 18 && timenow->tm_min == 0 && check_flag == false) {
+    if (timenow != nullptr && timenow->tm_hour == 18 && timenow->tm_min == 0 && check_flag == false) {
       ReqAlive();
       check_flag = true;
-    } else if (timenow->tm_hour == 18 && timenow->tm_min > 0 && check_flag == true) {
+    } else if (timenow != nullptr && timenow->tm_hour == 18 && timenow->tm_min > 0 && check_flag == true) {
       check_flag = false;
     }
 

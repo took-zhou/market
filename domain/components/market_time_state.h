@@ -17,12 +17,14 @@ struct MarketTimeState {
   void SetTimeState(int command);
   TimeState GetTimeState();
   SubTimeState GetSubTimeState();
+  struct tm *GetTimeNow();
 
  private:
   uint8_t is_active_step_ = false;
   SubTimeState sub_time_state_;
   TimeState time_state_ = kReserve;
   TimeState debug_time_state_ = kReserve;
+  struct tm *timenow_ = nullptr;
 
   int32_t now_mins_;
   int32_t day_login_mins_;

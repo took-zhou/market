@@ -125,12 +125,11 @@ void MarketTimeState::Step() {
 
 void MarketTimeState::Update(void) {
   time_t now = {0};
-  struct tm *timenow = NULL;
 
   while (1) {
     time(&now);
-    timenow = localtime(&now);  //获取当前时间
-    now_mins_ = timenow->tm_hour * 60 + timenow->tm_min;
+    timenow_ = localtime(&now);  //获取当前时间
+    now_mins_ = timenow_->tm_hour * 60 + timenow_->tm_min;
 
     Step();
 
@@ -186,3 +185,7 @@ MarketTimeState::~MarketTimeState() { ; }
 TimeState MarketTimeState::GetTimeState() { return time_state_; }
 
 SubTimeState MarketTimeState::GetSubTimeState() { return sub_time_state_; }
+
+struct tm *MarketTimeState::GetTimeNow() {
+  return timenow_;
+}

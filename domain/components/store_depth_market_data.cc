@@ -1,25 +1,9 @@
-// 线程控制相关
-#include <pthread.h>
-#include <semaphore.h>
-#include <unistd.h>
-
-// 定时器相关
-#include <signal.h>
-#include <sys/time.h>
-
-// 实时时间获取
-#include <stddef.h>
-#include <time.h>
-
-// 文件夹及文件操作相关
 #include <dirent.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <fstream>
 #include <sstream>
-#include <vector>
 
-//自定义头文件
 #include "common/extern/log/log.h"
 #include "common/self/file_util.h"
 #include "common/self/utils.h"
@@ -123,8 +107,7 @@ void LoadData::LoadDepthMarketDataToCsv(CThostFtdcDepthMarketDataField *p_d) {
   char exchange_id[27];
   uint8_t exist_flag = 1;
 
-  utils::Gbk2Utf8(p_d->InstrumentID, instrument_id,
-                  sizeof(instrument_id));  //合约代码
+  utils::Gbk2Utf8(p_d->InstrumentID, instrument_id, sizeof(instrument_id));  //合约代码
   if (instrument_id[2] == 'e' && instrument_id[3] == 'f' && instrument_id[4] == 'p') {
     return;
   }

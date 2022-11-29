@@ -43,6 +43,11 @@ void PublishState::PublishToStrategy(void) {
 
     market_state->set_market_state(state);
     market_state->set_date(date_buff);
+    if (key_name_kist.find(keyname) == key_name_kist.end()) {
+      market_state->set_is_last(1);
+    } else {
+      market_state->set_is_last(0);
+    }
 
     utils::ItpMsg msg;
     tick.SerializeToString(&msg.pb_msg);
@@ -89,6 +94,11 @@ void PublishState::PublishToStrategy(BtpLoginLogoutStruct *login_logout) {
 
       market_state->set_market_state(state);
       market_state->set_date(login_logout->date);
+      if (key_name_kist.find(keyname) == key_name_kist.end()) {
+        market_state->set_is_last(1);
+      } else {
+        market_state->set_is_last(0);
+      }
 
       utils::ItpMsg msg;
       tick.SerializeToString(&msg.pb_msg);
@@ -103,6 +113,7 @@ void PublishState::PublishToStrategy(BtpLoginLogoutStruct *login_logout) {
 
     market_state->set_market_state(state);
     market_state->set_date(login_logout->date);
+    market_state->set_is_last(1);
 
     utils::ItpMsg msg;
     tick.SerializeToString(&msg.pb_msg);
@@ -116,21 +127,53 @@ void PublishState::PublishToStrategy(BtpLoginLogoutStruct *login_logout) {
 void PublishState::GetTradeData(char *buff) {
   int year, mon, day, mon_days[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
-  time_t now_time = time(NULL);
-  // local time
-  tm *local_time = localtime(&now_time);
+  auto &market_ser = MarketService::GetInstance();
+  auto timenow = market_ser.ROLE(MarketTimeState).GetTimeNow();
+  if (timenow != nullptr) {
+    year = 1900 + timenow->tm_year;
+    mon = 1 + timenow->tm_mon;
+    day = timenow->tm_mday;
 
-  year = 1900 + local_time->tm_year;
-  mon = 1 + local_time->tm_mon;
-  day = local_time->tm_mday;
+    if (IsLeapYear(year) == 1) {
+      mon_days[1] = 29;
+    }
 
-  if (IsLeapYear(year) == 1) {
-    mon_days[1] = 29;
-  }
-
-  if (20 <= local_time->tm_hour && local_time->tm_hour <= 23) {
-    if (local_time->tm_wday == 5) {
-      day += 3;
+    if (20 <= timenow->tm_hour && timenow->tm_hour <= 23) {
+      if (timenow->tm_wday == 5) {
+        day += 3;
+        while (day > mon_days[mon - 1]) {
+          day -= mon_days[mon - 1];
+          mon++;
+          if (mon > 12) {
+            mon = 1;
+            year++;
+            if (IsLeapYear(year) == 1) {
+              mon_days[1] = 29;
+            } else {
+              mon_days[1] = 28;
+            }
+          }
+        }
+        sprintf(buff, "%04d%02d%02d", year, mon, day);
+      } else {
+        day += 1;
+        while (day > mon_days[mon - 1]) {
+          day -= mon_days[mon - 1];
+          mon++;
+          if (mon > 12) {
+            mon = 1;
+            year++;
+            if (IsLeapYear(year) == 1) {
+              mon_days[1] = 29;
+            } else {
+              mon_days[1] = 28;
+            }
+          }
+        }
+        sprintf(buff, "%04d%02d%02d", year, mon, day);
+      }
+    } else if (1 <= timenow->tm_hour && timenow->tm_hour <= 3 && timenow->tm_wday == 6) {
+      day += 2;
       while (day > mon_days[mon - 1]) {
         day -= mon_days[mon - 1];
         mon++;
@@ -146,39 +189,7 @@ void PublishState::GetTradeData(char *buff) {
       }
       sprintf(buff, "%04d%02d%02d", year, mon, day);
     } else {
-      day += 1;
-      while (day > mon_days[mon - 1]) {
-        day -= mon_days[mon - 1];
-        mon++;
-        if (mon > 12) {
-          mon = 1;
-          year++;
-          if (IsLeapYear(year) == 1) {
-            mon_days[1] = 29;
-          } else {
-            mon_days[1] = 28;
-          }
-        }
-      }
       sprintf(buff, "%04d%02d%02d", year, mon, day);
     }
-  } else if (1 <= local_time->tm_hour && local_time->tm_hour <= 3 && local_time->tm_wday == 6) {
-    day += 2;
-    while (day > mon_days[mon - 1]) {
-      day -= mon_days[mon - 1];
-      mon++;
-      if (mon > 12) {
-        mon = 1;
-        year++;
-        if (IsLeapYear(year) == 1) {
-          mon_days[1] = 29;
-        } else {
-          mon_days[1] = 28;
-        }
-      }
-    }
-    sprintf(buff, "%04d%02d%02d", year, mon, day);
-  } else {
-    sprintf(buff, "%04d%02d%02d", year, mon, day);
   }
 }

@@ -36,6 +36,7 @@ ProxyRecer::ProxyRecer() {
   topic_list.push_back("ctpview_market.SimulateMarketState");
   topic_list.push_back("ctpview_market.BackTestControl");
   topic_list.push_back("ctpview_market.TickStartStopIndication");
+  topic_list.push_back("ctpview_market.ProfilerControl");
 
   auto &zmq_base = BaseZmq::GetInstance();
   for (auto &topic : topic_list) {

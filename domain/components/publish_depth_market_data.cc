@@ -3,6 +3,7 @@
 //自定义头文件
 #include "common/extern/log/log.h"
 #include "common/self/file_util.h"
+#include "common/self/profiler.h"
 #include "common/self/protobuf/strategy-market.pb.h"
 #include "common/self/utils.h"
 #include "market/domain/components/publish_depth_market_data.h"
@@ -13,6 +14,7 @@
 PublishData::PublishData() { ; }
 
 void PublishData::DirectForwardDataToStrategy(CThostFtdcDepthMarketDataField *p_d) {
+  PZone("DirectForwardDataToStrategy");
   auto &market_ser = MarketService::GetInstance();
   auto pos = market_ser.ROLE(PublishControl).publish_para_map.find(p_d->InstrumentID);
   if (pos != market_ser.ROLE(PublishControl).publish_para_map.end() && market_ser.login_state == kLoginState) {
@@ -37,6 +39,7 @@ void PublishData::OnceFromDataflowSelectRawtick(const PublishPara &p_c, CThostFt
     return;
   }
 
+  PZone("OnceFromDataflowSelectRawtick");
   char time_array[100] = {0};
   strategy_market::message tick;
   auto tick_data = tick.mutable_tick_data();
@@ -77,7 +80,10 @@ void PublishData::OnceFromDataflowSelectRawtick(const PublishPara &p_c, CThostFt
   msg.session_name = "strategy_market";
   msg.msg_name = "TickData." + p_c.prid;
   auto &recer_sender = RecerSender::GetInstance();
-  recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
+  {
+    PZone("ProxySender");
+    recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
+  }
 
   p_c.heartbeat = 0;
 }

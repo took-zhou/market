@@ -24,6 +24,7 @@ struct CtpviewEvent {
   void SimulateMarketStateHandle(utils::ItpMsg &msg);
   void TickStartStopIndicationHandle(utils::ItpMsg &msg);
   void BackTestControlHandle(utils::ItpMsg &msg);
+  void ProfilerControlHandle(utils::ItpMsg &msg);
 
   std::map<std::string, std::function<void(utils::ItpMsg &msg)>> msg_func_map;
 };
