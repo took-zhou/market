@@ -36,14 +36,17 @@ void PublishState::PublishToStrategy(void) {
     INFO_LOG("Publish makret state: night_open, date: %s to strategy.", date_buff);
   }
 
-  auto key_name_kist = market_ser.ROLE(ControlPara).GetPridList();
-  for (auto &keyname : key_name_kist) {
+  auto key_name_list = market_ser.ROLE(ControlPara).GetPridList();
+  int max_size = key_name_list.size();
+  int count = 0;
+  for (auto &keyname : key_name_list) {
+    count++;
     strategy_market::message tick;
     auto market_state = tick.mutable_market_state_req();
 
     market_state->set_market_state(state);
     market_state->set_date(date_buff);
-    if (key_name_kist.find(keyname) == key_name_kist.end()) {
+    if (count == max_size) {
       market_state->set_is_last(1);
     } else {
       market_state->set_is_last(0);
@@ -87,14 +90,17 @@ void PublishState::PublishToStrategy(BtpLoginLogoutStruct *login_logout) {
   }
 
   if (login_logout->prid == 0) {
-    auto key_name_kist = market_ser.ROLE(ControlPara).GetPridList();
-    for (auto &keyname : key_name_kist) {
+    auto key_name_list = market_ser.ROLE(ControlPara).GetPridList();
+    int max_size = key_name_list.size();
+    int count = 0;
+    for (auto &keyname : key_name_list) {
+      count++;
       strategy_market::message tick;
       auto market_state = tick.mutable_market_state_req();
 
       market_state->set_market_state(state);
       market_state->set_date(login_logout->date);
-      if (key_name_kist.find(keyname) == key_name_kist.end()) {
+      if (count == max_size) {
         market_state->set_is_last(1);
       } else {
         market_state->set_is_last(0);
