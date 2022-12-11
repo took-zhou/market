@@ -7,6 +7,7 @@
 #include "market/infra/recer_sender.h"
 
 #include <unistd.h>
+#include <chrono>
 #include <thread>
 
 PublishState::PublishState() {
@@ -14,7 +15,15 @@ PublishState::PublishState() {
   ;
 }
 
-void PublishState::PublishEvent(void) { PublishToStrategy(); }
+void PublishState::PublishEvent(void) {
+  PublishToStrategy();
+  while (1) {
+    if (publish_count_ == 0) {
+      break;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+}
 
 void PublishState::PublishToStrategy(void) {
   char date_buff[10];
@@ -58,6 +67,8 @@ void PublishState::PublishToStrategy(void) {
     msg.msg_name = "MarketStateReq." + keyname;
     auto &recer_sender = RecerSender::GetInstance();
     recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
+
+    IncPublishCount();
   }
 }
 
@@ -69,7 +80,15 @@ int PublishState::IsLeapYear(int year) {
   }
 }
 
-void PublishState::PublishEvent(BtpLoginLogoutStruct *login_logout) { PublishToStrategy(login_logout); }
+void PublishState::PublishEvent(BtpLoginLogoutStruct *login_logout) {
+  PublishToStrategy(login_logout);
+  while (1) {
+    if (publish_count_ == 0) {
+      break;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+}
 
 void PublishState::PublishToStrategy(BtpLoginLogoutStruct *login_logout) {
   auto &market_ser = MarketService::GetInstance();
@@ -101,9 +120,9 @@ void PublishState::PublishToStrategy(BtpLoginLogoutStruct *login_logout) {
       market_state->set_market_state(state);
       market_state->set_date(login_logout->date);
       if (count == max_size) {
-        market_state->set_is_last(1);
+        market_state->set_is_last((bool)true);
       } else {
-        market_state->set_is_last(0);
+        market_state->set_is_last((bool)false);
       }
 
       utils::ItpMsg msg;
@@ -112,6 +131,8 @@ void PublishState::PublishToStrategy(BtpLoginLogoutStruct *login_logout) {
       msg.msg_name = "MarketStateReq." + keyname;
       auto &recer_sender = RecerSender::GetInstance();
       recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
+
+      IncPublishCount();
     }
   } else {
     strategy_market::message tick;
@@ -127,7 +148,21 @@ void PublishState::PublishToStrategy(BtpLoginLogoutStruct *login_logout) {
     msg.msg_name = "MarketStateReq." + to_string(login_logout->prid);
     auto &recer_sender = RecerSender::GetInstance();
     recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
+
+    IncPublishCount();
   }
+}
+
+void PublishState::IncPublishCount() {
+  pthread_mutex_lock(&(sm_mutex_));
+  publish_count_++;
+  pthread_mutex_unlock(&(sm_mutex_));
+}
+
+void PublishState::DecPublishCount() {
+  pthread_mutex_lock(&(sm_mutex_));
+  publish_count_--;
+  pthread_mutex_unlock(&(sm_mutex_));
 }
 
 void PublishState::GetTradeData(char *buff) {

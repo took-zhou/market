@@ -66,7 +66,6 @@ void BtpEvent::OnRspUserLoginHandle(utils::ItpMsg &msg) {
 
   auto &market_ser = MarketService::GetInstance();
   market_ser.ROLE(PublishState).PublishEvent(rsp_info);
-  PreProcessStateReq(rsp_info->prid);
 }
 
 void BtpEvent::OnRspUserLogoutHandle(utils::ItpMsg &msg) {
@@ -78,7 +77,6 @@ void BtpEvent::OnRspUserLogoutHandle(utils::ItpMsg &msg) {
 
   auto &market_ser = MarketService::GetInstance();
   market_ser.ROLE(PublishState).PublishEvent(rsp_info);
-  PreProcessStateReq(rsp_info->prid);
 }
 
 void BtpEvent::OnRspAllInstrumentInfoHandle(utils::ItpMsg &msg) {
@@ -103,41 +101,5 @@ void BtpEvent::OnRspAllInstrumentInfoHandle(utils::ItpMsg &msg) {
 
   if (btpqsi->is_last == true) {
     market_ser.ROLE(InstrumentInfo).ShowInstrumentInfo();
-  }
-}
-
-void BtpEvent::PreProcessStateReq(int32_t prid) {
-  auto &market_ser = MarketService::GetInstance();
-  if (prid == 0) {
-    auto key_name_kist = market_ser.ROLE(ControlPara).GetPridList();
-    for (auto &keyname : key_name_kist) {
-      strategy_market::message tick;
-      auto process_state = tick.mutable_pre_process_state_req();
-      process_state->set_state_req(1);
-
-      utils::ItpMsg msg;
-      tick.SerializeToString(&msg.pb_msg);
-      msg.session_name = "strategy_market";
-      msg.msg_name = "PreProcessStateReq." + keyname;
-      auto &recer_sender = RecerSender::GetInstance();
-      recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
-
-      auto &global_sem = GlobalSem::GetInstance();
-      global_sem.WaitSemBySemName(GlobalSem::kStrategyRsp, 300);
-    }
-  } else {
-    strategy_market::message tick;
-    auto process_state = tick.mutable_pre_process_state_req();
-    process_state->set_state_req(1);
-
-    utils::ItpMsg msg;
-    tick.SerializeToString(&msg.pb_msg);
-    msg.session_name = "strategy_market";
-    msg.msg_name = "PreProcessStateReq." + to_string(prid);
-    auto &recer_sender = RecerSender::GetInstance();
-    recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
-
-    auto &global_sem = GlobalSem::GetInstance();
-    global_sem.WaitSemBySemName(GlobalSem::kStrategyRsp, 300);
   }
 }

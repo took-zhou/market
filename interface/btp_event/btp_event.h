@@ -32,9 +32,6 @@ struct BtpEvent {
   void OnRspAllInstrumentInfoHandle(utils::ItpMsg &msg);
 
   std::map<std::string, std::function<void(utils::ItpMsg &msg)>> msg_func_map;
-
- private:
-  void PreProcessStateReq(int32_t prid);
 };
 
 #endif /* WORKSPACE_MARKET_INTERFACE_BTPEVENT_BTPEVENT_H_ */

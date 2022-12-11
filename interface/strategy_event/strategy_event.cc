@@ -138,12 +138,15 @@ void StrategyEvent::StrategyAliveRspHandle(utils::ItpMsg &msg) { GlobalSem::GetI
 
 void StrategyEvent::MarketStateRspHandle(utils::ItpMsg &msg) {
   strategy_market::message message;
+  auto &market_ser = MarketService::GetInstance();
   message.ParseFromString(msg.pb_msg);
   auto result = message.market_state_rsp().result();
   auto &prid = message.market_state_rsp().process_random_id();
   if (result == 0) {
     ERROR_LOG("prid: %s, market state rsp error.", prid.c_str());
   }
+
+  market_ser.ROLE(PublishState).DecPublishCount();
 }
 
 void StrategyEvent::InsertControlParaReqHandle(utils::ItpMsg &msg) {
