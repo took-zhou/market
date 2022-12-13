@@ -79,17 +79,6 @@ double MarketData::Max2zero(double num) {
   }
 }
 
-bool MarketData::GetLocalTime(char *t_arr) {
-  auto &market_ser = MarketService::GetInstance();
-  auto timenow = market_ser.ROLE(MarketTimeState).GetTimeNow();
-  if (timenow != nullptr) {
-    strftime(t_arr, sizeof(t_arr), "%Y-%m-%d %H:%M:%S.000", timenow);
-    return true;
-  } else {
-    return false;
-  }
-}
-
 bool MarketData::GetAssemblingTime(char *t_arr, CThostFtdcDepthMarketDataField *p_d) {
   int year, month, day;
   auto &market_ser = MarketService::GetInstance();

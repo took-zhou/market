@@ -162,11 +162,15 @@ void PublishData::HeartBeatDetect() {
 }
 
 void PublishData::OnceFromDefault(const PublishPara &p_c, const string &ins) {
-  char time_array[100] = {0};
+  auto &market_ser = MarketService::GetInstance();
   strategy_market::message tick;
   auto tick_data = tick.mutable_tick_data();
 
-  GetLocalTime(time_array);
+  auto timenow = market_ser.ROLE(MarketTimeState).GetTimeNow();
+  char time_array[100] = {0};
+  if (timenow != nullptr) {
+    strftime(time_array, sizeof(time_array), "%Y-%m-%d %H:%M:%S.000", timenow);
+  }
   tick_data->set_time_point(time_array);
 
   tick_data->set_state(strategy_market::TickData_TickState_inactive);

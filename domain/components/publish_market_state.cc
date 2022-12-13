@@ -15,15 +15,7 @@ PublishState::PublishState() {
   ;
 }
 
-void PublishState::PublishEvent(void) {
-  PublishToStrategy();
-  while (1) {
-    if (publish_count_ == 0) {
-      break;
-    }
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  }
-}
+void PublishState::PublishEvent(void) { PublishToStrategy(); }
 
 void PublishState::PublishToStrategy(void) {
   char date_buff[10];
