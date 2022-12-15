@@ -68,7 +68,9 @@ void SubscribeManager::SubscribeInstrument(std::vector<utils::InstrumtntID>& nam
 void SubscribeManager::UnSubscribeInstrument(std::vector<utils::InstrumtntID>& name_vec, int request_id) {
   auto& recer_sender = RecerSender::GetInstance();
   RemoveSubscribed(name_vec);
-  recer_sender.ROLE(Sender).ROLE(ItpSender).UnSubscribeMarketData(name_vec, request_id);
+  if (name_vec.size() != 0) {
+    recer_sender.ROLE(Sender).ROLE(ItpSender).UnSubscribeMarketData(name_vec, request_id);
+  }
 }
 
 void SubscribeManager::UnSubscribeAll() {

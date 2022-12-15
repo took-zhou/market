@@ -102,14 +102,25 @@ void PublishControl::BuildPublishPara(const std::string &keyname, const PublishP
 }
 
 void PublishControl::ErasePublishPara(const std::string &keyname, const std::string &ins) {
-  for (auto &item_pc : publish_para_map) {
-    for (auto iter = item_pc.second.begin(); iter != item_pc.second.end();) {
-      if (iter->prid == keyname && (item_pc.first == ins || ins == "")) {
-        INFO_LOG("ins: %s, prid: %s doesn't exist anymore, will not subscribe.", item_pc.first.c_str(), keyname.c_str());
-        item_pc.second.erase(iter);
+  for (auto publish_iter = publish_para_map.begin(); publish_iter != publish_para_map.end();) {
+    bool erase_publish_para_flag = false;
+    for (auto second_iter = publish_iter->second.begin(); second_iter != publish_iter->second.end();) {
+      if (second_iter->prid == keyname && (publish_iter->first == ins || ins == "")) {
+        INFO_LOG("ins: %s, prid: %s doesn't exist anymore,erase it.", publish_iter->first.c_str(), keyname.c_str());
+        second_iter = publish_iter->second.erase(second_iter);
+        if (publish_iter->second.size() == 0) {
+          INFO_LOG("ins: %s, doesn't exist anymore,erase it.", publish_iter->first.c_str());
+          publish_iter = publish_para_map.erase(publish_iter);
+          erase_publish_para_flag = true;
+          break;
+        }
       } else {
-        iter++;
+        second_iter++;
       }
+    }
+
+    if (erase_publish_para_flag == false) {
+      publish_iter++;
     }
   }
 

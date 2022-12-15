@@ -145,6 +145,7 @@ void PublishData::OnceFromDataflowSelectLevel1(const PublishPara &p_c, CThostFtd
 
 void PublishData::HeartBeatDetect() {
   auto &market_ser = MarketService::GetInstance();
+  unsigned char entry_logoutstate_flag = false;
   while (1) {
     if (market_ser.login_state == kLoginState) {
       for (auto &item_p_c : market_ser.ROLE(PublishControl).publish_para_map) {
@@ -155,6 +156,16 @@ void PublishData::HeartBeatDetect() {
           }
         }
       }
+      entry_logoutstate_flag = false;
+    } else {
+      if (entry_logoutstate_flag == false) {
+        for (auto &item_p_c : market_ser.ROLE(PublishControl).publish_para_map) {
+          for (auto &item_id : item_p_c.second) {
+            item_id.heartbeat = 0;
+          }
+        }
+      }
+      entry_logoutstate_flag = true;
     }
 
     std::this_thread::sleep_for(std::chrono::seconds(1));
