@@ -215,17 +215,25 @@ bool XtpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &na
 void XtpSender::UpdateInstrumentInfoFromMarket() {
   auto &global_sem = GlobalSem::GetInstance();
 
-  int result = quote_api->QueryAllTickers(XTP_EXCHANGE_SH);
-  if (result != 0) {
-    ERROR_LOG("request full shse market instruments, result[%d]", result);
+  while (1) {
+    int result = quote_api->QueryAllTickers(XTP_EXCHANGE_SH);
+    if (result != 0) {
+      ERROR_LOG("request full shse market instruments, result[%d]", result);
+    }
+    if (!global_sem.WaitSemBySemName(GlobalSem::kUpdateInstrumentInfo, 60)) {
+      break;
+    }
   }
-  global_sem.WaitSemBySemName(GlobalSem::kUpdateInstrumentInfo);
 
-  result = quote_api->QueryAllTickers(XTP_EXCHANGE_SZ);
-  if (result != 0) {
-    ERROR_LOG("request full szse market instruments, result[%d]", result);
+  while (1) {
+    int result = quote_api->QueryAllTickers(XTP_EXCHANGE_SZ);
+    if (result != 0) {
+      ERROR_LOG("request full szse market instruments, result[%d]", result);
+    }
+    if (!global_sem.WaitSemBySemName(GlobalSem::kUpdateInstrumentInfo, 60)) {
+      break;
+    }
   }
-  global_sem.WaitSemBySemName(GlobalSem::kUpdateInstrumentInfo);
 
   INFO_LOG("UpdateInstrumentInfoFromMarket ok");
 }

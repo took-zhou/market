@@ -83,8 +83,6 @@ void CtpEvent::OnRspUserLoginHandle(utils::ItpMsg &msg) {
   } else {
     // 同步全局合约信息
     UpdateInstrumentInfoFromTrader();
-    auto &global_sem = GlobalSem::GetInstance();
-    global_sem.WaitSemBySemName(GlobalSem::kUpdateInstrumentInfo);
 
     auto &market_ser = MarketService::GetInstance();
     if (req_instrument_from_ == "local") {
@@ -137,10 +135,16 @@ void CtpEvent::UpdateInstrumentInfoFromTrader() {
   req_msg.SerializeToString(&msg.pb_msg);
   msg.session_name = "market_trader";
   msg.msg_name = "QryInstrumentReq";
-  auto &recer_sender = RecerSender::GetInstance();
-  recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
 
-  INFO_LOG("update instrument info from trader send ok, waiting trader rsp.");
+  auto &recer_sender = RecerSender::GetInstance();
+  auto &global_sem = GlobalSem::GetInstance();
+  while (1) {
+    recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
+    INFO_LOG("update instrument info from trader send ok, waiting trader rsp.");
+    if (!global_sem.WaitSemBySemName(GlobalSem::kUpdateInstrumentInfo, 60)) {
+      break;
+    }
+  }
 }
 
 void CtpEvent::SetBlockControl(ctpview_market::BlockControl_Command command) { block_control_ = command; }

@@ -106,10 +106,10 @@ void PublishControl::ErasePublishPara(const std::string &keyname, const std::str
     bool erase_publish_para_flag = false;
     for (auto second_iter = publish_iter->second.begin(); second_iter != publish_iter->second.end();) {
       if (second_iter->prid == keyname && (publish_iter->first == ins || ins == "")) {
-        INFO_LOG("ins: %s, prid: %s doesn't exist anymore,erase it.", publish_iter->first.c_str(), keyname.c_str());
+        INFO_LOG("ins: %s, prid: %s doesn't exist anymore, erase it.", publish_iter->first.c_str(), keyname.c_str());
         second_iter = publish_iter->second.erase(second_iter);
         if (publish_iter->second.size() == 0) {
-          INFO_LOG("ins: %s, doesn't exist anymore,erase it.", publish_iter->first.c_str());
+          INFO_LOG("ins: %s, doesn't exist anymore, erase it.", publish_iter->first.c_str());
           publish_iter = publish_para_map.erase(publish_iter);
           erase_publish_para_flag = true;
           break;
