@@ -33,7 +33,7 @@ int main(int argc, char *agrv[]) {
   json_cfg.WriteConfig("market", "CompileTime", compile_time);
   INFO_LOG("program last build at %s.", compile_time.c_str());
 
-  auto &market_ser = MarketService::GetInstance();
+  MarketService::GetInstance();
   INFO_LOG("market_ser init ok");
 
   std::this_thread::sleep_for(std::chrono::seconds(3));

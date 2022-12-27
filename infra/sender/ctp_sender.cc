@@ -78,7 +78,7 @@ bool CtpSender::ReqUserLogin() {
     ret = false;
     Release();
   } else {
-    CThostFtdcReqUserLoginField req_user_login = {0};
+    CThostFtdcReqUserLoginField req_user_login;
     auto &json_cfg = utils::JsonConfig::GetInstance();
 
     auto users = json_cfg.GetConfig("market", "User");
@@ -106,7 +106,7 @@ bool CtpSender::ReqUserLogin() {
 
 bool CtpSender::ReqUserLogout() {
   bool ret = true;
-  CThostFtdcUserLogoutField req_user_logout = {0};
+  CThostFtdcUserLogoutField req_user_logout;
   auto &json_cfg = utils::JsonConfig::GetInstance();
 
   INFO_LOG("logout time, is going to logout.");

@@ -31,9 +31,7 @@ struct StrategyEvent {
 
   void MarketStateRspHandle(utils::ItpMsg &msg);
 
-  void InsertControlParaReqHandle(utils::ItpMsg &msg);
-
-  void EraseControlParaReqHandle(utils::ItpMsg &msg);
+  void ControlParaReqHandle(utils::ItpMsg &msg);
 
   void PreProcessStateRspHandle(utils::ItpMsg &msg);
 

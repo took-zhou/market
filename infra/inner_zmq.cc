@@ -47,7 +47,6 @@ int InnerZmq::PullTask(utils::ItpMsg &msg) {
         seg_index++;
       } else if (recv_string[i] == ' ') {
         if (seg_index == 1) {
-          i = i;
           msg.msg_name.resize(i - start_index);
           memcpy(&msg.msg_name[0], &recv_string[start_index], (i - start_index));
         }

@@ -8,7 +8,7 @@
 #include "common/self/utils.h"
 #include "market/infra/inner_zmq.h"
 
-void XtpQuoteSpi::OnError(XTPRI *error_info, bool is_last) { IsErrorRspInfo(error_info); }
+void XtpQuoteSpi::OnError(XTPRI *error_info) { IsErrorRspInfo(error_info); }
 
 XtpQuoteSpi::XtpQuoteSpi() {}
 

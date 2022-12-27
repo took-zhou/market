@@ -13,7 +13,7 @@
 class XtpQuoteSpi : public XTP::API::QuoteSpi {
  public:
   XtpQuoteSpi();
-  ~XtpQuoteSpi();
+  virtual ~XtpQuoteSpi();
 
   ///当客户端与交易后台通信连接断开时，该方法被调用。当发生这个情况后，API会自动重新连接，客户端可不做处理。
   ///@param reason 错误原因
@@ -25,7 +25,7 @@ class XtpQuoteSpi : public XTP::API::QuoteSpi {
   virtual void OnDisconnected(int reason);
 
   ///错误应答
-  virtual void OnError(XTPRI *error_info, bool is_last);
+  virtual void OnError(XTPRI *error_info);
 
   virtual void OnSubMarketData(XTPST *ticker, XTPRI *error_info, bool is_last);
   virtual void OnUnSubMarketData(XTPST *ticker, XTPRI *error_info, bool is_last);

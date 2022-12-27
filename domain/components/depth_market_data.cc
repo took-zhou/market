@@ -11,7 +11,6 @@ bool MarketData::IsValidTickData(CThostFtdcDepthMarketDataField *p_d) {
   PZone("IsValidTickData");
   tm tick_tm;
   bool ret = false;
-  char update_time[27];
   auto &market_ser = MarketService::GetInstance();
   auto timenow = market_ser.ROLE(MarketTimeState).GetTimeNow();
   if (timenow != nullptr) {

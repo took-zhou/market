@@ -22,8 +22,7 @@ void StrategyEvent::RegMsgFun() {
   msg_func_map_["ActiveSafetyRsp"] = [this](utils::ItpMsg &msg) { StrategyAliveRspHandle(msg); };
   msg_func_map_["InstrumentReq"] = [this](utils::ItpMsg &msg) { InstrumentReqHandle(msg); };
   msg_func_map_["MarketStateRsp"] = [this](utils::ItpMsg &msg) { MarketStateRspHandle(msg); };
-  msg_func_map_["InsertControlParaReq"] = [this](utils::ItpMsg &msg) { InsertControlParaReqHandle(msg); };
-  msg_func_map_["EraseControlParaReq"] = [this](utils::ItpMsg &msg) { EraseControlParaReqHandle(msg); };
+  msg_func_map_["ControlParaReq"] = [this](utils::ItpMsg &msg) { ControlParaReqHandle(msg); };
   msg_func_map_["PreProcessStateRsp"] = [this](utils::ItpMsg &msg) { PreProcessStateRspHandle(msg); };
 
   for (auto &iter : msg_func_map_) {
@@ -149,22 +148,19 @@ void StrategyEvent::MarketStateRspHandle(utils::ItpMsg &msg) {
   market_ser.ROLE(PublishState).DecPublishCount();
 }
 
-void StrategyEvent::InsertControlParaReqHandle(utils::ItpMsg &msg) {
+void StrategyEvent::ControlParaReqHandle(utils::ItpMsg &msg) {
   strategy_market::message message;
   message.ParseFromString(msg.pb_msg);
-  auto insert_para = message.insert_control_para_req();
-  auto prid = insert_para.process_random_id();
-  auto &market_ser = MarketService::GetInstance();
-  market_ser.ROLE(ControlPara).InsertControlPara(prid);
-}
+  auto para_req = message.control_para_req();
+  auto prid = para_req.process_random_id();
+  auto action = para_req.action();
 
-void StrategyEvent::EraseControlParaReqHandle(utils::ItpMsg &msg) {
-  strategy_market::message message;
-  message.ParseFromString(msg.pb_msg);
-  auto erase_para = message.erase_control_para_req();
-  auto prid = erase_para.process_random_id();
   auto &market_ser = MarketService::GetInstance();
-  market_ser.ROLE(ControlPara).EraseControlPara(prid);
+  if (action == strategy_market::ControlParaReq::insert) {
+    market_ser.ROLE(ControlPara).InsertControlPara(prid);
+  } else if (action == strategy_market::ControlParaReq::erase) {
+    market_ser.ROLE(ControlPara).EraseControlPara(prid);
+  }
 }
 
 void StrategyEvent::PreProcessStateRspHandle(utils::ItpMsg &msg) {

@@ -39,12 +39,7 @@ bool BtpSender::ReqUserLogin(void) {
   INFO_LOG("login time, is going to login.");
   bool ret = true;
   Init();
-  auto &json_cfg = utils::JsonConfig::GetInstance();
-  auto users = json_cfg.GetConfig("market", "User");
-  for (auto &user : users) {
-    market_api->Login();
-    break;
-  }
+  market_api->Login();
   return ret;
 }
 

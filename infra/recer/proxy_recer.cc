@@ -20,8 +20,7 @@ ProxyRecer::ProxyRecer() {
   topic_list.push_back("strategy_market.ActiveSafetyRsp");
   topic_list.push_back("strategy_market.InstrumentReq");
   topic_list.push_back("strategy_market.MarketStateRsp");
-  topic_list.push_back("strategy_market.InsertControlParaReq");
-  topic_list.push_back("strategy_market.EraseControlParaReq");
+  topic_list.push_back("strategy_market.ControlParaReq");
   // market_market
   topic_list.push_back("market_market.HeartBeat");
 
@@ -77,7 +76,6 @@ bool ProxyRecer::ReceMsg(utils::ItpMsg &msg) {
         seg_index++;
       } else if (recv_string[i] == ' ') {
         if (seg_index == 1) {
-          i = i;
           msg.msg_name.resize(i - start_index);
           memcpy(&msg.msg_name[0], &recv_string[start_index], (i - start_index));
         }

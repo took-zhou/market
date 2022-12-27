@@ -13,7 +13,7 @@
 class BtpMarketSpi : public btp::api::MarketSpi {
  public:
   BtpMarketSpi() {}
-  ~BtpMarketSpi() {}
+  virtual ~BtpMarketSpi() {}
 
   void OnRspUserLogin(const BtpLoginLogoutStruct *login_info);
   void OnRspUserLogout(const BtpLoginLogoutStruct *login_info);

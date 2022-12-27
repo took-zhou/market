@@ -30,7 +30,6 @@ struct BtpSender : SendApi {
   bool Release(void);
 
   std::string con_path_ = "";
-  int request_id_ = 0;
   bool is_init_ = false;
 };
 

@@ -12,7 +12,7 @@
 
 class CtpMarketSpi : public CThostFtdcMdSpi {
  public:
-  ~CtpMarketSpi() {}
+  virtual ~CtpMarketSpi() {}
   void OnFrontConnected();
 
   void OnFrontDisconnected(int reason);

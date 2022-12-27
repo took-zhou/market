@@ -102,9 +102,7 @@ void LoadData::FormDepthMarketData2Stringflow(CThostFtdcDepthMarketDataField *p_
 
 void LoadData::LoadDepthMarketDataToCsv(CThostFtdcDepthMarketDataField *p_d) {
   char csvpath[200];
-  char folderpath[180];
   char instrument_id[93];
-  char exchange_id[27];
   uint8_t exist_flag = 1;
 
   utils::Gbk2Utf8(p_d->InstrumentID, instrument_id, sizeof(instrument_id));  //合约代码
@@ -231,9 +229,7 @@ void LoadData::FormDepthMarketData2Stringflow(XTPMD *p_d) {
 
 void LoadData::LoadDepthMarketDataToCsv(XTPMD *p_d) {
   char csvpath[200];
-  char folderpath[180];
   char instrument_id[16];
-  char exchange_id[27];
   uint8_t exist_flag = 1;
 
   utils::Gbk2Utf8(p_d->ticker, instrument_id, sizeof(instrument_id));  //合约代码
