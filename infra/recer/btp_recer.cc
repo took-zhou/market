@@ -10,66 +10,82 @@
 
 // market端ctp登入没有反馈，主动调用反馈接口
 void BtpMarketSpi::OnRspUserLogin(const BtpLoginLogoutStruct *login_info) {
-  ipc::message req_msg;
-  auto send_msg = req_msg.mutable_itp_msg();
-  send_msg->set_address(reinterpret_cast<int64_t>(login_info));
-  utils::ItpMsg msg;
-  req_msg.SerializeToString(&msg.pb_msg);
-  msg.session_name = "btp_market";
-  msg.msg_name = "OnRspUserLogin";
+  if (login_info != nullptr) {
+    ipc::message req_msg;
+    auto send_msg = req_msg.mutable_itp_msg();
+    send_msg->set_address(reinterpret_cast<int64_t>(login_info));
+    utils::ItpMsg msg;
+    req_msg.SerializeToString(&msg.pb_msg);
+    msg.session_name = "btp_market";
+    msg.msg_name = "OnRspUserLogin";
 
-  auto &global_sem = GlobalSem::GetInstance();
-  auto &inner_zmq = InnerZmq::GetInstance();
-  inner_zmq.PushTask(msg);
-  global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
+    auto &global_sem = GlobalSem::GetInstance();
+    auto &inner_zmq = InnerZmq::GetInstance();
+    inner_zmq.PushTask(msg);
+    global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
+  } else {
+    ERROR_LOG("login_info is nullptr");
+  }
 }
 
 // market端btp登出没有反馈，主动调用反馈接口
 void BtpMarketSpi::OnRspUserLogout(const BtpLoginLogoutStruct *login_info) {
-  ipc::message req_msg;
-  auto send_msg = req_msg.mutable_itp_msg();
-  send_msg->set_address(reinterpret_cast<int64_t>(login_info));
-  utils::ItpMsg msg;
-  req_msg.SerializeToString(&msg.pb_msg);
-  msg.session_name = "btp_market";
-  msg.msg_name = "OnRspUserLogout";
+  if (login_info != nullptr) {
+    ipc::message req_msg;
+    auto send_msg = req_msg.mutable_itp_msg();
+    send_msg->set_address(reinterpret_cast<int64_t>(login_info));
+    utils::ItpMsg msg;
+    req_msg.SerializeToString(&msg.pb_msg);
+    msg.session_name = "btp_market";
+    msg.msg_name = "OnRspUserLogout";
 
-  auto &global_sem = GlobalSem::GetInstance();
-  auto &inner_zmq = InnerZmq::GetInstance();
-  inner_zmq.PushTask(msg);
-  global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
+    auto &global_sem = GlobalSem::GetInstance();
+    auto &inner_zmq = InnerZmq::GetInstance();
+    inner_zmq.PushTask(msg);
+    global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
+  } else {
+    ERROR_LOG("login_info is nullptr");
+  }
 }
 
 void BtpMarketSpi::OnDepthMarketData(const BtpMarketDataStruct *market_data) {
 #ifdef BENCH_TEST
   ScopedTimer timer("OnDepthMarketData");
 #endif
-  ipc::message req_msg;
-  auto send_msg = req_msg.mutable_itp_msg();
-  send_msg->set_address(reinterpret_cast<int64_t>(market_data));
-  utils::ItpMsg msg;
-  req_msg.SerializeToString(&msg.pb_msg);
-  msg.session_name = "btp_market";
-  msg.msg_name = "OnDepthMarketData";
+  if (market_data != nullptr) {
+    ipc::message req_msg;
+    auto send_msg = req_msg.mutable_itp_msg();
+    send_msg->set_address(reinterpret_cast<int64_t>(market_data));
+    utils::ItpMsg msg;
+    req_msg.SerializeToString(&msg.pb_msg);
+    msg.session_name = "btp_market";
+    msg.msg_name = "OnDepthMarketData";
 
-  auto &global_sem = GlobalSem::GetInstance();
-  auto &inner_zmq = InnerZmq::GetInstance();
-  inner_zmq.PushTask(msg);
-  global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
+    auto &global_sem = GlobalSem::GetInstance();
+    auto &inner_zmq = InnerZmq::GetInstance();
+    inner_zmq.PushTask(msg);
+    global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
+  } else {
+    ERROR_LOG("market_data is nullptr");
+  }
 }
 
 void BtpMarketSpi::OnRspAllInstrumentInfo(BtpInstrumentInfo *ticker_info) {
-  ipc::message req_msg;
-  auto send_msg = req_msg.mutable_itp_msg();
-  send_msg->set_address(reinterpret_cast<int64_t>(ticker_info));
-  send_msg->set_request_id(ticker_info->prid);
-  utils::ItpMsg msg;
-  req_msg.SerializeToString(&msg.pb_msg);
-  msg.session_name = "btp_market";
-  msg.msg_name = "OnRspAllInstrumentInfo";
+  if (ticker_info != nullptr) {
+    ipc::message req_msg;
+    auto send_msg = req_msg.mutable_itp_msg();
+    send_msg->set_address(reinterpret_cast<int64_t>(ticker_info));
+    send_msg->set_request_id(ticker_info->prid);
+    utils::ItpMsg msg;
+    req_msg.SerializeToString(&msg.pb_msg);
+    msg.session_name = "btp_market";
+    msg.msg_name = "OnRspAllInstrumentInfo";
 
-  auto &global_sem = GlobalSem::GetInstance();
-  auto &inner_zmq = InnerZmq::GetInstance();
-  inner_zmq.PushTask(msg);
-  global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
+    auto &global_sem = GlobalSem::GetInstance();
+    auto &inner_zmq = InnerZmq::GetInstance();
+    inner_zmq.PushTask(msg);
+    global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
+  } else {
+    ERROR_LOG("ticker_info is nullptr");
+  }
 }

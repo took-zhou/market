@@ -31,42 +31,58 @@ void CtpMarketSpi::OnHeartBeatWarning(int n_time_lapse) { ERROR_LOG("OnHeartBeat
 
 void CtpMarketSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *p_rsp_user_login, CThostFtdcRspInfoField *p_rsp_info, int n_request_id,
                                   bool b_is_last) {
-  ipc::message req_msg;
-  auto send_msg = req_msg.mutable_itp_msg();
-  send_msg->set_address(reinterpret_cast<int64_t>(p_rsp_info));
-  send_msg->set_request_id(n_request_id);
-  send_msg->set_request_id(b_is_last);
-  utils::ItpMsg msg;
-  req_msg.SerializeToString(&msg.pb_msg);
-  msg.session_name = "ctp_market";
-  msg.msg_name = "OnRspUserLogin";
+  if (p_rsp_info != nullptr && p_rsp_info->ErrorID != 0) {
+    ERROR_LOG("id: %d, msg: %s.", p_rsp_info->ErrorID, p_rsp_info->ErrorMsg);
+  }
 
-  auto &global_sem = GlobalSem::GetInstance();
-  auto &inner_zmq = InnerZmq::GetInstance();
+  if (p_rsp_user_login != nullptr) {
+    ipc::message req_msg;
+    auto send_msg = req_msg.mutable_itp_msg();
+    send_msg->set_address(reinterpret_cast<int64_t>(p_rsp_info));
+    send_msg->set_request_id(n_request_id);
+    send_msg->set_request_id(b_is_last);
+    utils::ItpMsg msg;
+    req_msg.SerializeToString(&msg.pb_msg);
+    msg.session_name = "ctp_market";
+    msg.msg_name = "OnRspUserLogin";
 
-  inner_zmq.PushTask(msg);
-  global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
-  front_disconnected = false;
-  global_sem.PostSemBySemName(GlobalSem::kLoginLogout);
+    auto &global_sem = GlobalSem::GetInstance();
+    auto &inner_zmq = InnerZmq::GetInstance();
+
+    inner_zmq.PushTask(msg);
+    global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
+    front_disconnected = false;
+    global_sem.PostSemBySemName(GlobalSem::kLoginLogout);
+  } else {
+    ERROR_LOG("p_rsp_user_login is nullptr");
+  }
 }
 
 void CtpMarketSpi::OnRspUserLogout(CThostFtdcUserLogoutField *user_logout, CThostFtdcRspInfoField *rsp_info, int n_request_id,
                                    bool b_is_last) {
-  ipc::message req_msg;
-  auto send_msg = req_msg.mutable_itp_msg();
-  send_msg->set_address(reinterpret_cast<int64_t>(rsp_info));
-  send_msg->set_request_id(n_request_id);
-  send_msg->set_request_id(b_is_last);
-  utils::ItpMsg msg;
-  req_msg.SerializeToString(&msg.pb_msg);
-  msg.session_name = "ctp_market";
-  msg.msg_name = "OnRspUserLogout";
+  if (rsp_info != nullptr && rsp_info->ErrorID != 0) {
+    ERROR_LOG("id: %d, msg: %s.", rsp_info->ErrorID, rsp_info->ErrorMsg);
+  }
 
-  auto &global_sem = GlobalSem::GetInstance();
-  auto &inner_zmq = InnerZmq::GetInstance();
-  inner_zmq.PushTask(msg);
-  global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
-  global_sem.PostSemBySemName(GlobalSem::kLoginLogout);
+  if (user_logout != nullptr) {
+    ipc::message req_msg;
+    auto send_msg = req_msg.mutable_itp_msg();
+    send_msg->set_address(reinterpret_cast<int64_t>(rsp_info));
+    send_msg->set_request_id(n_request_id);
+    send_msg->set_request_id(b_is_last);
+    utils::ItpMsg msg;
+    req_msg.SerializeToString(&msg.pb_msg);
+    msg.session_name = "ctp_market";
+    msg.msg_name = "OnRspUserLogout";
+
+    auto &global_sem = GlobalSem::GetInstance();
+    auto &inner_zmq = InnerZmq::GetInstance();
+    inner_zmq.PushTask(msg);
+    global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
+    global_sem.PostSemBySemName(GlobalSem::kLoginLogout);
+  } else {
+    ERROR_LOG("user_logout is nullptr");
+  }
 }
 
 void CtpMarketSpi::OnRspUserLogout(void) {
@@ -93,16 +109,20 @@ void CtpMarketSpi::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *depth_ma
   ScopedTimer t("OnRtnDepthMarketData");
 #endif
   PZone("OnRtnDepthMarketData");
-  ipc::message req_msg;
-  auto send_msg = req_msg.mutable_itp_msg();
-  send_msg->set_address(reinterpret_cast<int64_t>(depth_market_data));
-  utils::ItpMsg msg;
-  req_msg.SerializeToString(&msg.pb_msg);
-  msg.session_name = "ctp_market";
-  msg.msg_name = "OnRtnDepthMarketData";
+  if (depth_market_data != nullptr) {
+    ipc::message req_msg;
+    auto send_msg = req_msg.mutable_itp_msg();
+    send_msg->set_address(reinterpret_cast<int64_t>(depth_market_data));
+    utils::ItpMsg msg;
+    req_msg.SerializeToString(&msg.pb_msg);
+    msg.session_name = "ctp_market";
+    msg.msg_name = "OnRtnDepthMarketData";
 
-  auto &global_sem = GlobalSem::GetInstance();
-  auto &inner_zmq = InnerZmq::GetInstance();
-  inner_zmq.PushTask(msg);
-  global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
+    auto &global_sem = GlobalSem::GetInstance();
+    auto &inner_zmq = InnerZmq::GetInstance();
+    inner_zmq.PushTask(msg);
+    global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
+  } else {
+    ERROR_LOG("depth_market_data is nullptr");
+  }
 }

@@ -66,34 +66,44 @@ void XtpQuoteSpi::OnDepthMarketData(XTPMD *market_data, int64_t bid1_qty[], int3
 #ifdef BENCH_TEST
   ScopedTimer t("OnDepthMarketData");
 #endif
-  ipc::message req_msg;
-  auto send_msg = req_msg.mutable_itp_msg();
-  send_msg->set_address(reinterpret_cast<int64_t>(market_data));
-  utils::ItpMsg msg;
-  req_msg.SerializeToString(&msg.pb_msg);
-  msg.session_name = "xtp_market";
-  msg.msg_name = "OnDepthMarketData";
+  if (market_data != nullptr) {
+    ipc::message req_msg;
+    auto send_msg = req_msg.mutable_itp_msg();
+    send_msg->set_address(reinterpret_cast<int64_t>(market_data));
+    utils::ItpMsg msg;
+    req_msg.SerializeToString(&msg.pb_msg);
+    msg.session_name = "xtp_market";
+    msg.msg_name = "OnDepthMarketData";
 
-  auto &global_sem = GlobalSem::GetInstance();
-  auto &inner_zmq = InnerZmq::GetInstance();
-  inner_zmq.PushTask(msg);
-  global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
+    auto &global_sem = GlobalSem::GetInstance();
+    auto &inner_zmq = InnerZmq::GetInstance();
+    inner_zmq.PushTask(msg);
+    global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
+  } else {
+    ERROR_LOG("market_data is nullptr");
+  }
 }
 
 void XtpQuoteSpi::OnQueryAllTickers(XTPQSI *ticker_info, XTPRI *error_info, bool is_last) {
-  ipc::message req_msg;
-  auto send_msg = req_msg.mutable_itp_msg();
-  send_msg->set_address(reinterpret_cast<int64_t>(ticker_info));
-  send_msg->set_is_last(is_last);
-  utils::ItpMsg msg;
-  req_msg.SerializeToString(&msg.pb_msg);
-  msg.session_name = "xtp_market";
-  msg.msg_name = "OnQueryAllTickers";
+  OnError(error_info);
 
-  auto &global_sem = GlobalSem::GetInstance();
-  auto &inner_zmq = InnerZmq::GetInstance();
-  inner_zmq.PushTask(msg);
-  global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
+  if (ticker_info != nullptr) {
+    ipc::message req_msg;
+    auto send_msg = req_msg.mutable_itp_msg();
+    send_msg->set_address(reinterpret_cast<int64_t>(ticker_info));
+    send_msg->set_is_last(is_last);
+    utils::ItpMsg msg;
+    req_msg.SerializeToString(&msg.pb_msg);
+    msg.session_name = "xtp_market";
+    msg.msg_name = "OnQueryAllTickers";
+
+    auto &global_sem = GlobalSem::GetInstance();
+    auto &inner_zmq = InnerZmq::GetInstance();
+    inner_zmq.PushTask(msg);
+    global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
+  } else {
+    ERROR_LOG("ticker_info is nullptr");
+  }
 }
 
 void XtpQuoteSpi::OnSubMarketData(XTPST *ticker, XTPRI *error_info, bool is_last) {}
