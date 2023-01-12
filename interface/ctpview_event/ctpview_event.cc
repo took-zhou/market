@@ -120,6 +120,12 @@ void CtpviewEvent::SimulateMarketStateHandle(utils::ItpMsg &msg) {
   } else if (simulate_market_state.market_state() == ctpview_market::SimulateMarketState_MarketState_night_close) {
     state = strategy_market::MarketStateReq_MarketState_night_close;
     INFO_LOG("Publish makret state: night_close, date: %s  to strategy.", simulate_market_state.date().c_str());
+  } else if (simulate_market_state.market_state() == ctpview_market::SimulateMarketState_MarketState_day_prepare) {
+    state = strategy_market::MarketStateReq_MarketState_day_prepare;
+    INFO_LOG("Publish makret state: day_prepare, date: %s  to strategy.", simulate_market_state.date().c_str());
+  } else if (simulate_market_state.market_state() == ctpview_market::SimulateMarketState_MarketState_night_prepare) {
+    state = strategy_market::MarketStateReq_MarketState_night_prepare;
+    INFO_LOG("Publish makret state: night_prepare, date: %s  to strategy.", simulate_market_state.date().c_str());
   }
 
   auto &market_ser = MarketService::GetInstance();
@@ -136,7 +142,7 @@ void CtpviewEvent::SimulateMarketStateHandle(utils::ItpMsg &msg) {
     msg.session_name = "strategy_market";
     msg.msg_name = "MarketStateReq." + keyname;
     auto &recer_sender = RecerSender::GetInstance();
-    recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
+    recer_sender.ROLE(Sender).ROLE(ProxySender).SendMsg(msg);
   }
 }
 

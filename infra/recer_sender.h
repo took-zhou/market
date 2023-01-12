@@ -8,24 +8,27 @@
 #ifndef WORKSPACE_MARKET_INFRA_RECERSENDER_H_
 #define WORKSPACE_MARKET_INFRA_RECERSENDER_H_
 
+#include "market/infra/recer/inner_recer.h"
+#include "market/infra/recer/proxy_recer.h"
 #include "market/infra/sender/email_sender.h"
+#include "market/infra/sender/inner_sender.h"
 #include "market/infra/sender/itp_sender.h"
 #include "market/infra/sender/proxy_sender.h"
 
-#include "market/infra/recer/itp_recer.h"
-#include "market/infra/recer/proxy_recer.h"
-
+#include <thread>
 #include "common/self/dci/role.h"
 
-struct Recer : ItpRecer, ProxyRecer {
-  IMPL_ROLE(ItpRecer);
+
+struct Recer : InnerRecer, ProxyRecer {
+  IMPL_ROLE(InnerRecer);
   IMPL_ROLE(ProxyRecer);
 };
 
-struct Sender : ItpSender, EmailSender, ProxySender {
+struct Sender : ItpSender, EmailSender, ProxySender, InnerSender {
   IMPL_ROLE(ItpSender);
   IMPL_ROLE(EmailSender);
   IMPL_ROLE(ProxySender);
+  IMPL_ROLE(InnerSender);
 };
 
 struct RecerSender : Recer, Sender {
@@ -37,6 +40,11 @@ struct RecerSender : Recer, Sender {
     return instance;
   }
 
+  void Run() {
+    while (1) {
+      std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
+  }
   IMPL_ROLE(Recer);
   IMPL_ROLE(Sender);
 };

@@ -87,8 +87,6 @@ void XtpEvent::OnRspUserLoginHandle(utils::ItpMsg &msg) {
     } else if (req_instrument_from_ == "strategy") {
       market_ser.ROLE(SubscribeManager).ReqInstrumrntFromControlPara();
     }
-
-    market_ser.ROLE(PublishState).PublishEvent();
   }
 }
 
@@ -113,8 +111,6 @@ void XtpEvent::OnRspUserLogoutHandle(utils::ItpMsg &msg) {
     }
 
     market_ser.ROLE(InstrumentInfo).EraseAllInstrumentInfo();
-
-    market_ser.ROLE(PublishState).PublishEvent();
   }
 }
 

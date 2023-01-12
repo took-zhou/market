@@ -92,8 +92,6 @@ void CtpEvent::OnRspUserLoginHandle(utils::ItpMsg &msg) {
     } else if (req_instrument_from_ == "strategy") {
       market_ser.ROLE(SubscribeManager).ReqInstrumrntFromControlPara();
     }
-
-    market_ser.ROLE(PublishState).PublishEvent();
   }
 }
 
@@ -121,8 +119,6 @@ void CtpEvent::OnRspUserLogoutHandle(utils::ItpMsg &msg) {
     }
 
     market_ser.ROLE(InstrumentInfo).EraseAllInstrumentInfo();
-
-    market_ser.ROLE(PublishState).PublishEvent();
   }
 }
 
@@ -139,7 +135,7 @@ void CtpEvent::UpdateInstrumentInfoFromTrader() {
   auto &recer_sender = RecerSender::GetInstance();
   auto &global_sem = GlobalSem::GetInstance();
   while (1) {
-    recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
+    recer_sender.ROLE(Sender).ROLE(ProxySender).SendMsg(msg);
     INFO_LOG("update instrument info from trader send ok, waiting trader rsp.");
     if (!global_sem.WaitSemBySemName(GlobalSem::kUpdateInstrumentInfo, 60)) {
       break;

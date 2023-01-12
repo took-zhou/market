@@ -13,19 +13,15 @@ ActiveSafety::ActiveSafety() { ; }
 void ActiveSafety::CheckSafety() {
   static int check_flag = false;
 
-  while (1) {
-    auto &market_ser = MarketService::GetInstance();
-    auto timenow = market_ser.ROLE(MarketTimeState).GetTimeNow();
+  auto &market_ser = MarketService::GetInstance();
+  auto timenow = market_ser.ROLE(MarketTimeState).GetTimeNow();
 
-    // 固定在下午6点开始检测
-    if (timenow != nullptr && timenow->tm_hour == 18 && timenow->tm_min == 0 && check_flag == false) {
-      ReqAlive();
-      check_flag = true;
-    } else if (timenow != nullptr && timenow->tm_hour == 18 && timenow->tm_min > 0 && check_flag == true) {
-      check_flag = false;
-    }
-
-    std::this_thread::sleep_for(std::chrono::seconds(1));
+  // 固定在下午6点开始检测
+  if (timenow != nullptr && timenow->tm_hour == 18 && timenow->tm_min == 0 && check_flag == false) {
+    ReqAlive();
+    check_flag = true;
+  } else if (timenow != nullptr && timenow->tm_hour == 18 && timenow->tm_min > 0 && check_flag == true) {
+    check_flag = false;
   }
 }
 
@@ -46,7 +42,7 @@ void ActiveSafety::ReqAlive() {
     msg.session_name = "strategy_market";
     msg.msg_name = "ActiveSafetyReq." + keyname;
     auto &recer_sender = RecerSender::GetInstance();
-    recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
+    recer_sender.ROLE(Sender).ROLE(ProxySender).SendMsg(msg);
 
     auto &global_sem = GlobalSem::GetInstance();
     if (global_sem.WaitSemBySemName(GlobalSem::kStrategyRsp, 3) != 0) {

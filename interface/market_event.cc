@@ -55,7 +55,7 @@ bool MarketEvent::Run() {
   auto itp_rec_run = [&]() {
     utils::ItpMsg msg;
     while (1) {
-      if (recer_sender.ROLE(Recer).ROLE(ItpRecer).ReceMsg(msg) == false) {
+      if (recer_sender.ROLE(Recer).ROLE(InnerRecer).ReceMsg(msg) == false) {
         ERROR_LOG(" invalid msg, session is [%s], msgName is [%s]", msg.session_name.c_str(), msg.msg_name.c_str());
         GlobalSem::GetInstance().PostSemBySemName(GlobalSem::kApiRecv);
         continue;
@@ -73,8 +73,6 @@ bool MarketEvent::Run() {
   INFO_LOG("itpRecRun prepare ok");
   std::thread(itp_rec_run).detach();
 
-  while (1) {
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-  }
+  recer_sender.Run();
   return true;
 }

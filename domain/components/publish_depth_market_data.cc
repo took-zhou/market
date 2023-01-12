@@ -82,7 +82,7 @@ void PublishData::OnceFromDataflowSelectRawtick(const PublishPara &p_c, CThostFt
   auto &recer_sender = RecerSender::GetInstance();
   {
     PZone("ProxySender");
-    recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
+    recer_sender.ROLE(Sender).ROLE(ProxySender).SendMsg(msg);
   }
 
   p_c.heartbeat = 0;
@@ -138,7 +138,7 @@ void PublishData::OnceFromDataflowSelectLevel1(const PublishPara &p_c, CThostFtd
   msg.session_name = "strategy_market";
   msg.msg_name = "TickData." + p_c.prid;
   auto &recer_sender = RecerSender::GetInstance();
-  recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
+  recer_sender.ROLE(Sender).ROLE(ProxySender).SendMsg(msg);
 
   p_c.heartbeat = 0;
 }
@@ -146,29 +146,26 @@ void PublishData::OnceFromDataflowSelectLevel1(const PublishPara &p_c, CThostFtd
 void PublishData::HeartBeatDetect() {
   auto &market_ser = MarketService::GetInstance();
   unsigned char entry_logoutstate_flag = false;
-  while (1) {
-    if (market_ser.login_state == kLoginState) {
+
+  if (market_ser.login_state == kLoginState) {
+    for (auto &item_p_c : market_ser.ROLE(PublishControl).publish_para_map) {
+      for (auto &item_id : item_p_c.second) {
+        item_id.heartbeat++;
+        if (item_id.heartbeat >= kHeartBeatWaitTime_) {
+          OnceFromDefault(item_id, item_p_c.first);
+        }
+      }
+    }
+    entry_logoutstate_flag = false;
+  } else {
+    if (entry_logoutstate_flag == false) {
       for (auto &item_p_c : market_ser.ROLE(PublishControl).publish_para_map) {
         for (auto &item_id : item_p_c.second) {
-          item_id.heartbeat++;
-          if (item_id.heartbeat >= kHeartBeatWaitTime_) {
-            OnceFromDefault(item_id, item_p_c.first);
-          }
+          item_id.heartbeat = 0;
         }
       }
-      entry_logoutstate_flag = false;
-    } else {
-      if (entry_logoutstate_flag == false) {
-        for (auto &item_p_c : market_ser.ROLE(PublishControl).publish_para_map) {
-          for (auto &item_id : item_p_c.second) {
-            item_id.heartbeat = 0;
-          }
-        }
-      }
-      entry_logoutstate_flag = true;
     }
-
-    std::this_thread::sleep_for(std::chrono::seconds(1));
+    entry_logoutstate_flag = true;
   }
 }
 
@@ -225,7 +222,7 @@ void PublishData::OnceFromDefault(const PublishPara &p_c, const string &ins) {
   msg.session_name = "strategy_market";
   msg.msg_name = "TickData." + p_c.prid;
   auto &recer_sender = RecerSender::GetInstance();
-  recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
+  recer_sender.ROLE(Sender).ROLE(ProxySender).SendMsg(msg);
 
   p_c.heartbeat = 0;
 }
@@ -309,7 +306,7 @@ void PublishData::OnceFromDataflowSelectRawtick(const PublishPara &p_c, XTPMD *p
   msg.session_name = "strategy_market";
   msg.msg_name = "TickData." + p_c.prid;
   auto &recer_sender = RecerSender::GetInstance();
-  recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
+  recer_sender.ROLE(Sender).ROLE(ProxySender).SendMsg(msg);
 }
 
 // 无法获取最小变动单位，暂不实现该功能
@@ -362,7 +359,7 @@ void PublishData::OnceFromDataflowSelectLevel1(const PublishPara &p_c, XTPMD *p_
   msg.session_name = "strategy_market";
   msg.msg_name = "TickData." + p_c.prid;
   auto &recer_sender = RecerSender::GetInstance();
-  recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
+  recer_sender.ROLE(Sender).ROLE(ProxySender).SendMsg(msg);
 }
 
 bool PublishData::IsValidLevel1Data(const PublishPara &p_c, XTPMD *p_d) {
@@ -449,7 +446,7 @@ void PublishData::OnceFromDataflowSelectRawtick(const PublishPara &p_c, BtpMarke
   msg.session_name = "strategy_market";
   msg.msg_name = "TickData." + p_c.prid;
   auto &recer_sender = RecerSender::GetInstance();
-  recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
+  recer_sender.ROLE(Sender).ROLE(ProxySender).SendMsg(msg);
 
   p_c.heartbeat = 0;
 }
@@ -497,7 +494,7 @@ void PublishData::OnceFromDataflowSelectLevel1(const PublishPara &p_c, BtpMarket
   msg.session_name = "strategy_market";
   msg.msg_name = "TickData." + p_c.prid;
   auto &recer_sender = RecerSender::GetInstance();
-  recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
+  recer_sender.ROLE(Sender).ROLE(ProxySender).SendMsg(msg);
 
   p_c.heartbeat = 0;
 }
@@ -549,7 +546,7 @@ void PublishData::OnceFromDefault(const PublishPara &p_c, BtpMarketDataStruct *p
   msg.session_name = "strategy_market";
   msg.msg_name = "TickData." + p_c.prid;
   auto &recer_sender = RecerSender::GetInstance();
-  recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
+  recer_sender.ROLE(Sender).ROLE(ProxySender).SendMsg(msg);
 
   p_c.heartbeat = 0;
 }

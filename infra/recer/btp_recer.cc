@@ -6,7 +6,7 @@
 #include "common/self/protobuf/ipc.pb.h"
 #include "common/self/semaphore.h"
 #include "common/self/utils.h"
-#include "market/infra/inner_zmq.h"
+#include "market/infra/recer_sender.h"
 
 // market端ctp登入没有反馈，主动调用反馈接口
 void BtpMarketSpi::OnRspUserLogin(const BtpLoginLogoutStruct *login_info) {
@@ -20,8 +20,8 @@ void BtpMarketSpi::OnRspUserLogin(const BtpLoginLogoutStruct *login_info) {
     msg.msg_name = "OnRspUserLogin";
 
     auto &global_sem = GlobalSem::GetInstance();
-    auto &inner_zmq = InnerZmq::GetInstance();
-    inner_zmq.PushTask(msg);
+    auto &recer_sender = RecerSender::GetInstance();
+    recer_sender.ROLE(InnerSender).SendMsg(msg);
     global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
   } else {
     ERROR_LOG("login_info is nullptr");
@@ -40,8 +40,8 @@ void BtpMarketSpi::OnRspUserLogout(const BtpLoginLogoutStruct *login_info) {
     msg.msg_name = "OnRspUserLogout";
 
     auto &global_sem = GlobalSem::GetInstance();
-    auto &inner_zmq = InnerZmq::GetInstance();
-    inner_zmq.PushTask(msg);
+    auto &recer_sender = RecerSender::GetInstance();
+    recer_sender.ROLE(InnerSender).SendMsg(msg);
     global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
   } else {
     ERROR_LOG("login_info is nullptr");
@@ -62,8 +62,8 @@ void BtpMarketSpi::OnDepthMarketData(const BtpMarketDataStruct *market_data) {
     msg.msg_name = "OnDepthMarketData";
 
     auto &global_sem = GlobalSem::GetInstance();
-    auto &inner_zmq = InnerZmq::GetInstance();
-    inner_zmq.PushTask(msg);
+    auto &recer_sender = RecerSender::GetInstance();
+    recer_sender.ROLE(InnerSender).SendMsg(msg);
     global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
   } else {
     ERROR_LOG("market_data is nullptr");
@@ -82,8 +82,8 @@ void BtpMarketSpi::OnRspAllInstrumentInfo(BtpInstrumentInfo *ticker_info) {
     msg.msg_name = "OnRspAllInstrumentInfo";
 
     auto &global_sem = GlobalSem::GetInstance();
-    auto &inner_zmq = InnerZmq::GetInstance();
-    inner_zmq.PushTask(msg);
+    auto &recer_sender = RecerSender::GetInstance();
+    recer_sender.ROLE(InnerSender).SendMsg(msg);
     global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
   } else {
     ERROR_LOG("ticker_info is nullptr");

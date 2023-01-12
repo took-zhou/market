@@ -14,7 +14,10 @@ MarketService::MarketService() {
   auto &json_cfg = utils::JsonConfig::GetInstance();
   auto api_type = json_cfg.GetConfig("common", "ApiType");
   if (api_type == "btp") {
-    auto market_log_in_out_fuc = [&]() {
+    auto market_period_task = [&]() {
+      // market_period_task begin
+
+      // market_period_task end
       auto &recer_sender = RecerSender::GetInstance();
       while (1) {
         if (login_state == kLogoutState) {
@@ -28,23 +31,19 @@ MarketService::MarketService() {
         std::this_thread::sleep_for(std::chrono::seconds(1));
       }
     };
-    std::thread(market_log_in_out_fuc).detach();
-    INFO_LOG("market_log_in_out_fuc prepare ok");
+    std::thread(market_period_task).detach();
+    INFO_LOG("market period task prepare ok");
   } else {
-    // 开启发布线程
-    auto heart_beat_detect_func = [&]() { ROLE(PublishData).HeartBeatDetect(); };
-    std::thread(heart_beat_detect_func).detach();
-
-    // 开启主动安全监测线程
-    auto check_safety_fuc = [&]() { ROLE(ActiveSafety).CheckSafety(); };
-    std::thread(check_safety_fuc).detach();
-
-    auto login_state_run = [&]() { ROLE(MarketTimeState).Update(); };
-    std::thread(login_state_run).detach();
-
-    auto market_log_in_out_fuc = [&]() {
-      auto &recer_sender = RecerSender::GetInstance();
+    auto market_period_task = [&]() {
       while (1) {
+        // market_period_task begin
+        ROLE(PublishData).HeartBeatDetect();
+        ROLE(ActiveSafety).CheckSafety();
+        ROLE(MarketTimeState).Update();
+        ROLE(PublishState).PublishEvent();
+        // market_period_task end
+
+        auto &recer_sender = RecerSender::GetInstance();
         if (ROLE(MarketTimeState).GetTimeState() == kLoginTime && login_state == kLogoutState) {
           if (recer_sender.ROLE(Sender).ROLE(ItpSender).ReqUserLogin()) {
             login_state = kLoginState;
@@ -57,12 +56,11 @@ MarketService::MarketService() {
         } else if (recer_sender.ROLE(Sender).ROLE(ItpSender).LossConnection() && login_state != kLogoutState) {
           HandleAccountExitException();
         }
-
         std::this_thread::sleep_for(std::chrono::seconds(1));
       }
     };
-    std::thread(market_log_in_out_fuc).detach();
-    INFO_LOG("market_log_in_out_fuc prepare ok");
+    std::thread(market_period_task).detach();
+    INFO_LOG("market period task prepare ok");
   }
 }
 

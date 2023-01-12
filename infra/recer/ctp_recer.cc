@@ -11,7 +11,7 @@
 #include "common/self/protobuf/ipc.pb.h"
 #include "common/self/semaphore.h"
 #include "common/self/utils.h"
-#include "market/infra/inner_zmq.h"
+#include "market/infra/recer_sender.h"
 
 void CtpMarketSpi::OnFrontConnected() {
   INFO_LOG("OnFrontConnected():is excuted...");
@@ -47,9 +47,8 @@ void CtpMarketSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *p_rsp_user_login,
     msg.msg_name = "OnRspUserLogin";
 
     auto &global_sem = GlobalSem::GetInstance();
-    auto &inner_zmq = InnerZmq::GetInstance();
-
-    inner_zmq.PushTask(msg);
+    auto &recer_sender = RecerSender::GetInstance();
+    recer_sender.ROLE(InnerSender).SendMsg(msg);
     global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
     front_disconnected = false;
     global_sem.PostSemBySemName(GlobalSem::kLoginLogout);
@@ -76,8 +75,8 @@ void CtpMarketSpi::OnRspUserLogout(CThostFtdcUserLogoutField *user_logout, CThos
     msg.msg_name = "OnRspUserLogout";
 
     auto &global_sem = GlobalSem::GetInstance();
-    auto &inner_zmq = InnerZmq::GetInstance();
-    inner_zmq.PushTask(msg);
+    auto &recer_sender = RecerSender::GetInstance();
+    recer_sender.ROLE(InnerSender).SendMsg(msg);
     global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
     global_sem.PostSemBySemName(GlobalSem::kLoginLogout);
   } else {
@@ -99,8 +98,8 @@ void CtpMarketSpi::OnRspUserLogout(void) {
   msg.msg_name = "OnRspUserLogout";
 
   auto &global_sem = GlobalSem::GetInstance();
-  auto &inner_zmq = InnerZmq::GetInstance();
-  inner_zmq.PushTask(msg);
+  auto &recer_sender = RecerSender::GetInstance();
+  recer_sender.ROLE(InnerSender).SendMsg(msg);
   global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
 }
 
@@ -119,8 +118,8 @@ void CtpMarketSpi::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *depth_ma
     msg.msg_name = "OnRtnDepthMarketData";
 
     auto &global_sem = GlobalSem::GetInstance();
-    auto &inner_zmq = InnerZmq::GetInstance();
-    inner_zmq.PushTask(msg);
+    auto &recer_sender = RecerSender::GetInstance();
+    recer_sender.ROLE(InnerSender).SendMsg(msg);
     global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
   } else {
     ERROR_LOG("depth_market_data is nullptr");

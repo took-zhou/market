@@ -8,12 +8,18 @@
 #ifndef WORKSPACE_MARKET_INFRA_PROXYSENDER_H_
 #define WORKSPACE_MARKET_INFRA_PROXYSENDER_H_
 
+#include <mutex>
 #include <string>
 #include "common/self/utils.h"
 
 struct ProxySender {
-  ProxySender(){};
-  bool Send(utils::ItpMsg &msg);
+ public:
+  ProxySender();
+  bool SendMsg(utils::ItpMsg &msg);
+
+ private:
+  void *publisher_{nullptr};
+  std::mutex m_lock_;
 };
 
 #endif /* WORKSPACE_MARKET_INFRA_PROXYSENDER_H_ */

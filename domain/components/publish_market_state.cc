@@ -15,7 +15,25 @@ PublishState::PublishState() {
   ;
 }
 
-void PublishState::PublishEvent(void) { PublishToStrategy(); }
+void PublishState::PublishEvent(void) {
+  auto &market_ser = MarketService::GetInstance();
+  static SubTimeState prev_sub_time_state = kInInitSts;
+
+  if (publish_count_ == 0) {
+    wait_publish_count_ = 0;
+    if (prev_sub_time_state != market_ser.ROLE(MarketTimeState).GetSubTimeState()) {
+      if (prev_sub_time_state != kInInitSts) {
+        PublishToStrategy();
+      }
+      prev_sub_time_state = market_ser.ROLE(MarketTimeState).GetSubTimeState();
+    }
+  } else if (publish_count_ > 0) {
+    wait_publish_count_++;
+    if (wait_publish_count_ >= max_wait_pushlish_count_) {
+      WARNING_LOG("wait publish market rsp time out");
+    }
+  }
+}
 
 void PublishState::PublishToStrategy(void) {
   char date_buff[10];
@@ -35,6 +53,12 @@ void PublishState::PublishToStrategy(void) {
   } else if (market_ser.ROLE(MarketTimeState).GetSubTimeState() == kInNightLogin) {
     state = strategy_market::MarketStateReq_MarketState_night_open;
     INFO_LOG("Publish makret state: night_open, date: %s to strategy.", date_buff);
+  } else if (market_ser.ROLE(MarketTimeState).GetSubTimeState() == kInDayPrePare) {
+    state = strategy_market::MarketStateReq_MarketState_day_prepare;
+    INFO_LOG("Publish makret state: day_prepare, date: %s to strategy.", date_buff);
+  } else if (market_ser.ROLE(MarketTimeState).GetSubTimeState() == kInNightPrePare) {
+    state = strategy_market::MarketStateReq_MarketState_night_prepare;
+    INFO_LOG("Publish makret state: night_prepare, date: %s to strategy.", date_buff);
   }
 
   auto key_name_list = market_ser.ROLE(ControlPara).GetPridList();
@@ -58,7 +82,7 @@ void PublishState::PublishToStrategy(void) {
     msg.session_name = "strategy_market";
     msg.msg_name = "MarketStateReq." + keyname;
     auto &recer_sender = RecerSender::GetInstance();
-    recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
+    recer_sender.ROLE(Sender).ROLE(ProxySender).SendMsg(msg);
 
     IncPublishCount();
   }
@@ -76,7 +100,13 @@ void PublishState::PublishEvent(BtpLoginLogoutStruct *login_logout) {
   PublishToStrategy(login_logout);
   while (1) {
     if (publish_count_ == 0) {
+      wait_publish_count_ = 0;
       break;
+    } else if (publish_count_ > 0) {
+      wait_publish_count_++;
+      if (wait_publish_count_ >= max_wait_pushlish_count_) {
+        WARNING_LOG("wait publish market rsp time out");
+      }
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
@@ -98,6 +128,12 @@ void PublishState::PublishToStrategy(BtpLoginLogoutStruct *login_logout) {
   } else if (strcmp(login_logout->market_state, "night_open") == 0) {
     state = strategy_market::MarketStateReq_MarketState_night_open;
     INFO_LOG("Publish makret state: night_open, date: %s to strategy.", login_logout->date);
+  } else if (strcmp(login_logout->market_state, "day_prepare") == 0) {
+    state = strategy_market::MarketStateReq_MarketState_day_prepare;
+    INFO_LOG("Publish makret state: day_prepare, date: %s to strategy.", login_logout->date);
+  } else if (strcmp(login_logout->market_state, "night_prepare") == 0) {
+    state = strategy_market::MarketStateReq_MarketState_night_prepare;
+    INFO_LOG("Publish makret state: night_prepare, date: %s to strategy.", login_logout->date);
   }
 
   if (login_logout->prid == 0) {
@@ -122,7 +158,7 @@ void PublishState::PublishToStrategy(BtpLoginLogoutStruct *login_logout) {
       msg.session_name = "strategy_market";
       msg.msg_name = "MarketStateReq." + keyname;
       auto &recer_sender = RecerSender::GetInstance();
-      recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
+      recer_sender.ROLE(Sender).ROLE(ProxySender).SendMsg(msg);
 
       IncPublishCount();
     }
@@ -139,7 +175,7 @@ void PublishState::PublishToStrategy(BtpLoginLogoutStruct *login_logout) {
     msg.session_name = "strategy_market";
     msg.msg_name = "MarketStateReq." + to_string(login_logout->prid);
     auto &recer_sender = RecerSender::GetInstance();
-    recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
+    recer_sender.ROLE(Sender).ROLE(ProxySender).SendMsg(msg);
 
     IncPublishCount();
   }

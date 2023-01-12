@@ -130,7 +130,7 @@ void StrategyEvent::InstrumentReqHandle(utils::ItpMsg &msg) {
   msg.session_name = "strategy_market";
   msg.msg_name = "InstrumentRsp." + prid;
   auto &recer_sender = RecerSender::GetInstance();
-  recer_sender.ROLE(Sender).ROLE(ProxySender).Send(msg);
+  recer_sender.ROLE(Sender).ROLE(ProxySender).SendMsg(msg);
 }
 
 void StrategyEvent::StrategyAliveRspHandle(utils::ItpMsg &msg) { GlobalSem::GetInstance().PostSemBySemName(GlobalSem::kStrategyRsp); }

@@ -21,12 +21,8 @@ struct InnerZmq {
     return instance;
   }
 
-  int PushTask(const utils::ItpMsg &msg);
-  int PullTask(utils::ItpMsg &msg);
   std::string inproc_address{"inproc://innerzmq"};
   void *context{nullptr};
-  void *receiver{nullptr};
-  void *sender{nullptr};
 };
 
 #endif /* WORKSPACE_MARKET_INFRA_INNERZMQBASE_H_ */

@@ -19,6 +19,7 @@
 
 int main(int argc, char *agrv[]) {
   auto &json_cfg = utils::JsonConfig::GetInstance();
+  json_cfg.SetFileName("/etc/marktrade/config.json");
 
   std::string market_log_path = json_cfg.GetConfig("market", "LogPath").get<std::string>();
   utils::CreatFolder(market_log_path);

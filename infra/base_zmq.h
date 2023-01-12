@@ -19,14 +19,8 @@ struct BaseZmq {
     return instance;
   }
 
-  void SubscribeTopic(const char *topic_str);
-  void UnSubscribeTopic(const char *topic_str);
-
-  int SendMsg(const std::string &msg);
-  int RecvMsg(std::string &msg);
+  std::string local_ip;
   void *context{nullptr};
-  void *receiver{nullptr};
-  void *publisher{nullptr};
 };
 
 #endif /* WORKSPACE_MARKET_INFRA_ZMQBASE_H_ */
