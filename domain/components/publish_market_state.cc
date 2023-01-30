@@ -106,6 +106,7 @@ void PublishState::PublishEvent(BtpLoginLogoutStruct *login_logout) {
       wait_publish_count_++;
       if (wait_publish_count_ >= max_wait_pushlish_count_) {
         WARNING_LOG("wait publish market rsp time out");
+        break;
       }
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(100));

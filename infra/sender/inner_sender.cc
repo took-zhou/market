@@ -24,7 +24,12 @@ InnerSender::InnerSender() {
 
 bool InnerSender::SendMsg(utils::ItpMsg &msg) {
   m_lock_.lock();
-  std::string outstring = msg.session_name + "." + msg.msg_name + " " + msg.pb_msg;
+  std::string outstring;
+  outstring += msg.session_name;
+  outstring += ".";
+  outstring += msg.msg_name;
+  outstring += " ";
+  outstring += msg.pb_msg;
   int size = zmq_send(pusher_, const_cast<char *>(outstring.c_str()), outstring.length(), 0);
   m_lock_.unlock();
   return (bool)(size > 0);
