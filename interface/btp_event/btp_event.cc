@@ -20,25 +20,30 @@
 #include <string>
 #include <thread>
 
-BtpEvent::BtpEvent() { RegMsgFun(); }
+BtpEvent::BtpEvent() {
+  RegMsgFun();
+
+  auto &json_cfg = utils::JsonConfig::GetInstance();
+  req_instrument_from_ = json_cfg.GetConfig("market", "SubscribeMarketDataFrom").get<std::string>();
+}
 
 void BtpEvent::RegMsgFun() {
   int cnt = 0;
-  msg_func_map.clear();
-  msg_func_map["OnDepthMarketData"] = [this](utils::ItpMsg &msg) { OnDepthMarketDataHandle(msg); };
-  msg_func_map["OnRspUserLogin"] = [this](utils::ItpMsg &msg) { OnRspUserLoginHandle(msg); };
-  msg_func_map["OnRspUserLogout"] = [this](utils::ItpMsg &msg) { OnRspUserLogoutHandle(msg); };
-  msg_func_map["OnRspAllInstrumentInfo"] = [this](utils::ItpMsg &msg) { OnRspAllInstrumentInfoHandle(msg); };
+  msg_func_map_.clear();
+  msg_func_map_["OnDepthMarketData"] = [this](utils::ItpMsg &msg) { OnDepthMarketDataHandle(msg); };
+  msg_func_map_["OnRspUserLogin"] = [this](utils::ItpMsg &msg) { OnRspUserLoginHandle(msg); };
+  msg_func_map_["OnRspUserLogout"] = [this](utils::ItpMsg &msg) { OnRspUserLogoutHandle(msg); };
+  msg_func_map_["OnRspAllInstrumentInfo"] = [this](utils::ItpMsg &msg) { OnRspAllInstrumentInfoHandle(msg); };
 
-  for (auto &iter : msg_func_map) {
+  for (auto &iter : msg_func_map_) {
     INFO_LOG("msg_func_map[%d] key is [%s]", cnt, iter.first.c_str());
     cnt++;
   }
 }
 
 void BtpEvent::Handle(utils::ItpMsg &msg) {
-  auto iter = msg_func_map.find(msg.msg_name);
-  if (iter != msg_func_map.end()) {
+  auto iter = msg_func_map_.find(msg.msg_name);
+  if (iter != msg_func_map_.end()) {
     iter->second(msg);
     return;
   }
@@ -65,7 +70,17 @@ void BtpEvent::OnRspUserLoginHandle(utils::ItpMsg &msg) {
   auto rsp_info = reinterpret_cast<BtpLoginLogoutStruct *>(itp_msg.address());
 
   auto &market_ser = MarketService::GetInstance();
-  market_ser.ROLE(PublishState).PublishEvent(rsp_info);
+  if (market_ser.run_mode == kFastBack) {
+    market_ser.ROLE(PublishState).PublishEvent(rsp_info);
+  } else {
+    if (req_instrument_from_ == "local") {
+      market_ser.ROLE(SubscribeManager).ReqInstrumentsFromLocal();
+    } else if (req_instrument_from_ == "api") {
+      market_ser.ROLE(SubscribeManager).ReqInstrumentsFromApi();
+    } else if (req_instrument_from_ == "strategy") {
+      market_ser.ROLE(SubscribeManager).ReqInstrumrntFromControlPara();
+    }
+  }
 }
 
 void BtpEvent::OnRspUserLogoutHandle(utils::ItpMsg &msg) {
@@ -76,7 +91,19 @@ void BtpEvent::OnRspUserLogoutHandle(utils::ItpMsg &msg) {
   auto rsp_info = reinterpret_cast<BtpLoginLogoutStruct *>(itp_msg.address());
 
   auto &market_ser = MarketService::GetInstance();
-  market_ser.ROLE(PublishState).PublishEvent(rsp_info);
+
+  if (market_ser.run_mode == kFastBack) {
+    market_ser.ROLE(PublishState).PublishEvent(rsp_info);
+  } else {
+    market_ser.ROLE(SubscribeManager).UnSubscribeAll();
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+
+    if (req_instrument_from_ == "api" && market_ser.ROLE(MarketTimeState).GetTimeState() == kLogoutTime) {
+      market_ser.ROLE(LoadData).ClassifyContractFiles();
+    }
+
+    market_ser.ROLE(InstrumentInfo).EraseAllInstrumentInfo();
+  }
 }
 
 void BtpEvent::OnRspAllInstrumentInfoHandle(utils::ItpMsg &msg) {

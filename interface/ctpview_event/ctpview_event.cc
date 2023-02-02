@@ -130,12 +130,21 @@ void CtpviewEvent::SimulateMarketStateHandle(utils::ItpMsg &msg) {
 
   auto &market_ser = MarketService::GetInstance();
   auto key_name_list = market_ser.ROLE(ControlPara).GetPridList();
+  int max_size = key_name_list.size();
+  int count = 0;
+  market_ser.ROLE(PublishState).ClearPublishCount();
   for (auto &keyname : key_name_list) {
+    count++;
     strategy_market::message tick;
     auto market_state = tick.mutable_market_state_req();
 
     market_state->set_market_state(state);
     market_state->set_date(simulate_market_state.date());
+    if (count == max_size) {
+      market_state->set_is_last(1);
+    } else {
+      market_state->set_is_last(0);
+    }
 
     utils::ItpMsg msg;
     tick.SerializeToString(&msg.pb_msg);
@@ -143,6 +152,7 @@ void CtpviewEvent::SimulateMarketStateHandle(utils::ItpMsg &msg) {
     msg.msg_name = "MarketStateReq." + keyname;
     auto &recer_sender = RecerSender::GetInstance();
     recer_sender.ROLE(Sender).ROLE(ProxySender).SendMsg(msg);
+    market_ser.ROLE(PublishState).IncPublishCount();
   }
 }
 

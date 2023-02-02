@@ -19,15 +19,13 @@ void PublishState::PublishEvent(void) {
   auto &market_ser = MarketService::GetInstance();
   static SubTimeState prev_sub_time_state = kInInitSts;
 
-  if (publish_count_ == 0) {
-    wait_publish_count_ = 0;
-    if (prev_sub_time_state != market_ser.ROLE(MarketTimeState).GetSubTimeState()) {
-      if (prev_sub_time_state != kInInitSts) {
-        PublishToStrategy();
-      }
-      prev_sub_time_state = market_ser.ROLE(MarketTimeState).GetSubTimeState();
+  if (prev_sub_time_state != market_ser.ROLE(MarketTimeState).GetSubTimeState()) {
+    if (prev_sub_time_state != kInInitSts) {
+      PublishToStrategy();
     }
-  } else if (publish_count_ > 0) {
+    prev_sub_time_state = market_ser.ROLE(MarketTimeState).GetSubTimeState();
+  }
+  if (publish_count_ > 0) {
     wait_publish_count_++;
     if (wait_publish_count_ >= max_wait_pushlish_count_) {
       WARNING_LOG("wait publish market rsp time out");
@@ -64,6 +62,7 @@ void PublishState::PublishToStrategy(void) {
   auto key_name_list = market_ser.ROLE(ControlPara).GetPridList();
   int max_size = key_name_list.size();
   int count = 0;
+  ClearPublishCount();
   for (auto &keyname : key_name_list) {
     count++;
     strategy_market::message tick;
@@ -109,7 +108,7 @@ void PublishState::PublishEvent(BtpLoginLogoutStruct *login_logout) {
         break;
       }
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    std::this_thread::sleep_for(std::chrono::seconds(1));
   }
 }
 
@@ -182,8 +181,17 @@ void PublishState::PublishToStrategy(BtpLoginLogoutStruct *login_logout) {
   }
 }
 
+void PublishState::ClearPublishCount() {
+  pthread_mutex_lock(&(sm_mutex_));
+  publish_count_ = 0;
+  pthread_mutex_unlock(&(sm_mutex_));
+}
+
 void PublishState::IncPublishCount() {
   pthread_mutex_lock(&(sm_mutex_));
+  if (publish_count_ < 0) {
+    publish_count_ = 0;
+  }
   publish_count_++;
   pthread_mutex_unlock(&(sm_mutex_));
 }
@@ -191,6 +199,9 @@ void PublishState::IncPublishCount() {
 void PublishState::DecPublishCount() {
   pthread_mutex_lock(&(sm_mutex_));
   publish_count_--;
+  if (publish_count_ < 0) {
+    publish_count_ = 0;
+  }
   pthread_mutex_unlock(&(sm_mutex_));
 }
 

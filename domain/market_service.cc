@@ -12,22 +12,17 @@
 
 MarketService::MarketService() {
   auto &json_cfg = utils::JsonConfig::GetInstance();
-  auto api_type = json_cfg.GetConfig("common", "ApiType");
-  if (api_type == "btp") {
+  if (json_cfg.GetConfig("common", "RunMode").get<std::string>() == "fastback") {
+    run_mode = kFastBack;
+  } else {
+    run_mode = kRealTime;
+  }
+  if (run_mode == kFastBack) {
     auto market_period_task = [&]() {
-      // market_period_task begin
-
-      // market_period_task end
-      auto &recer_sender = RecerSender::GetInstance();
       while (1) {
-        if (login_state == kLogoutState) {
-          if (recer_sender.ROLE(Sender).ROLE(ItpSender).ReqUserLogin()) {
-            login_state = kLoginState;
-          } else {
-            login_state = kErrorState;
-          }
-        }
-
+        // market_period_task begin
+        FastBackLoginLogoutChange();
+        // market_period_task end
         std::this_thread::sleep_for(std::chrono::seconds(1));
       }
     };
@@ -40,28 +35,46 @@ MarketService::MarketService() {
         ROLE(PublishData).HeartBeatDetect();
         ROLE(ActiveSafety).CheckSafety();
         ROLE(MarketTimeState).Update();
+        RealTimeLoginLogoutChange();
         ROLE(PublishState).PublishEvent();
         // market_period_task end
-
-        auto &recer_sender = RecerSender::GetInstance();
-        if (ROLE(MarketTimeState).GetTimeState() == kLoginTime && login_state == kLogoutState) {
-          if (recer_sender.ROLE(Sender).ROLE(ItpSender).ReqUserLogin()) {
-            login_state = kLoginState;
-          } else {
-            login_state = kErrorState;
-          }
-        } else if (ROLE(MarketTimeState).GetTimeState() == kLogoutTime && login_state != kLogoutState) {
-          recer_sender.ROLE(Sender).ROLE(ItpSender).ReqUserLogout();
-          login_state = kLogoutState;
-        } else if (recer_sender.ROLE(Sender).ROLE(ItpSender).LossConnection() && login_state != kLogoutState) {
-          HandleAccountExitException();
-        }
         std::this_thread::sleep_for(std::chrono::seconds(1));
       }
     };
     std::thread(market_period_task).detach();
     INFO_LOG("market period task prepare ok");
   }
+}
+
+bool MarketService::RealTimeLoginLogoutChange() {
+  auto &recer_sender = RecerSender::GetInstance();
+  if (ROLE(MarketTimeState).GetTimeState() == kLoginTime && login_state == kLogoutState) {
+    if (recer_sender.ROLE(Sender).ROLE(ItpSender).ReqUserLogin()) {
+      login_state = kLoginState;
+    } else {
+      login_state = kErrorState;
+    }
+  } else if (ROLE(MarketTimeState).GetTimeState() == kLogoutTime && login_state != kLogoutState) {
+    recer_sender.ROLE(Sender).ROLE(ItpSender).ReqUserLogout();
+    login_state = kLogoutState;
+  } else if (recer_sender.ROLE(Sender).ROLE(ItpSender).LossConnection() && login_state != kLogoutState) {
+    HandleAccountExitException();
+  }
+
+  return 0;
+}
+
+bool MarketService::FastBackLoginLogoutChange() {
+  auto &recer_sender = RecerSender::GetInstance();
+  if (login_state == kLogoutState) {
+    if (recer_sender.ROLE(Sender).ROLE(ItpSender).ReqUserLogin()) {
+      login_state = kLoginState;
+    } else {
+      login_state = kErrorState;
+    }
+  }
+
+  return 0;
 }
 
 bool MarketService::HandleAccountExitException() {

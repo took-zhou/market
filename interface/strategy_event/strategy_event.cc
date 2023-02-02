@@ -64,7 +64,7 @@ void StrategyEvent::TickSubscribeReqHandle(utils::ItpMsg &msg) {
 
     market_ser.ROLE(PublishControl).BuildPublishPara(ins_id.ins, p_a);
 
-    if (req_info.mode() == strategy_market::TickSubscribeReq_Mode_realtime) {
+    if (market_ser.run_mode == kRealTime) {
       if (market_ser.login_state == kLoginState) {
         market_ser.ROLE(SubscribeManager).SubscribeInstrument(ins_vec, stoi(req_info.process_random_id()));
       } else {
@@ -80,7 +80,7 @@ void StrategyEvent::TickSubscribeReqHandle(utils::ItpMsg &msg) {
     // 清除该合约 该进程对应的记录
     market_ser.ROLE(PublishControl).ErasePublishPara(prid, ins_id.ins);
 
-    if (req_info.mode() == strategy_market::TickSubscribeReq_Mode_realtime) {
+    if (market_ser.run_mode == kRealTime) {
       if (market_ser.ROLE(PublishControl).GetInstrumentSubscribedCount(ins_id.ins) == 0) {
         vector<utils::InstrumtntID> ins_vec;
         ins_vec.push_back(ins_id);

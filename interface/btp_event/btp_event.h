@@ -31,7 +31,9 @@ struct BtpEvent {
 
   void OnRspAllInstrumentInfoHandle(utils::ItpMsg &msg);
 
-  std::map<std::string, std::function<void(utils::ItpMsg &msg)>> msg_func_map;
+ private:
+  std::string req_instrument_from_ = "local";
+  std::map<std::string, std::function<void(utils::ItpMsg &msg)>> msg_func_map_;
 };
 
 #endif /* WORKSPACE_MARKET_INTERFACE_BTPEVENT_BTPEVENT_H_ */

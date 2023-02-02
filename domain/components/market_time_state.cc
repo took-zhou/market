@@ -114,6 +114,9 @@ void MarketTimeState::Step() {
         } else if (IsDuringDayPrepareTime()) {
           sub_time_state_ = kInDayPrePare;
           time_state_ = kLogoutTime;
+        } else if (IsDuringNightPrepareTime()) {
+          sub_time_state_ = kInNightPrePare;
+          time_state_ = kLogoutTime;
         }
         break;
 
@@ -152,6 +155,9 @@ void MarketTimeState::Step() {
           time_state_ = kLoginTime;
         } else if (IsDuringNightPrepareTime()) {
           sub_time_state_ = kInNightPrePare;
+          time_state_ = kLogoutTime;
+        } else if (IsDuringDayPrepareTime()) {
+          sub_time_state_ = kInDayPrePare;
           time_state_ = kLogoutTime;
         }
         break;

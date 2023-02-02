@@ -21,6 +21,7 @@
 #include "market/infra/recer_sender.h"
 
 enum MarketLoginState { kErrorState = 0, kLoginState = 1, kLogoutState = 2 };
+enum MarketRunMode { kFastBack = 0, kRealTime };
 
 struct MarketService : MarketTimeState,
                        LoadData,
@@ -52,9 +53,12 @@ struct MarketService : MarketTimeState,
   IMPL_ROLE(InstrumentInfo);
 
   MarketLoginState login_state = kLogoutState;
+  MarketRunMode run_mode = kRealTime;
 
  private:
   bool HandleAccountExitException();
+  bool RealTimeLoginLogoutChange();
+  bool FastBackLoginLogoutChange();
 };
 
 #endif /* WORKSPACE_MARKET_DOMAIN_MARKETSERVICE_H_ */

@@ -15,6 +15,7 @@ struct PublishState {
   void PublishEvent(BtpLoginLogoutStruct *login_logout);
   void PublishToStrategy(BtpLoginLogoutStruct *login_logout);
 
+  void ClearPublishCount();
   void IncPublishCount();
   void DecPublishCount();
   ~PublishState(){};

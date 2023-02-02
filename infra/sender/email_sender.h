@@ -14,9 +14,6 @@ struct EmailSender {
  public:
   EmailSender();
   void Send(const char *head, const char *msg);
-
- private:
-  CSmtp mail_;
 };
 
 #endif /* WORKSPACE_MARKET_INFRA_EMAILSENDER_H_ */
