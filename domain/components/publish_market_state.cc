@@ -219,7 +219,7 @@ void PublishState::GetTradeData(char *buff) {
       mon_days[1] = 29;
     }
 
-    if (20 <= timenow->tm_hour && timenow->tm_hour <= 23) {
+    if (19 <= timenow->tm_hour && timenow->tm_hour <= 23) {
       if (timenow->tm_wday == 5) {
         day += 3;
         while (day > mon_days[mon - 1]) {
