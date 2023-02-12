@@ -18,12 +18,13 @@ PublishState::PublishState() {
 void PublishState::PublishEvent(void) {
   auto &market_ser = MarketService::GetInstance();
   static SubTimeState prev_sub_time_state = kInInitSts;
-
-  if (prev_sub_time_state != market_ser.ROLE(MarketTimeState).GetSubTimeState()) {
-    if (prev_sub_time_state != kInInitSts) {
-      PublishToStrategy();
-    }
-    prev_sub_time_state = market_ser.ROLE(MarketTimeState).GetSubTimeState();
+  SubTimeState now_sub_time_state = market_ser.ROLE(MarketTimeState).GetSubTimeState();
+  if (prev_sub_time_state == kInInitSts) {
+    prev_sub_time_state = now_sub_time_state;
+  }
+  if (prev_sub_time_state != now_sub_time_state && market_ser.login_state == kLoginState) {
+    PublishToStrategy();
+    prev_sub_time_state = now_sub_time_state;
   }
   if (publish_count_ > 0) {
     wait_publish_count_++;
@@ -51,12 +52,6 @@ void PublishState::PublishToStrategy(void) {
   } else if (market_ser.ROLE(MarketTimeState).GetSubTimeState() == kInNightLogin) {
     state = strategy_market::MarketStateReq_MarketState_night_open;
     INFO_LOG("Publish makret state: night_open, date: %s to strategy.", date_buff);
-  } else if (market_ser.ROLE(MarketTimeState).GetSubTimeState() == kInDayPrePare) {
-    state = strategy_market::MarketStateReq_MarketState_day_prepare;
-    INFO_LOG("Publish makret state: day_prepare, date: %s to strategy.", date_buff);
-  } else if (market_ser.ROLE(MarketTimeState).GetSubTimeState() == kInNightPrePare) {
-    state = strategy_market::MarketStateReq_MarketState_night_prepare;
-    INFO_LOG("Publish makret state: night_prepare, date: %s to strategy.", date_buff);
   }
 
   auto key_name_list = market_ser.ROLE(ControlPara).GetPridList();
@@ -128,12 +123,6 @@ void PublishState::PublishToStrategy(BtpLoginLogoutStruct *login_logout) {
   } else if (strcmp(login_logout->market_state, "night_open") == 0) {
     state = strategy_market::MarketStateReq_MarketState_night_open;
     INFO_LOG("Publish makret state: night_open, date: %s to strategy.", login_logout->date);
-  } else if (strcmp(login_logout->market_state, "day_prepare") == 0) {
-    state = strategy_market::MarketStateReq_MarketState_day_prepare;
-    INFO_LOG("Publish makret state: day_prepare, date: %s to strategy.", login_logout->date);
-  } else if (strcmp(login_logout->market_state, "night_prepare") == 0) {
-    state = strategy_market::MarketStateReq_MarketState_night_prepare;
-    INFO_LOG("Publish makret state: night_prepare, date: %s to strategy.", login_logout->date);
   }
 
   if (login_logout->prid == 0) {

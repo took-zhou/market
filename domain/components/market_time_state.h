@@ -4,15 +4,7 @@
 
 enum TimeState { kReserve = 0, kLoginTime = 1, kLogoutTime = 2 };
 
-enum SubTimeState {
-  kInDayPrePare = 1,
-  kInDayLogin = 2,
-  kInDayLogout = 3,
-  kInInitSts = 4,
-  kInNightPrePare = 5,
-  kInNightLogin = 6,
-  kInNightLogout = 7
-};
+enum SubTimeState { kInDayLogin = 1, kInDayLogout = 2, kInInitSts = 3, kInNightLogin = 4, kInNightLogout = 5 };
 
 struct MarketTimeState {
  public:
@@ -37,10 +29,8 @@ struct MarketTimeState {
   struct tm *timenow_ = nullptr;
 
   int32_t now_mins_;
-  int32_t day_prepare_mins_;
   int32_t day_login_mins_;
   int32_t day_logout_mins_;
-  int32_t night_prepare_mins_;
   int32_t night_login_mins_;
   int32_t night_logout_mins_;
 
@@ -48,8 +38,6 @@ struct MarketTimeState {
   uint8_t IsDuringNightLogoutTime(void);
   uint8_t IsDuringDayLoginTime(void);
   uint8_t IsDuringNightLoginTime(void);
-  uint8_t IsDuringDayPrepareTime(void);
-  uint8_t IsDuringNightPrepareTime(void);
 };
 
 #endif

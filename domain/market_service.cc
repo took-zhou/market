@@ -35,8 +35,8 @@ MarketService::MarketService() {
         ROLE(PublishData).HeartBeatDetect();
         ROLE(ActiveSafety).CheckSafety();
         ROLE(MarketTimeState).Update();
-        RealTimeLoginLogoutChange();
         ROLE(PublishState).PublishEvent();
+        RealTimeLoginLogoutChange();
         // market_period_task end
         std::this_thread::sleep_for(std::chrono::seconds(1));
       }

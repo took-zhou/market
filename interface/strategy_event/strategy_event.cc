@@ -99,31 +99,32 @@ void StrategyEvent::InstrumentReqHandle(utils::ItpMsg &msg) {
   std::string ins = message.instrument_req().instrument_info().instrument_id();
   std::string exch = message.instrument_req().instrument_info().exchange_id();
   auto &market_ser = MarketService::GetInstance();
-  if (market_ser.login_state != kLoginState) {
-    ERROR_LOG("itp not login!");
-    return;
-  }
-
-  auto info = market_ser.ROLE(InstrumentInfo).GetInstrumentInfo(ins);
-
   strategy_market::message rsp;
   auto *instrument_rsp = rsp.mutable_instrument_rsp();
-  if (info == nullptr) {
+  if (market_ser.login_state != kLoginState) {
     instrument_rsp->set_instrument_id(ins);
     instrument_rsp->set_exchange_id(exch);
     instrument_rsp->set_result(strategy_market::Result::failed);
-    instrument_rsp->set_failedreason("not find instrument info.");
+    instrument_rsp->set_failedreason("not login.");
   } else {
-    instrument_rsp->set_instrument_id(ins);
-    instrument_rsp->set_exchange_id(exch);
-    instrument_rsp->set_result(strategy_market::Result::success);
-    instrument_rsp->set_is_trading(info->is_trading);
-    instrument_rsp->set_max_limit_order_volume(info->max_limit_order_volume);
-    instrument_rsp->set_max_market_order_volume(info->max_market_order_volume);
-    instrument_rsp->set_min_limit_order_volume(info->min_limit_order_volume);
-    instrument_rsp->set_min_market_order_volume(info->min_market_order_volume);
-    instrument_rsp->set_price_tick(info->ticksize);
-    instrument_rsp->set_volume_multiple(info->tradeuint);
+    auto info = market_ser.ROLE(InstrumentInfo).GetInstrumentInfo(ins);
+    if (info == nullptr) {
+      instrument_rsp->set_instrument_id(ins);
+      instrument_rsp->set_exchange_id(exch);
+      instrument_rsp->set_result(strategy_market::Result::failed);
+      instrument_rsp->set_failedreason("not find instrument info.");
+    } else {
+      instrument_rsp->set_instrument_id(ins);
+      instrument_rsp->set_exchange_id(exch);
+      instrument_rsp->set_result(strategy_market::Result::success);
+      instrument_rsp->set_is_trading(info->is_trading);
+      instrument_rsp->set_max_limit_order_volume(info->max_limit_order_volume);
+      instrument_rsp->set_max_market_order_volume(info->max_market_order_volume);
+      instrument_rsp->set_min_limit_order_volume(info->min_limit_order_volume);
+      instrument_rsp->set_min_market_order_volume(info->min_market_order_volume);
+      instrument_rsp->set_price_tick(info->ticksize);
+      instrument_rsp->set_volume_multiple(info->tradeuint);
+    }
   }
 
   rsp.SerializeToString(&msg.pb_msg);
