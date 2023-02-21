@@ -14,6 +14,5 @@ target_link_libraries(marketlib
     commonlib
     zmq
     protobuf
-    pybind11::embed
     python3.8
  )

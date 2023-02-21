@@ -25,6 +25,7 @@ void PublishState::PublishEvent(void) {
   if (prev_sub_time_state != now_sub_time_state && market_ser.login_state == kLoginState) {
     PublishToStrategy();
     prev_sub_time_state = now_sub_time_state;
+    wait_publish_count_ = 0;
   }
   if (publish_count_ > 0) {
     wait_publish_count_++;
