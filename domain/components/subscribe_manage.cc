@@ -23,16 +23,28 @@ void SubscribeManager::ReqInstrumentsFromLocal() {
 
 void SubscribeManager::ReqInstrumrntFromControlPara() {
   auto& market_ser = MarketService::GetInstance();
-  auto ins_vec = market_ser.ROLE(PublishControl).GetInstrumentList();
+  int instrument_count = 0;
+  vector<utils::InstrumtntID> ins_vec;
+  auto publish_ins_vec = market_ser.ROLE(PublishControl).GetInstrumentList();
+  for (auto& ins : publish_ins_vec) {
+    ins_vec.push_back(ins);
+    if (ins_vec.size() >= 500) {
+      SubscribeInstrument(ins_vec);
+      ins_vec.clear();
+    }
+  }
 
-  AddSubscribed(ins_vec);
-  auto& recer_sender = RecerSender::GetInstance();
-  recer_sender.ROLE(Sender).ROLE(ItpSender).SubscribeMarketData(ins_vec);
+  if (ins_vec.size() > 0) {
+    SubscribeInstrument(ins_vec);
+    INFO_LOG("The number of trading contracts is: %d.", instrument_count);
+    instrument_count = 0;
+    ins_vec.clear();
+  }
 }
 
 void SubscribeManager::ReqInstrumentsFromApi() {
-  static int instrument_count;
-  static vector<utils::InstrumtntID> ins_vec;
+  int instrument_count = 0;
+  vector<utils::InstrumtntID> ins_vec;
   auto& market_server = MarketService::GetInstance();
 
   auto instrument_info = market_server.ROLE(InstrumentInfo).GetInstrumentList();
