@@ -8,7 +8,6 @@
 MarketData::MarketData() { instrument_exchange_map_.clear(); }
 
 bool MarketData::IsValidTickData(CThostFtdcDepthMarketDataField *p_d) {
-  PZone("IsValidTickData");
   tm tick_tm;
   bool ret = false;
   auto &market_ser = MarketService::GetInstance();

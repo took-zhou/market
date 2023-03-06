@@ -19,7 +19,8 @@ struct BaseZmq {
     return instance;
   }
 
-  std::string local_ip;
+  std::string local_ip{""};
+  std::string inproc_address{"inproc://innerzmq"};
   void *context{nullptr};
 };
 

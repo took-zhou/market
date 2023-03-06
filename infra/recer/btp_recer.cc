@@ -3,6 +3,7 @@
 #include <iostream>
 #include <memory>
 #include "common/extern/log/log.h"
+#include "common/self/profiler.h"
 #include "common/self/protobuf/ipc.pb.h"
 #include "common/self/semaphore.h"
 #include "common/self/utils.h"
@@ -52,6 +53,7 @@ void BtpMarketSpi::OnDepthMarketData(const BtpMarketDataStruct *market_data) {
 #ifdef BENCH_TEST
   ScopedTimer timer("OnDepthMarketData");
 #endif
+  PZone("OnRtnDepthMarketData");
   if (market_data != nullptr) {
     ipc::message req_msg;
     auto send_msg = req_msg.mutable_itp_msg();

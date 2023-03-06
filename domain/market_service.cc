@@ -53,6 +53,12 @@ bool MarketService::RealTimeLoginLogoutChange() {
       login_state = kLoginState;
     } else {
       login_state = kErrorState;
+      try_login_heartbeat_ = 0;
+      try_login_count_ = 0;
+    }
+  } else if (ROLE(MarketTimeState).GetTimeState() == kLoginTime && login_state == kErrorState) {
+    if (try_login_heartbeat_++ % 600 == 599 && try_login_count_++ <= 3 && recer_sender.ROLE(Sender).ROLE(ItpSender).ReqUserLogin()) {
+      login_state = kLoginState;
     }
   } else if (ROLE(MarketTimeState).GetTimeState() == kLogoutTime && login_state != kLogoutState) {
     recer_sender.ROLE(Sender).ROLE(ItpSender).ReqUserLogout();

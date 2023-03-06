@@ -10,25 +10,27 @@
 
 #include "market/infra/recer/inner_recer.h"
 #include "market/infra/recer/proxy_recer.h"
+#include "market/infra/sender/direct_sender.h"
 #include "market/infra/sender/email_sender.h"
 #include "market/infra/sender/inner_sender.h"
 #include "market/infra/sender/itp_sender.h"
 #include "market/infra/sender/proxy_sender.h"
 
+
 #include <thread>
 #include "common/self/dci/role.h"
-
 
 struct Recer : InnerRecer, ProxyRecer {
   IMPL_ROLE(InnerRecer);
   IMPL_ROLE(ProxyRecer);
 };
 
-struct Sender : ItpSender, EmailSender, ProxySender, InnerSender {
+struct Sender : ItpSender, EmailSender, ProxySender, InnerSender, DirectSender {
   IMPL_ROLE(ItpSender);
   IMPL_ROLE(EmailSender);
   IMPL_ROLE(ProxySender);
   IMPL_ROLE(InnerSender);
+  IMPL_ROLE(DirectSender);
 };
 
 struct RecerSender : Recer, Sender {

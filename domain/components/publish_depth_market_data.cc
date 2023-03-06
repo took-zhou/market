@@ -39,7 +39,6 @@ void PublishData::OnceFromDataflowSelectRawtick(const PublishPara &p_c, CThostFt
     return;
   }
 
-  PZone("OnceFromDataflowSelectRawtick");
   char time_array[100] = {0};
   strategy_market::message tick;
   auto tick_data = tick.mutable_tick_data();
@@ -80,10 +79,7 @@ void PublishData::OnceFromDataflowSelectRawtick(const PublishPara &p_c, CThostFt
   msg.session_name = "strategy_market";
   msg.msg_name = "TickData." + p_c.prid;
   auto &recer_sender = RecerSender::GetInstance();
-  {
-    PZone("ProxySender");
-    recer_sender.ROLE(Sender).ROLE(ProxySender).SendMsg(msg);
-  }
+  recer_sender.ROLE(Sender).ROLE(DirectSender).SendMsg(msg);
 
   p_c.heartbeat = 0;
 }
@@ -138,7 +134,7 @@ void PublishData::OnceFromDataflowSelectLevel1(const PublishPara &p_c, CThostFtd
   msg.session_name = "strategy_market";
   msg.msg_name = "TickData." + p_c.prid;
   auto &recer_sender = RecerSender::GetInstance();
-  recer_sender.ROLE(Sender).ROLE(ProxySender).SendMsg(msg);
+  recer_sender.ROLE(Sender).ROLE(DirectSender).SendMsg(msg);
 
   p_c.heartbeat = 0;
 }
@@ -222,7 +218,7 @@ void PublishData::OnceFromDefault(const PublishPara &p_c, const string &ins) {
   msg.session_name = "strategy_market";
   msg.msg_name = "TickData." + p_c.prid;
   auto &recer_sender = RecerSender::GetInstance();
-  recer_sender.ROLE(Sender).ROLE(ProxySender).SendMsg(msg);
+  recer_sender.ROLE(Sender).ROLE(DirectSender).SendMsg(msg);
 
   p_c.heartbeat = 0;
 }
@@ -306,7 +302,7 @@ void PublishData::OnceFromDataflowSelectRawtick(const PublishPara &p_c, XTPMD *p
   msg.session_name = "strategy_market";
   msg.msg_name = "TickData." + p_c.prid;
   auto &recer_sender = RecerSender::GetInstance();
-  recer_sender.ROLE(Sender).ROLE(ProxySender).SendMsg(msg);
+  recer_sender.ROLE(Sender).ROLE(DirectSender).SendMsg(msg);
 }
 
 // 无法获取最小变动单位，暂不实现该功能
@@ -359,7 +355,7 @@ void PublishData::OnceFromDataflowSelectLevel1(const PublishPara &p_c, XTPMD *p_
   msg.session_name = "strategy_market";
   msg.msg_name = "TickData." + p_c.prid;
   auto &recer_sender = RecerSender::GetInstance();
-  recer_sender.ROLE(Sender).ROLE(ProxySender).SendMsg(msg);
+  recer_sender.ROLE(Sender).ROLE(DirectSender).SendMsg(msg);
 }
 
 bool PublishData::IsValidLevel1Data(const PublishPara &p_c, XTPMD *p_d) {
@@ -382,10 +378,7 @@ void PublishData::DirectForwardDataToStrategy(BtpMarketDataStruct *p_d) {
   if (pos != market_ser.ROLE(PublishControl).publish_para_map.end() && market_ser.login_state == kLoginState) {
     for (auto &item_p_c : pos->second) {
       if (p_d->state == 0) {
-        item_p_c.heartbeat++;
-        if (item_p_c.heartbeat >= 60) {
-          OnceFromDefault(item_p_c, p_d);
-        }
+        OnceFromDefault(item_p_c, p_d);
       } else {
         OnceFromDataflow(item_p_c, p_d);
       }
@@ -446,7 +439,7 @@ void PublishData::OnceFromDataflowSelectRawtick(const PublishPara &p_c, BtpMarke
   msg.session_name = "strategy_market";
   msg.msg_name = "TickData." + p_c.prid;
   auto &recer_sender = RecerSender::GetInstance();
-  recer_sender.ROLE(Sender).ROLE(ProxySender).SendMsg(msg);
+  recer_sender.ROLE(Sender).ROLE(DirectSender).SendMsg(msg);
 
   p_c.heartbeat = 0;
 }
@@ -494,7 +487,7 @@ void PublishData::OnceFromDataflowSelectLevel1(const PublishPara &p_c, BtpMarket
   msg.session_name = "strategy_market";
   msg.msg_name = "TickData." + p_c.prid;
   auto &recer_sender = RecerSender::GetInstance();
-  recer_sender.ROLE(Sender).ROLE(ProxySender).SendMsg(msg);
+  recer_sender.ROLE(Sender).ROLE(DirectSender).SendMsg(msg);
 
   p_c.heartbeat = 0;
 }
@@ -546,7 +539,7 @@ void PublishData::OnceFromDefault(const PublishPara &p_c, BtpMarketDataStruct *p
   msg.session_name = "strategy_market";
   msg.msg_name = "TickData." + p_c.prid;
   auto &recer_sender = RecerSender::GetInstance();
-  recer_sender.ROLE(Sender).ROLE(ProxySender).SendMsg(msg);
+  recer_sender.ROLE(Sender).ROLE(DirectSender).SendMsg(msg);
 
   p_c.heartbeat = 0;
 }

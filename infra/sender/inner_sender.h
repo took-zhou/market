@@ -19,7 +19,6 @@ struct InnerSender {
 
  private:
   void *pusher_{nullptr};
-  std::mutex m_lock_;
 };
 
 #endif /* WORKSPACE_MARKET_INFRA_INNERSENDER_H_ */

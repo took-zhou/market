@@ -8,12 +8,14 @@
 #include "market/interface/btp_event/btp_event.h"
 #include "common/extern/log/log.h"
 #include "common/self/file_util.h"
+#include "common/self/profiler.h"
 #include "common/self/protobuf/ipc.pb.h"
 #include "common/self/protobuf/market-trader.pb.h"
 #include "common/self/semaphore.h"
 #include "common/self/utils.h"
 #include "market/domain/market_service.h"
 #include "market/infra/recer_sender.h"
+
 
 #include <unistd.h>
 #include <sstream>
@@ -52,6 +54,7 @@ void BtpEvent::Handle(utils::ItpMsg &msg) {
 }
 
 void BtpEvent::OnDepthMarketDataHandle(utils::ItpMsg &msg) {
+  PZone("DeepMarktDataHandle");
   ipc::message message;
   message.ParseFromString(msg.pb_msg);
   auto &itp_msg = message.itp_msg();

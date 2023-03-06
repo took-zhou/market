@@ -59,6 +59,8 @@ struct MarketService : MarketTimeState,
   bool HandleAccountExitException();
   bool RealTimeLoginLogoutChange();
   bool FastBackLoginLogoutChange();
+  uint32_t try_login_heartbeat_ = 0;
+  uint32_t try_login_count_ = 0;
 };
 
 #endif /* WORKSPACE_MARKET_DOMAIN_MARKETSERVICE_H_ */
