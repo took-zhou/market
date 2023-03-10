@@ -18,9 +18,7 @@ void PublishData::DirectForwardDataToStrategy(CThostFtdcDepthMarketDataField *p_
   auto &market_ser = MarketService::GetInstance();
   auto pos = market_ser.ROLE(PublishControl).publish_para_map.find(p_d->InstrumentID);
   if (pos != market_ser.ROLE(PublishControl).publish_para_map.end() && market_ser.login_state == kLoginState) {
-    for (auto &item_p_c : pos->second) {
-      OnceFromDataflow(item_p_c, p_d);
-    }
+    OnceFromDataflow(pos->second, p_d);
   } else if (pos == market_ser.ROLE(PublishControl).publish_para_map.end()) {
     ERROR_LOG("can not find ins from control para: %s", p_d->InstrumentID);
   }
@@ -77,7 +75,7 @@ void PublishData::OnceFromDataflowSelectRawtick(const PublishPara &p_c, CThostFt
   utils::ItpMsg msg;
   tick.SerializeToString(&msg.pb_msg);
   msg.session_name = "strategy_market";
-  msg.msg_name = "TickData." + p_c.prid;
+  msg.msg_name = "TickData." + tick_data->instrument_id();
   auto &recer_sender = RecerSender::GetInstance();
   recer_sender.ROLE(Sender).ROLE(DirectSender).SendMsg(msg);
 
@@ -132,7 +130,7 @@ void PublishData::OnceFromDataflowSelectLevel1(const PublishPara &p_c, CThostFtd
   utils::ItpMsg msg;
   tick.SerializeToString(&msg.pb_msg);
   msg.session_name = "strategy_market";
-  msg.msg_name = "TickData." + p_c.prid;
+  msg.msg_name = "TickData." + tick_data->instrument_id();
   auto &recer_sender = RecerSender::GetInstance();
   recer_sender.ROLE(Sender).ROLE(DirectSender).SendMsg(msg);
 
@@ -145,20 +143,16 @@ void PublishData::HeartBeatDetect() {
 
   if (market_ser.login_state == kLoginState) {
     for (auto &item_p_c : market_ser.ROLE(PublishControl).publish_para_map) {
-      for (auto &item_id : item_p_c.second) {
-        item_id.heartbeat++;
-        if (item_id.heartbeat >= kHeartBeatWaitTime_) {
-          OnceFromDefault(item_id, item_p_c.first);
-        }
+      item_p_c.second.heartbeat++;
+      if (item_p_c.second.heartbeat >= kHeartBeatWaitTime_) {
+        OnceFromDefault(item_p_c.second, item_p_c.first);
       }
     }
     entry_logoutstate_flag = false;
   } else {
     if (entry_logoutstate_flag == false) {
       for (auto &item_p_c : market_ser.ROLE(PublishControl).publish_para_map) {
-        for (auto &item_id : item_p_c.second) {
-          item_id.heartbeat = 0;
-        }
+        item_p_c.second.heartbeat = 0;
       }
     }
     entry_logoutstate_flag = true;
@@ -216,7 +210,7 @@ void PublishData::OnceFromDefault(const PublishPara &p_c, const string &ins) {
   utils::ItpMsg msg;
   tick.SerializeToString(&msg.pb_msg);
   msg.session_name = "strategy_market";
-  msg.msg_name = "TickData." + p_c.prid;
+  msg.msg_name = "TickData." + tick_data->instrument_id();
   auto &recer_sender = RecerSender::GetInstance();
   recer_sender.ROLE(Sender).ROLE(DirectSender).SendMsg(msg);
 
@@ -241,9 +235,7 @@ void PublishData::DirectForwardDataToStrategy(XTPMD *p_d) {
   auto &market_ser = MarketService::GetInstance();
   auto pos = market_ser.ROLE(PublishControl).publish_para_map.find(p_d->ticker);
   if (pos != market_ser.ROLE(PublishControl).publish_para_map.end() && market_ser.login_state == kLoginState) {
-    for (auto &item_p_c : pos->second) {
-      OnceFromDataflow(item_p_c, p_d);
-    }
+    OnceFromDataflow(pos->second, p_d);
   } else if (pos == market_ser.ROLE(PublishControl).publish_para_map.end()) {
     ERROR_LOG("can not find ins from control para: %s", p_d->ticker);
   }
@@ -300,7 +292,7 @@ void PublishData::OnceFromDataflowSelectRawtick(const PublishPara &p_c, XTPMD *p
   utils::ItpMsg msg;
   tick.SerializeToString(&msg.pb_msg);
   msg.session_name = "strategy_market";
-  msg.msg_name = "TickData." + p_c.prid;
+  msg.msg_name = "TickData." + tick_data->instrument_id();
   auto &recer_sender = RecerSender::GetInstance();
   recer_sender.ROLE(Sender).ROLE(DirectSender).SendMsg(msg);
 }
@@ -353,7 +345,7 @@ void PublishData::OnceFromDataflowSelectLevel1(const PublishPara &p_c, XTPMD *p_
   utils::ItpMsg msg;
   tick.SerializeToString(&msg.pb_msg);
   msg.session_name = "strategy_market";
-  msg.msg_name = "TickData." + p_c.prid;
+  msg.msg_name = "TickData." + tick_data->instrument_id();
   auto &recer_sender = RecerSender::GetInstance();
   recer_sender.ROLE(Sender).ROLE(DirectSender).SendMsg(msg);
 }
@@ -376,12 +368,10 @@ void PublishData::DirectForwardDataToStrategy(BtpMarketDataStruct *p_d) {
   auto &market_ser = MarketService::GetInstance();
   auto pos = market_ser.ROLE(PublishControl).publish_para_map.find(p_d->instrument_id);
   if (pos != market_ser.ROLE(PublishControl).publish_para_map.end() && market_ser.login_state == kLoginState) {
-    for (auto &item_p_c : pos->second) {
-      if (p_d->state == 0) {
-        OnceFromDefault(item_p_c, p_d);
-      } else {
-        OnceFromDataflow(item_p_c, p_d);
-      }
+    if (p_d->state == 0) {
+      OnceFromDefault(pos->second, p_d);
+    } else {
+      OnceFromDataflow(pos->second, p_d);
     }
   } else if (pos == market_ser.ROLE(PublishControl).publish_para_map.end()) {
     ERROR_LOG("can not find ins from control para: %s", p_d->instrument_id);
@@ -437,7 +427,7 @@ void PublishData::OnceFromDataflowSelectRawtick(const PublishPara &p_c, BtpMarke
   utils::ItpMsg msg;
   tick.SerializeToString(&msg.pb_msg);
   msg.session_name = "strategy_market";
-  msg.msg_name = "TickData." + p_c.prid;
+  msg.msg_name = "TickData." + tick_data->instrument_id();
   auto &recer_sender = RecerSender::GetInstance();
   recer_sender.ROLE(Sender).ROLE(DirectSender).SendMsg(msg);
 
@@ -485,7 +475,7 @@ void PublishData::OnceFromDataflowSelectLevel1(const PublishPara &p_c, BtpMarket
   utils::ItpMsg msg;
   tick.SerializeToString(&msg.pb_msg);
   msg.session_name = "strategy_market";
-  msg.msg_name = "TickData." + p_c.prid;
+  msg.msg_name = "TickData." + tick_data->instrument_id();
   auto &recer_sender = RecerSender::GetInstance();
   recer_sender.ROLE(Sender).ROLE(DirectSender).SendMsg(msg);
 
@@ -537,7 +527,7 @@ void PublishData::OnceFromDefault(const PublishPara &p_c, BtpMarketDataStruct *p
   utils::ItpMsg msg;
   tick.SerializeToString(&msg.pb_msg);
   msg.session_name = "strategy_market";
-  msg.msg_name = "TickData." + p_c.prid;
+  msg.msg_name = "TickData." + tick_data->instrument_id();
   auto &recer_sender = RecerSender::GetInstance();
   recer_sender.ROLE(Sender).ROLE(DirectSender).SendMsg(msg);
 

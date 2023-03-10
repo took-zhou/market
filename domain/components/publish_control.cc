@@ -36,17 +36,12 @@ bool PublishControl::LoadFromJson(void) {
   if (out_file.is_open()) {
     out_file >> read_data;
     for (auto iter = read_data.begin(); iter != read_data.end(); iter++) {
-      std::vector<PublishPara> tempcontrol_vec;
-      for (int i = 0; i < read_data[iter.key()].size(); i++) {
-        PublishPara temp_control;
-        read_data[iter.key()][i].at("exch").get_to(temp_control.exch);
-        read_data[iter.key()][i].at("prid").get_to(temp_control.prid);
-        read_data[iter.key()][i].at("source").get_to(temp_control.source);
+      PublishPara temp_control;
+      read_data[iter.key()].at("exch").get_to(temp_control.exch);
+      read_data[iter.key()].at("source").get_to(temp_control.source);
 
-        tempcontrol_vec.push_back(temp_control);
-        INFO_LOG("load prid: %s, instrument: %s.", temp_control.prid.c_str(), iter.key().c_str());
-      }
-      publish_para_map.insert(make_pair(iter.key(), tempcontrol_vec));
+      INFO_LOG("load instrument: %s.", iter.key().c_str());
+      publish_para_map.insert(make_pair(iter.key(), temp_control));
     }
   } else {
     WARNING_LOG("file:%s not exist.", json_path_.c_str());
@@ -62,13 +57,10 @@ bool PublishControl::WriteToJson(void) {
   FifoJson write_data;
 
   for (auto &item_pc : publish_para_map) {
-    for (auto &item_id : item_pc.second) {
-      FifoJson one_item;
-      one_item["exch"] = item_id.exch;
-      one_item["prid"] = item_id.prid;
-      one_item["source"] = item_id.source;
-      write_data[item_pc.first].push_back(one_item);
-    }
+    FifoJson one_item;
+    one_item["exch"] = item_pc.second.exch;
+    one_item["source"] = item_pc.second.source;
+    write_data[item_pc.first] = one_item;
   }
 
   ofstream in_file(json_path_);
@@ -83,43 +75,21 @@ bool PublishControl::WriteToJson(void) {
   return ret;
 }
 
-void PublishControl::BuildPublishPara(const std::string &keyname, const PublishPara &para) {
-  auto iter = publish_para_map.find(keyname);
-  if (iter != publish_para_map.end()) {
-    for (auto &item : iter->second) {
-      if (item.prid == para.prid) {
-        return;
-      }
-    }
-    iter->second.push_back(para);
-  } else {
-    std::vector<PublishPara> temp_vec = {para};
-    publish_para_map[keyname] = temp_vec;
+void PublishControl::BuildPublishPara(const std::string &ins, const PublishPara &para) {
+  auto iter = publish_para_map.find(ins);
+  if (iter == publish_para_map.end()) {
+    publish_para_map[ins] = para;
+    INFO_LOG("insert ins: %s.", ins.c_str());
+    WriteToJson();
   }
-  INFO_LOG("insert ins: %s, prid: %s.", keyname.c_str(), para.prid.c_str());
-
-  WriteToJson();
 }
 
-void PublishControl::ErasePublishPara(const std::string &keyname, const std::string &ins) {
+void PublishControl::ErasePublishPara(const std::string &ins) {
   for (auto publish_iter = publish_para_map.begin(); publish_iter != publish_para_map.end();) {
-    bool erase_publish_para_flag = false;
-    for (auto second_iter = publish_iter->second.begin(); second_iter != publish_iter->second.end();) {
-      if (second_iter->prid == keyname && (publish_iter->first == ins || ins == "")) {
-        INFO_LOG("ins: %s, prid: %s doesn't exist anymore, erase it.", publish_iter->first.c_str(), keyname.c_str());
-        second_iter = publish_iter->second.erase(second_iter);
-        if (publish_iter->second.size() == 0) {
-          INFO_LOG("ins: %s, doesn't exist anymore, erase it.", publish_iter->first.c_str());
-          publish_iter = publish_para_map.erase(publish_iter);
-          erase_publish_para_flag = true;
-          break;
-        }
-      } else {
-        second_iter++;
-      }
-    }
-
-    if (erase_publish_para_flag == false) {
+    if (publish_iter->first == ins || ins == "") {
+      INFO_LOG("ins: %s, doesn't exist anymore, erase it.", publish_iter->first.c_str());
+      publish_iter = publish_para_map.erase(publish_iter);
+    } else {
       publish_iter++;
     }
   }
@@ -127,39 +97,16 @@ void PublishControl::ErasePublishPara(const std::string &keyname, const std::str
   WriteToJson();
 }
 
-std::vector<utils::InstrumtntID> PublishControl::GetInstrumentList(const std::string &prid) {
+std::vector<utils::InstrumtntID> PublishControl::GetInstrumentList() {
   std::vector<utils::InstrumtntID> instrument_vec;
   instrument_vec.clear();
 
-  if (prid == "") {
-    for (auto &item_pc : publish_para_map) {
-      utils::InstrumtntID item_ins;
-      item_ins.ins = item_pc.first;
-      item_ins.exch = item_pc.second[0].exch;
-      instrument_vec.push_back(item_ins);
-    }
-  } else {
-    for (auto &item_pc : publish_para_map) {
-      for (auto &item_id : item_pc.second) {
-        if (item_id.prid == prid) {
-          utils::InstrumtntID item_ins;
-          item_ins.ins = item_pc.first;
-          item_ins.exch = item_pc.second[0].exch;
-          instrument_vec.push_back(item_ins);
-        }
-      }
-    }
+  for (auto &item_pc : publish_para_map) {
+    utils::InstrumtntID item_ins;
+    item_ins.ins = item_pc.first;
+    item_ins.exch = item_pc.second.exch;
+    instrument_vec.push_back(item_ins);
   }
+
   return instrument_vec;
-}
-
-int PublishControl::GetInstrumentSubscribedCount(const std::string &ins) {
-  int find_count = 0;
-
-  auto iter = publish_para_map.find(ins);
-  if (iter != publish_para_map.end()) {
-    find_count = iter->second.size();
-  }
-
-  return find_count;
 }

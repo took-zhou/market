@@ -39,8 +39,6 @@ void CtpMarketSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *p_rsp_user_login,
     ipc::message req_msg;
     auto send_msg = req_msg.mutable_itp_msg();
     send_msg->set_address(reinterpret_cast<int64_t>(p_rsp_info));
-    send_msg->set_request_id(n_request_id);
-    send_msg->set_request_id(b_is_last);
     utils::ItpMsg msg;
     req_msg.SerializeToString(&msg.pb_msg);
     msg.session_name = "ctp_market";
@@ -67,8 +65,6 @@ void CtpMarketSpi::OnRspUserLogout(CThostFtdcUserLogoutField *user_logout, CThos
     ipc::message req_msg;
     auto send_msg = req_msg.mutable_itp_msg();
     send_msg->set_address(reinterpret_cast<int64_t>(rsp_info));
-    send_msg->set_request_id(n_request_id);
-    send_msg->set_request_id(b_is_last);
     utils::ItpMsg msg;
     req_msg.SerializeToString(&msg.pb_msg);
     msg.session_name = "ctp_market";

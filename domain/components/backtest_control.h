@@ -20,16 +20,13 @@ struct BacktestControl {
   BacktestControl();
   ~BacktestControl(){};
 
-  void SetStartStopIndication(const std::string &keyname, ctpview_market::TickStartStopIndication_MessageType indication);
-
-  void BuildControlPara(const std::string &keyname, const BacktestPara &para);
-  void EraseControlPara(const std::string &keyname);
-
-  std::unordered_map<std::string, BacktestPara> backtest_para_map;
+  void SetStartStopIndication(ctpview_market::TickStartStopIndication_MessageType indication);
+  void BuildControlPara(const BacktestPara &para);
 
  private:
   bool LoadFromJson(void);
   bool WriteToJson(void);
+  BacktestPara backtest_para_;
   std::string json_path_ = "";
 };
 

@@ -28,34 +28,28 @@ void ActiveSafety::CheckSafety() {
 void ActiveSafety::ReqAlive() {
   INFO_LOG("is going to check target is alive.");
 
-  auto &market_ser = MarketService::GetInstance();
-  auto key_name_list = market_ser.ROLE(ControlPara).GetPridList();
-  for (auto &keyname : key_name_list) {
-    strategy_market::message req_msg;
-    auto active_safety = req_msg.mutable_active_req();
+  strategy_market::message req_msg;
+  auto active_safety = req_msg.mutable_active_req();
 
-    strategy_market::ActiveSafetyReq_MessageType check_id = strategy_market::ActiveSafetyReq_MessageType_isrun;
-    active_safety->set_safe_id(check_id);
-    active_safety->set_process_random_id(keyname);
-    utils::ItpMsg msg;
-    req_msg.SerializeToString(&msg.pb_msg);
-    msg.session_name = "strategy_market";
-    msg.msg_name = "ActiveSafetyReq." + keyname;
-    auto &recer_sender = RecerSender::GetInstance();
-    recer_sender.ROLE(Sender).ROLE(ProxySender).SendMsg(msg);
+  strategy_market::ActiveSafetyReq_MessageType check_id = strategy_market::ActiveSafetyReq_MessageType_isrun;
+  active_safety->set_safe_id(check_id);
+  utils::ItpMsg msg;
+  req_msg.SerializeToString(&msg.pb_msg);
+  msg.session_name = "strategy_market";
+  msg.msg_name = "ActiveSafetyReq";
+  auto &recer_sender = RecerSender::GetInstance();
+  recer_sender.ROLE(Sender).ROLE(ProxySender).SendMsg(msg);
 
-    auto &global_sem = GlobalSem::GetInstance();
-    if (global_sem.WaitSemBySemName(GlobalSem::kStrategyRsp, 3) != 0) {
-      ReqAliveTimeout(keyname);
-    }
-    std::this_thread::sleep_for(std::chrono::seconds(1));
+  auto &global_sem = GlobalSem::GetInstance();
+  if (global_sem.WaitSemBySemName(GlobalSem::kStrategyRsp, 3) != 0) {
+    ReqAliveTimeout();
   }
+  std::this_thread::sleep_for(std::chrono::seconds(1));
 
   INFO_LOG("check target alive has finished.");
 }
 
-void ActiveSafety::ReqAliveTimeout(const string &keyname) {
+void ActiveSafety::ReqAliveTimeout() {
   auto &market_ser = MarketService::GetInstance();
-  market_ser.ROLE(PublishControl).ErasePublishPara(keyname);
-  market_ser.ROLE(ControlPara).EraseControlPara(keyname);
+  market_ser.ROLE(PublishControl).ErasePublishPara();
 }

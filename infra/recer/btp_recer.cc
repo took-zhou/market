@@ -77,7 +77,6 @@ void BtpMarketSpi::OnRspAllInstrumentInfo(BtpInstrumentInfo *ticker_info) {
     ipc::message req_msg;
     auto send_msg = req_msg.mutable_itp_msg();
     send_msg->set_address(reinterpret_cast<int64_t>(ticker_info));
-    send_msg->set_request_id(ticker_info->prid);
     utils::ItpMsg msg;
     req_msg.SerializeToString(&msg.pb_msg);
     msg.session_name = "btp_market";

@@ -44,7 +44,6 @@ void ProxyRecer::SubscribeTopic() {
   topic_list.push_back("strategy_market.ActiveSafetyRsp");
   topic_list.push_back("strategy_market.InstrumentReq");
   topic_list.push_back("strategy_market.MarketStateRsp");
-  topic_list.push_back("strategy_market.ControlParaReq");
   // market_market
   topic_list.push_back("market_market.HeartBeat");
 

@@ -27,7 +27,7 @@ void PublishState::PublishEvent(void) {
     prev_sub_time_state = now_sub_time_state;
     wait_publish_count_ = 0;
   }
-  if (publish_count_ > 0) {
+  if (publish_flag_ == true) {
     wait_publish_count_++;
     if (wait_publish_count_ >= max_wait_pushlish_count_) {
       WARNING_LOG("wait publish market rsp time out");
@@ -55,32 +55,19 @@ void PublishState::PublishToStrategy(void) {
     INFO_LOG("Publish makret state: night_open, date: %s to strategy.", date_buff);
   }
 
-  auto key_name_list = market_ser.ROLE(ControlPara).GetPridList();
-  int max_size = key_name_list.size();
-  int count = 0;
-  ClearPublishCount();
-  for (auto &keyname : key_name_list) {
-    count++;
-    strategy_market::message tick;
-    auto market_state = tick.mutable_market_state_req();
+  strategy_market::message tick;
+  auto market_state = tick.mutable_market_state_req();
+  market_state->set_market_state(state);
+  market_state->set_date(date_buff);
+  market_state->set_is_last(1);
 
-    market_state->set_market_state(state);
-    market_state->set_date(date_buff);
-    if (count == max_size) {
-      market_state->set_is_last(1);
-    } else {
-      market_state->set_is_last(0);
-    }
-
-    utils::ItpMsg msg;
-    tick.SerializeToString(&msg.pb_msg);
-    msg.session_name = "strategy_market";
-    msg.msg_name = "MarketStateReq." + keyname;
-    auto &recer_sender = RecerSender::GetInstance();
-    recer_sender.ROLE(Sender).ROLE(ProxySender).SendMsg(msg);
-
-    IncPublishCount();
-  }
+  utils::ItpMsg msg;
+  tick.SerializeToString(&msg.pb_msg);
+  msg.session_name = "strategy_market";
+  msg.msg_name = "MarketStateReq";
+  auto &recer_sender = RecerSender::GetInstance();
+  recer_sender.ROLE(Sender).ROLE(ProxySender).SendMsg(msg);
+  SetPublishFlag();
 }
 
 int PublishState::IsLeapYear(int year) {
@@ -94,10 +81,10 @@ int PublishState::IsLeapYear(int year) {
 void PublishState::PublishEvent(BtpLoginLogoutStruct *login_logout) {
   PublishToStrategy(login_logout);
   while (1) {
-    if (publish_count_ == 0) {
+    if (publish_flag_ == false) {
       wait_publish_count_ = 0;
       break;
-    } else if (publish_count_ > 0) {
+    } else if (publish_flag_ == true) {
       wait_publish_count_++;
       if (wait_publish_count_ >= max_wait_pushlish_count_) {
         WARNING_LOG("wait publish market rsp time out");
@@ -109,8 +96,6 @@ void PublishState::PublishEvent(BtpLoginLogoutStruct *login_logout) {
 }
 
 void PublishState::PublishToStrategy(BtpLoginLogoutStruct *login_logout) {
-  auto &market_ser = MarketService::GetInstance();
-
   strategy_market::MarketStateReq_MarketState state = strategy_market::MarketStateReq_MarketState_reserve;
   if (strcmp(login_logout->market_state, "day_close") == 0) {
     state = strategy_market::MarketStateReq_MarketState_day_close;
@@ -126,72 +111,30 @@ void PublishState::PublishToStrategy(BtpLoginLogoutStruct *login_logout) {
     INFO_LOG("Publish makret state: night_open, date: %s to strategy.", login_logout->date);
   }
 
-  if (login_logout->prid == 0) {
-    auto key_name_list = market_ser.ROLE(ControlPara).GetPridList();
-    int max_size = key_name_list.size();
-    int count = 0;
-    for (auto &keyname : key_name_list) {
-      count++;
-      strategy_market::message tick;
-      auto market_state = tick.mutable_market_state_req();
+  strategy_market::message tick;
+  auto market_state = tick.mutable_market_state_req();
+  market_state->set_market_state(state);
+  market_state->set_date(login_logout->date);
+  market_state->set_is_last((bool)true);
 
-      market_state->set_market_state(state);
-      market_state->set_date(login_logout->date);
-      if (count == max_size) {
-        market_state->set_is_last((bool)true);
-      } else {
-        market_state->set_is_last((bool)false);
-      }
-
-      utils::ItpMsg msg;
-      tick.SerializeToString(&msg.pb_msg);
-      msg.session_name = "strategy_market";
-      msg.msg_name = "MarketStateReq." + keyname;
-      auto &recer_sender = RecerSender::GetInstance();
-      recer_sender.ROLE(Sender).ROLE(ProxySender).SendMsg(msg);
-
-      IncPublishCount();
-    }
-  } else {
-    strategy_market::message tick;
-    auto market_state = tick.mutable_market_state_req();
-
-    market_state->set_market_state(state);
-    market_state->set_date(login_logout->date);
-    market_state->set_is_last(1);
-
-    utils::ItpMsg msg;
-    tick.SerializeToString(&msg.pb_msg);
-    msg.session_name = "strategy_market";
-    msg.msg_name = "MarketStateReq." + to_string(login_logout->prid);
-    auto &recer_sender = RecerSender::GetInstance();
-    recer_sender.ROLE(Sender).ROLE(ProxySender).SendMsg(msg);
-
-    IncPublishCount();
-  }
+  utils::ItpMsg msg;
+  tick.SerializeToString(&msg.pb_msg);
+  msg.session_name = "strategy_market";
+  msg.msg_name = "MarketStateReq";
+  auto &recer_sender = RecerSender::GetInstance();
+  recer_sender.ROLE(Sender).ROLE(ProxySender).SendMsg(msg);
+  SetPublishFlag();
 }
 
-void PublishState::ClearPublishCount() {
+void PublishState::ClearPublishFlag() {
   pthread_mutex_lock(&(sm_mutex_));
-  publish_count_ = 0;
+  publish_flag_ = false;
   pthread_mutex_unlock(&(sm_mutex_));
 }
 
-void PublishState::IncPublishCount() {
+void PublishState::SetPublishFlag() {
   pthread_mutex_lock(&(sm_mutex_));
-  if (publish_count_ < 0) {
-    publish_count_ = 0;
-  }
-  publish_count_++;
-  pthread_mutex_unlock(&(sm_mutex_));
-}
-
-void PublishState::DecPublishCount() {
-  pthread_mutex_lock(&(sm_mutex_));
-  publish_count_--;
-  if (publish_count_ < 0) {
-    publish_count_ = 0;
-  }
+  publish_flag_ = true;
   pthread_mutex_unlock(&(sm_mutex_));
 }
 

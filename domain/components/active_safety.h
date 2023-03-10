@@ -13,7 +13,7 @@ struct ActiveSafety {
   void CheckSafety();
 
   void ReqAlive();
-  void ReqAliveTimeout(const std::string& keyname);
+  void ReqAliveTimeout();
 };
 
 #endif

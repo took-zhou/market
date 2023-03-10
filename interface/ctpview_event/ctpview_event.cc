@@ -122,31 +122,21 @@ void CtpviewEvent::SimulateMarketStateHandle(utils::ItpMsg &msg) {
     INFO_LOG("Publish makret state: night_close, date: %s  to strategy.", simulate_market_state.date().c_str());
   }
 
-  auto &market_ser = MarketService::GetInstance();
-  auto key_name_list = market_ser.ROLE(ControlPara).GetPridList();
-  int max_size = key_name_list.size();
-  int count = 0;
-  market_ser.ROLE(PublishState).ClearPublishCount();
-  for (auto &keyname : key_name_list) {
-    count++;
+  {
+    auto &market_ser = MarketService::GetInstance();
     strategy_market::message tick;
     auto market_state = tick.mutable_market_state_req();
-
     market_state->set_market_state(state);
     market_state->set_date(simulate_market_state.date());
-    if (count == max_size) {
-      market_state->set_is_last(1);
-    } else {
-      market_state->set_is_last(0);
-    }
+    market_state->set_is_last(1);
 
     utils::ItpMsg msg;
     tick.SerializeToString(&msg.pb_msg);
     msg.session_name = "strategy_market";
-    msg.msg_name = "MarketStateReq." + keyname;
+    msg.msg_name = "MarketStateReq";
     auto &recer_sender = RecerSender::GetInstance();
     recer_sender.ROLE(Sender).ROLE(ProxySender).SendMsg(msg);
-    market_ser.ROLE(PublishState).IncPublishCount();
+    market_ser.ROLE(PublishState).SetPublishFlag();
   }
 }
 
@@ -155,38 +145,22 @@ void CtpviewEvent::TickStartStopIndicationHandle(utils::ItpMsg &msg) {
   message.ParseFromString(msg.pb_msg);
   auto indication = message.tick_start_stop_indication();
 
-  std::string prid = indication.process_random_id();
   auto &market_ser = MarketService::GetInstance();
-  market_ser.ROLE(BacktestControl).SetStartStopIndication(prid, indication.type());
+  market_ser.ROLE(BacktestControl).SetStartStopIndication(indication.type());
   if (indication.type() == ctpview_market::TickStartStopIndication_MessageType_start) {
     if (market_ser.login_state == kLoginState) {
-      auto ins_vec = market_ser.ROLE(PublishControl).GetInstrumentList(prid);
-      if (prid == "") {
-        market_ser.ROLE(SubscribeManager).SubscribeInstrument(ins_vec);
-      } else {
-        market_ser.ROLE(SubscribeManager).SubscribeInstrument(ins_vec, stoi(prid));
-      }
+      auto ins_vec = market_ser.ROLE(PublishControl).GetInstrumentList();
+      market_ser.ROLE(SubscribeManager).SubscribeInstrument(ins_vec);
     } else {
       WARNING_LOG("now is logout, wait login to subscribe new instruments");
     }
   } else if (indication.type() == ctpview_market::TickStartStopIndication_MessageType_finish) {
     if (market_ser.login_state == kLoginState) {
-      auto ins_vec = market_ser.ROLE(PublishControl).GetInstrumentList(prid);
-      vector<utils::InstrumtntID> temp_ins_vec;
-      for (auto &item : ins_vec) {
-        if (market_ser.ROLE(PublishControl).GetInstrumentSubscribedCount(item.ins) == 1) {
-          temp_ins_vec.push_back(item);
-        }
-      }
-      if (prid == "") {
-        market_ser.ROLE(SubscribeManager).UnSubscribeInstrument(temp_ins_vec);
-      } else {
-        market_ser.ROLE(SubscribeManager).UnSubscribeInstrument(temp_ins_vec, stoi(prid));
-      }
+      auto ins_vec = market_ser.ROLE(PublishControl).GetInstrumentList();
+      market_ser.ROLE(SubscribeManager).UnSubscribeInstrument(ins_vec);
     } else {
       WARNING_LOG("now is logout, wait login to unsubscribe new instruments");
     }
-    market_ser.ROLE(BacktestControl).EraseControlPara(prid);
   }
 }
 
@@ -196,13 +170,12 @@ void CtpviewEvent::BackTestControlHandle(utils::ItpMsg &msg) {
   auto indication = message.backtest_control();
 
   BacktestPara b_p;
-  std::string prid = indication.process_random_id();
   b_p.begin = indication.begin_time();
   b_p.end = indication.end_time();
   b_p.now = b_p.begin;
   b_p.speed = indication.speed();
   auto &market_ser = MarketService::GetInstance();
-  market_ser.ROLE(BacktestControl).BuildControlPara(prid, b_p);
+  market_ser.ROLE(BacktestControl).BuildControlPara(b_p);
 }
 
 void CtpviewEvent::ProfilerControlHandle(utils::ItpMsg &msg) {

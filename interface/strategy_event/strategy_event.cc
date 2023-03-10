@@ -22,7 +22,6 @@ void StrategyEvent::RegMsgFun() {
   msg_func_map_["ActiveSafetyRsp"] = [this](utils::ItpMsg &msg) { StrategyAliveRspHandle(msg); };
   msg_func_map_["InstrumentReq"] = [this](utils::ItpMsg &msg) { InstrumentReqHandle(msg); };
   msg_func_map_["MarketStateRsp"] = [this](utils::ItpMsg &msg) { MarketStateRspHandle(msg); };
-  msg_func_map_["ControlParaReq"] = [this](utils::ItpMsg &msg) { ControlParaReqHandle(msg); };
   msg_func_map_["PreProcessStateRsp"] = [this](utils::ItpMsg &msg) { PreProcessStateRspHandle(msg); };
 
   for (auto &iter : msg_func_map_) {
@@ -57,7 +56,6 @@ void StrategyEvent::TickSubscribeReqHandle(utils::ItpMsg &msg) {
     ins_vec.push_back(ins_id);
 
     PublishPara p_a;
-    p_a.prid = req_info.process_random_id();
     p_a.exch = req_info.instrument_info().exchange_id();
     p_a.source = req_info.source();
     p_a.heartbeat = 0;
@@ -66,7 +64,7 @@ void StrategyEvent::TickSubscribeReqHandle(utils::ItpMsg &msg) {
 
     if (market_ser.run_mode == kRealTime) {
       if (market_ser.login_state == kLoginState) {
-        market_ser.ROLE(SubscribeManager).SubscribeInstrument(ins_vec, stoi(req_info.process_random_id()));
+        market_ser.ROLE(SubscribeManager).SubscribeInstrument(ins_vec);
       } else {
         WARNING_LOG("now is logout, wait login to subscribe new instruments");
       }
@@ -75,19 +73,12 @@ void StrategyEvent::TickSubscribeReqHandle(utils::ItpMsg &msg) {
     utils::InstrumtntID ins_id;
     ins_id.exch = req_info.instrument_info().exchange_id();
     ins_id.ins = req_info.instrument_info().instrument_id();
-    std::string prid = req_info.process_random_id();
-
-    // 清除该合约 该进程对应的记录
-    market_ser.ROLE(PublishControl).ErasePublishPara(prid, ins_id.ins);
+    market_ser.ROLE(PublishControl).ErasePublishPara(ins_id.ins);
 
     if (market_ser.run_mode == kRealTime) {
-      if (market_ser.ROLE(PublishControl).GetInstrumentSubscribedCount(ins_id.ins) == 0) {
-        vector<utils::InstrumtntID> ins_vec;
-        ins_vec.push_back(ins_id);
-
-        // 如果只有这一个合约订阅这个合约，取消订阅
-        market_ser.ROLE(SubscribeManager).UnSubscribeInstrument(ins_vec, stoi(prid));
-      }
+      vector<utils::InstrumtntID> ins_vec;
+      ins_vec.push_back(ins_id);
+      market_ser.ROLE(SubscribeManager).UnSubscribeInstrument(ins_vec);
     }
   }
 }
@@ -95,7 +86,6 @@ void StrategyEvent::TickSubscribeReqHandle(utils::ItpMsg &msg) {
 void StrategyEvent::InstrumentReqHandle(utils::ItpMsg &msg) {
   strategy_market::message message;
   message.ParseFromString(msg.pb_msg);
-  auto prid = message.instrument_req().process_random_id();
   std::string ins = message.instrument_req().instrument_info().instrument_id();
   std::string exch = message.instrument_req().instrument_info().exchange_id();
   auto &market_ser = MarketService::GetInstance();
@@ -129,7 +119,7 @@ void StrategyEvent::InstrumentReqHandle(utils::ItpMsg &msg) {
 
   rsp.SerializeToString(&msg.pb_msg);
   msg.session_name = "strategy_market";
-  msg.msg_name = "InstrumentRsp." + prid;
+  msg.msg_name = "InstrumentRsp";
   auto &recer_sender = RecerSender::GetInstance();
   recer_sender.ROLE(Sender).ROLE(ProxySender).SendMsg(msg);
 }
@@ -141,27 +131,11 @@ void StrategyEvent::MarketStateRspHandle(utils::ItpMsg &msg) {
   auto &market_ser = MarketService::GetInstance();
   message.ParseFromString(msg.pb_msg);
   auto result = message.market_state_rsp().result();
-  auto &prid = message.market_state_rsp().process_random_id();
   if (result == 0) {
-    ERROR_LOG("prid: %s, market state rsp error.", prid.c_str());
+    ERROR_LOG("market state rsp error.");
   }
 
-  market_ser.ROLE(PublishState).DecPublishCount();
-}
-
-void StrategyEvent::ControlParaReqHandle(utils::ItpMsg &msg) {
-  strategy_market::message message;
-  message.ParseFromString(msg.pb_msg);
-  auto para_req = message.control_para_req();
-  auto prid = para_req.process_random_id();
-  auto action = para_req.action();
-
-  auto &market_ser = MarketService::GetInstance();
-  if (action == strategy_market::ControlParaReq::insert) {
-    market_ser.ROLE(ControlPara).InsertControlPara(prid);
-  } else if (action == strategy_market::ControlParaReq::erase) {
-    market_ser.ROLE(ControlPara).EraseControlPara(prid);
-  }
+  market_ser.ROLE(PublishState).ClearPublishFlag();
 }
 
 void StrategyEvent::PreProcessStateRspHandle(utils::ItpMsg &msg) {

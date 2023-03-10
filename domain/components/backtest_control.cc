@@ -35,17 +35,11 @@ bool BacktestControl::LoadFromJson(void) {
   ifstream out_file(json_path_, ios::binary);
   if (out_file.is_open()) {
     out_file >> read_data;
-    for (auto iter = read_data.begin(); iter != read_data.end(); iter++) {
-      BacktestPara temp_control;
-      read_data[iter.key()].at("indication").get_to(temp_control.indication);
-      read_data[iter.key()].at("begin").get_to(temp_control.begin);
-      read_data[iter.key()].at("end").get_to(temp_control.end);
-      read_data[iter.key()].at("now").get_to(temp_control.now);
-      read_data[iter.key()].at("speed").get_to(temp_control.speed);
-
-      INFO_LOG("load prid: %s.", iter.key().c_str());
-      backtest_para_map.insert(make_pair(iter.key(), temp_control));
-    }
+    read_data.at("indication").get_to(backtest_para_.indication);
+    read_data.at("begin").get_to(backtest_para_.begin);
+    read_data.at("end").get_to(backtest_para_.end);
+    read_data.at("now").get_to(backtest_para_.now);
+    read_data.at("speed").get_to(backtest_para_.speed);
   } else {
     WARNING_LOG("file:%s not exist.", json_path_.c_str());
     ret = false;
@@ -58,17 +52,11 @@ bool BacktestControl::LoadFromJson(void) {
 bool BacktestControl::WriteToJson(void) {
   int ret = true;
   FifoJson write_data;
-
-  for (auto &item_pc : backtest_para_map) {
-    FifoJson one_item;
-    one_item["indication"] = item_pc.second.indication;
-    one_item["begin"] = item_pc.second.begin;
-    one_item["end"] = item_pc.second.end;
-    one_item["now"] = item_pc.second.now;
-    one_item["speed"] = item_pc.second.speed;
-    write_data[item_pc.first] = one_item;
-  }
-
+  write_data["indication"] = backtest_para_.indication;
+  write_data["begin"] = backtest_para_.begin;
+  write_data["end"] = backtest_para_.end;
+  write_data["now"] = backtest_para_.now;
+  write_data["speed"] = backtest_para_.speed;
   ofstream in_file(json_path_);
   if (in_file.is_open()) {
     in_file << setw(4) << write_data << endl;
@@ -81,53 +69,12 @@ bool BacktestControl::WriteToJson(void) {
   return ret;
 }
 
-void BacktestControl::BuildControlPara(const std::string &keyname, const BacktestPara &para) {
-  auto iter = backtest_para_map.find(keyname);
-  if (iter != backtest_para_map.end()) {
-    iter->second.begin = para.begin;
-    iter->second.end = para.end;
-    iter->second.speed = para.speed;
-    iter->second.now = para.now;
-  } else {
-    backtest_para_map[keyname] = para;
-  }
-  INFO_LOG("insert prid: %s.", keyname.c_str());
-
+void BacktestControl::BuildControlPara(const BacktestPara &para) {
+  backtest_para_ = para;
   WriteToJson();
 }
 
-void BacktestControl::EraseControlPara(const std::string &keyname) {
-  auto iter = backtest_para_map.find(keyname);
-  if (iter != backtest_para_map.end()) {
-    backtest_para_map.erase(iter);
-    INFO_LOG("erase prid: %s.", keyname.c_str());
-    WriteToJson();
-  } else {
-    INFO_LOG("not find prid: %s.", keyname.c_str());
-  }
-}
-
-void BacktestControl::SetStartStopIndication(const std::string &keyname, ctpview_market::TickStartStopIndication_MessageType indication) {
-  FifoJson read_data;
-  std::ifstream out_file(json_path_, std::ios::binary);
-  out_file >> read_data;
-  if (read_data.size() > 0) {
-    for (auto iter = read_data.begin(); iter != read_data.end(); iter++) {
-      if (keyname == "") {
-        read_data[iter.key()].at("indication") = indication;
-      } else if (keyname == iter.key()) {
-        read_data[iter.key()].at("indication") = indication;
-        break;
-      }
-    }
-  }
-  out_file.close();
-
-  std::ofstream in_file(json_path_);
-  if (in_file.is_open()) {
-    in_file << std::setw(4) << read_data << std::endl;
-  } else {
-    std::cout << "file: " << json_path_ << " open error." << std::endl;
-  }
-  in_file.close();
+void BacktestControl::SetStartStopIndication(ctpview_market::TickStartStopIndication_MessageType indication) {
+  backtest_para_.indication = indication;
+  WriteToJson();
 }

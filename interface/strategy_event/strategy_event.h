@@ -31,8 +31,6 @@ struct StrategyEvent {
 
   void MarketStateRspHandle(utils::ItpMsg &msg);
 
-  void ControlParaReqHandle(utils::ItpMsg &msg);
-
   void PreProcessStateRspHandle(utils::ItpMsg &msg);
 
  private:
