@@ -28,6 +28,8 @@ void SubscribeManager::ReqInstrumrntFromControlPara() {
   auto publish_ins_vec = market_ser.ROLE(PublishControl).GetInstrumentList();
   for (auto& ins : publish_ins_vec) {
     ins_vec.push_back(ins);
+    instrument_count++;
+
     if (ins_vec.size() >= 500) {
       SubscribeInstrument(ins_vec);
       ins_vec.clear();
