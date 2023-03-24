@@ -212,7 +212,7 @@ void PublishData::OnceFromDefault(const PublishPara &p_c, const string &ins) {
   msg.session_name = "strategy_market";
   msg.msg_name = "TickData." + tick_data->instrument_id();
   auto &recer_sender = RecerSender::GetInstance();
-  recer_sender.ROLE(Sender).ROLE(DirectSender).SendMsg(msg);
+  recer_sender.ROLE(Sender).ROLE(DirectSender).SendDefaultMsg(msg);
 
   p_c.heartbeat = 0;
 }
@@ -529,7 +529,7 @@ void PublishData::OnceFromDefault(const PublishPara &p_c, BtpMarketDataStruct *p
   msg.session_name = "strategy_market";
   msg.msg_name = "TickData." + tick_data->instrument_id();
   auto &recer_sender = RecerSender::GetInstance();
-  recer_sender.ROLE(Sender).ROLE(DirectSender).SendMsg(msg);
+  recer_sender.ROLE(Sender).ROLE(DirectSender).SendDefaultMsg(msg);
 
   p_c.heartbeat = 0;
 }
