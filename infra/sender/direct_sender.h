@@ -16,11 +16,9 @@ struct DirectSender {
  public:
   DirectSender();
   bool SendMsg(utils::ItpMsg &msg);
-  bool SendDefaultMsg(utils::ItpMsg &msg);
 
  private:
   void *publisher_{nullptr};
-  void *default_publisher_{nullptr};
 };
 
 #endif /* WORKSPACE_MARKET_INFRA_DIRECTSENDER_H_ */

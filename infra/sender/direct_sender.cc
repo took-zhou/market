@@ -20,15 +20,6 @@ DirectSender::DirectSender() {
   } else {
     INFO_LOG("publisher connect to %s ok", pub_ipaddport.c_str());
   }
-
-  default_publisher_ = zmq_socket(BaseZmq::GetInstance().context, ZMQ_PUB);
-  result = zmq_bind(default_publisher_, pub_ipaddport.c_str());
-
-  if (result != 0) {
-    ERROR_LOG("default_publisher_ connect to %s failed", pub_ipaddport.c_str());
-  } else {
-    INFO_LOG("default_publisher_ connect to %s ok", pub_ipaddport.c_str());
-  }
 }
 
 bool DirectSender::SendMsg(utils::ItpMsg &msg) {
@@ -39,16 +30,5 @@ bool DirectSender::SendMsg(utils::ItpMsg &msg) {
   outstring += " ";
   outstring += msg.pb_msg;
   int size = zmq_send(publisher_, const_cast<char *>(outstring.c_str()), outstring.length(), 0);
-  return (bool)(size > 0);
-}
-
-bool DirectSender::SendDefaultMsg(utils::ItpMsg &msg) {
-  std::string outstring;
-  outstring += msg.session_name;
-  outstring += ".";
-  outstring += msg.msg_name;
-  outstring += " ";
-  outstring += msg.pb_msg;
-  int size = zmq_send(default_publisher_, const_cast<char *>(outstring.c_str()), outstring.length(), 0);
   return (bool)(size > 0);
 }
