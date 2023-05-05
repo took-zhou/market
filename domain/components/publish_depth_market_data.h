@@ -13,6 +13,7 @@
 #include "common/self/protobuf/strategy-market.pb.h"
 #include "common/self/utils.h"
 
+#include "common/extern/otp/inc/mds_api/mds_async_api.h"
 #include "market/domain/components/depth_market_data.h"
 #include "market/domain/components/publish_control.h"
 
@@ -55,6 +56,16 @@ struct PublishData : public MarketData {
   void OnceFromDataflowSelectRawtick(const PublishPara &p_c, BtpMarketDataStruct *p_d);
   void OnceFromDataflowSelectLevel1(const PublishPara &p_c, BtpMarketDataStruct *p_d);
   bool IsValidLevel1Data(const PublishPara &p_c, BtpMarketDataStruct *p_d);
+
+  // otp深度行情发送
+ public:
+  void DirectForwardDataToStrategy(MdsMktDataSnapshotT *p_d);
+  void OnceFromDataflow(const PublishPara &p_c, MdsMktDataSnapshotT *p_d);
+
+ private:
+  void OnceFromDataflowSelectRawtick(const PublishPara &p_c, MdsMktDataSnapshotT *p_d);
+  void OnceFromDataflowSelectLevel1(const PublishPara &p_c, MdsMktDataSnapshotT *p_d);
+  bool IsValidLevel1Data(const PublishPara &p_c, MdsMktDataSnapshotT *p_d);
 
  private:
   const uint8_t kDataLevel_ = 1;

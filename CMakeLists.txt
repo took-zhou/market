@@ -11,6 +11,7 @@ target_link_libraries(marketlib
     thostmduserapi_se_6.5.1
     xtpquoteapi
     btpmarketapi
+    oes_api
     commonlib
     zmq
     protobuf

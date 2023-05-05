@@ -121,13 +121,12 @@ bool CtpSender::ReqUserLogout() {
       int result = market_api->ReqUserLogout(&req_user_logout, request_id_++);
       if (result != 0) {
         INFO_LOG("ReqUserLogout send result is [%d]", result);
-      } else {
-        auto &global_sem = GlobalSem::GetInstance();
-        if (global_sem.WaitSemBySemName(GlobalSem::kLoginLogout, 3) != 0) {
-          market_spi->OnRspUserLogout();
-        }
-        Release();
       }
+      auto &global_sem = GlobalSem::GetInstance();
+      if (global_sem.WaitSemBySemName(GlobalSem::kLoginLogout, 3) != 0) {
+        market_spi->OnRspUserLogout();
+      }
+      Release();
     }
 
     break;
@@ -188,10 +187,7 @@ bool CtpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &na
     if (result == 0) {
       INFO_LOG("UnSubscription request ......Send a success, total number: %d", md_num);
     } else {
-      INFO_LOG(
-          "UnSubscription request ......Failed to send, error serial "
-          "number=[%d]",
-          result);
+      INFO_LOG("UnSubscription request ......Failed to send, error serial number=[%d]", result);
     }
   } else {
     INFO_LOG("no instrument need to UnSubscription.");

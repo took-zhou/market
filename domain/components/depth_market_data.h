@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "common/extern/ctp/inc/ThostFtdcUserApiStruct.h"
+#include "common/extern/otp/inc/mds_api/mds_async_api.h"
 #include "common/extern/xtp/inc/xquote_api_struct.h"
 
 struct MarketData {
@@ -14,11 +15,13 @@ struct MarketData {
   ~MarketData(){};
   bool IsValidTickData(CThostFtdcDepthMarketDataField *p_d);
   bool IsValidTickData(XTPMD *p_d);
+  bool IsValidTickData(MdsMktDataSnapshotT *p_d);
 
   double Max2zero(double num);
 
   bool GetAssemblingTime(char *t_arr, CThostFtdcDepthMarketDataField *p_d);
   bool GetAssemblingTime(char *t_arr, XTPMD *p_d);
+  bool GetAssemblingTime(char *t_arr, MdsMktDataSnapshotT *p_d);
 
  private:
   std::map<std::string, std::string> instrument_exchange_map_;

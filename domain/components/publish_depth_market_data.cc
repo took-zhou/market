@@ -1,6 +1,6 @@
 #include <thread>
 
-// 自定义头文件
+//自定义头文件
 #include "common/extern/log/log.h"
 #include "common/self/file_util.h"
 #include "common/self/profiler.h"
@@ -212,7 +212,7 @@ void PublishData::OnceFromDefault(const PublishPara &p_c, const string &ins) {
   msg.session_name = "strategy_market";
   msg.msg_name = "TickData." + tick_data->instrument_id();
   auto &recer_sender = RecerSender::GetInstance();
-  recer_sender.ROLE(Sender).ROLE(ProxySender).SendMsg(msg);
+  recer_sender.ROLE(Sender).ROLE(DirectSender).SendMsg(msg);
 
   p_c.heartbeat = 0;
 }
@@ -540,6 +540,150 @@ bool PublishData::IsValidLevel1Data(const PublishPara &p_c, BtpMarketDataStruct 
   auto &market_ser = MarketService::GetInstance();
   double ticksize_from_instrument_info = market_ser.ROLE(InstrumentInfo).GetTickSize(p_d->instrument_id);
   double ticksize_from_rawtick = Max2zero(p_d->ask_price[0]) - Max2zero(p_d->bid_price[0]);
+
+  if (fabs(ticksize_from_rawtick - ticksize_from_instrument_info) < 1e-6 && fabs(ticksize_from_rawtick - 0) > 1e-6) {
+    ret = true;
+  }
+
+  return ret;
+}
+
+void PublishData::DirectForwardDataToStrategy(MdsMktDataSnapshotT *p_d) {
+  PZone("DirectForwardDataToStrategy");
+  char instrument_id[16];
+  sprintf(instrument_id, "%06d", p_d->head.instrId);
+  auto &market_ser = MarketService::GetInstance();
+  auto pos = market_ser.ROLE(PublishControl).publish_para_map.find(instrument_id);
+  if (pos != market_ser.ROLE(PublishControl).publish_para_map.end() && market_ser.login_state == kLoginState) {
+    OnceFromDataflow(pos->second, p_d);
+  } else if (pos == market_ser.ROLE(PublishControl).publish_para_map.end()) {
+    ERROR_LOG("can not find ins from control para: %06d", p_d->head.instrId);
+  }
+}
+
+void PublishData::OnceFromDataflow(const PublishPara &p_c, MdsMktDataSnapshotT *p_d) {
+  if (p_c.source == strategy_market::TickSubscribeReq_Source_rawtick) {
+    OnceFromDataflowSelectRawtick(p_c, p_d);
+  } else if (p_c.source == strategy_market::TickSubscribeReq_Source_level1) {
+    OnceFromDataflowSelectLevel1(p_c, p_d);
+  }
+}
+
+void PublishData::OnceFromDataflowSelectRawtick(const PublishPara &p_c, MdsMktDataSnapshotT *p_d) {
+  if (IsValidTickData(p_d) == false) {
+    return;
+  }
+
+  char time_array[100] = {0};
+  strategy_market::message tick;
+  auto tick_data = tick.mutable_tick_data();
+
+  GetAssemblingTime(time_array, p_d);
+  tick_data->set_time_point(time_array);
+
+  tick_data->set_state(strategy_market::TickData_TickState_active);
+  char instrument_id[16];
+  sprintf(instrument_id, "%06d", p_d->head.instrId);
+  tick_data->set_instrument_id(instrument_id);
+  tick_data->set_last_price(Max2zero(p_d->l2Stock.TradePx * 0.0001));
+  tick_data->set_bid_price1(Max2zero(p_d->l2Stock.BidLevels[0].Price * 0.0001));
+  tick_data->set_bid_volume1(p_d->l2Stock.BidLevels[0].NumberOfOrders);
+  tick_data->set_ask_price1(Max2zero(p_d->l2Stock.OfferLevels[0].Price * 0.0001));
+  tick_data->set_ask_volume1(p_d->l2Stock.OfferLevels[0].NumberOfOrders);
+  if (kDataLevel_ == 2) {
+    tick_data->set_bid_price2(Max2zero(p_d->l2Stock.BidLevels[1].Price * 0.0001));
+    tick_data->set_bid_volume2(p_d->l2Stock.BidLevels[1].NumberOfOrders);
+    tick_data->set_ask_price2(Max2zero(p_d->l2Stock.OfferLevels[1].Price * 0.0001));
+    tick_data->set_ask_volume2(p_d->l2Stock.OfferLevels[1].NumberOfOrders);
+    tick_data->set_bid_price3(Max2zero(p_d->l2Stock.BidLevels[2].Price * 0.0001));
+    tick_data->set_bid_volume3(p_d->l2Stock.BidLevels[2].NumberOfOrders);
+    tick_data->set_ask_price3(Max2zero(p_d->l2Stock.OfferLevels[2].Price * 0.0001));
+    tick_data->set_ask_volume3(p_d->l2Stock.OfferLevels[2].NumberOfOrders);
+    tick_data->set_bid_price4(Max2zero(p_d->l2Stock.BidLevels[3].Price * 0.0001));
+    tick_data->set_bid_volume4(p_d->l2Stock.BidLevels[3].NumberOfOrders);
+    tick_data->set_ask_price4(Max2zero(p_d->l2Stock.OfferLevels[3].Price * 0.0001));
+    tick_data->set_ask_volume4(p_d->l2Stock.OfferLevels[3].NumberOfOrders);
+    tick_data->set_bid_price5(Max2zero(p_d->l2Stock.BidLevels[4].Price * 0.0001));
+    tick_data->set_bid_volume5(p_d->l2Stock.BidLevels[4].NumberOfOrders);
+    tick_data->set_ask_price5(Max2zero(p_d->l2Stock.OfferLevels[4].Price * 0.0001));
+    tick_data->set_ask_volume5(p_d->l2Stock.OfferLevels[4].NumberOfOrders);
+  }
+  tick_data->set_open_price(Max2zero(p_d->l2Stock.OpenPx * 0.0001));
+  tick_data->set_volume(p_d->l2Stock.TotalVolumeTraded);
+
+  utils::ItpMsg msg;
+  tick.SerializeToString(&msg.pb_msg);
+  msg.session_name = "strategy_market";
+  msg.msg_name = "TickData." + tick_data->instrument_id();
+  auto &recer_sender = RecerSender::GetInstance();
+  recer_sender.ROLE(Sender).ROLE(DirectSender).SendMsg(msg);
+
+  p_c.heartbeat = 0;
+}
+
+void PublishData::OnceFromDataflowSelectLevel1(const PublishPara &p_c, MdsMktDataSnapshotT *p_d) {
+  if (IsValidTickData(p_d) == false) {
+    return;
+  }
+
+  if (IsValidLevel1Data(p_c, p_d) == false) {
+    return;
+  }
+
+  char time_array[100] = {0};
+  strategy_market::message tick;
+  auto tick_data = tick.mutable_tick_data();
+
+  GetAssemblingTime(time_array, p_d);
+  tick_data->set_time_point(time_array);
+
+  tick_data->set_state(strategy_market::TickData_TickState_active);
+  char instrument_id[16];
+  sprintf(instrument_id, "%06d", p_d->head.instrId);
+  tick_data->set_last_price(Max2zero(p_d->l2Stock.TradePx * 0.0001));
+  tick_data->set_bid_price1(Max2zero(p_d->l2Stock.BidLevels[0].Price * 0.0001));
+  tick_data->set_bid_volume1(p_d->l2Stock.BidLevels[0].NumberOfOrders);
+  tick_data->set_ask_price1(Max2zero(p_d->l2Stock.OfferLevels[0].Price * 0.0001));
+  tick_data->set_ask_volume1(p_d->l2Stock.OfferLevels[0].NumberOfOrders);
+  if (kDataLevel_ == 2) {
+    tick_data->set_bid_price2(Max2zero(p_d->l2Stock.BidLevels[1].Price * 0.0001));
+    tick_data->set_bid_volume2(p_d->l2Stock.BidLevels[1].NumberOfOrders);
+    tick_data->set_ask_price2(Max2zero(p_d->l2Stock.OfferLevels[1].Price * 0.0001));
+    tick_data->set_ask_volume2(p_d->l2Stock.OfferLevels[1].NumberOfOrders);
+    tick_data->set_bid_price3(Max2zero(p_d->l2Stock.BidLevels[2].Price * 0.0001));
+    tick_data->set_bid_volume3(p_d->l2Stock.BidLevels[2].NumberOfOrders);
+    tick_data->set_ask_price3(Max2zero(p_d->l2Stock.OfferLevels[2].Price * 0.0001));
+    tick_data->set_ask_volume3(p_d->l2Stock.OfferLevels[2].NumberOfOrders);
+    tick_data->set_bid_price4(Max2zero(p_d->l2Stock.BidLevels[3].Price * 0.0001));
+    tick_data->set_bid_volume4(p_d->l2Stock.BidLevels[3].NumberOfOrders);
+    tick_data->set_ask_price4(Max2zero(p_d->l2Stock.OfferLevels[3].Price * 0.0001));
+    tick_data->set_ask_volume4(p_d->l2Stock.OfferLevels[3].NumberOfOrders);
+    tick_data->set_bid_price5(Max2zero(p_d->l2Stock.BidLevels[4].Price * 0.0001));
+    tick_data->set_bid_volume5(p_d->l2Stock.BidLevels[4].NumberOfOrders);
+    tick_data->set_ask_price5(Max2zero(p_d->l2Stock.OfferLevels[4].Price * 0.0001));
+    tick_data->set_ask_volume5(p_d->l2Stock.OfferLevels[4].NumberOfOrders);
+  }
+  tick_data->set_open_price(Max2zero(p_d->l2Stock.OpenPx * 0.0001));
+  tick_data->set_volume(p_d->l2Stock.TotalVolumeTraded);
+
+  utils::ItpMsg msg;
+  tick.SerializeToString(&msg.pb_msg);
+  msg.session_name = "strategy_market";
+  msg.msg_name = "TickData." + tick_data->instrument_id();
+  auto &recer_sender = RecerSender::GetInstance();
+  recer_sender.ROLE(Sender).ROLE(DirectSender).SendMsg(msg);
+
+  p_c.heartbeat = 0;
+}
+
+bool PublishData::IsValidLevel1Data(const PublishPara &p_c, MdsMktDataSnapshotT *p_d) {
+  bool ret = false;
+
+  auto &market_ser = MarketService::GetInstance();
+  char instrument_id[16];
+  sprintf(instrument_id, "%06d", p_d->head.instrId);
+  double ticksize_from_instrument_info = market_ser.ROLE(InstrumentInfo).GetTickSize(instrument_id);
+  double ticksize_from_rawtick = (Max2zero(p_d->l2Stock.OfferLevels[0].Price) - Max2zero(p_d->l2Stock.BidLevels[0].Price)) * 0.0001;
 
   if (fabs(ticksize_from_rawtick - ticksize_from_instrument_info) < 1e-6 && fabs(ticksize_from_rawtick - 0) > 1e-6) {
     ret = true;

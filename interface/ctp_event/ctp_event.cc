@@ -134,7 +134,7 @@ void CtpEvent::UpdateInstrumentInfoFromTrader() {
 
   auto &recer_sender = RecerSender::GetInstance();
   auto &global_sem = GlobalSem::GetInstance();
-  while (1) {
+  for (uint8_t wait_count = 0; wait_count < 3; wait_count++) {
     recer_sender.ROLE(Sender).ROLE(ProxySender).SendMsg(msg);
     INFO_LOG("update instrument info from trader send ok, waiting trader rsp.");
     if (!global_sem.WaitSemBySemName(GlobalSem::kUpdateInstrumentInfo, 60)) {
