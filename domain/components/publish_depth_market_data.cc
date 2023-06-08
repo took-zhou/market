@@ -139,12 +139,13 @@ void PublishData::OnceFromDataflowSelectLevel1(const PublishPara &p_c, CThostFtd
 
 void PublishData::HeartBeatDetect() {
   auto &market_ser = MarketService::GetInstance();
+  auto &json_cfg = utils::JsonConfig::GetInstance();
   unsigned char entry_logoutstate_flag = false;
 
   if (market_ser.login_state == kLoginState) {
     for (auto &item_p_c : market_ser.ROLE(PublishControl).publish_para_map) {
       item_p_c.second.heartbeat++;
-      if (item_p_c.second.heartbeat >= kHeartBeatWaitTime_) {
+      if (item_p_c.second.heartbeat >= kHeartBeatWaitTime_ && json_cfg.GetConfig("market", "TimingPush") == "push") {
         OnceFromDefault(item_p_c.second, item_p_c.first);
       }
     }
@@ -210,9 +211,9 @@ void PublishData::OnceFromDefault(const PublishPara &p_c, const string &ins) {
   utils::ItpMsg msg;
   tick.SerializeToString(&msg.pb_msg);
   msg.session_name = "strategy_market";
-  msg.msg_name = "TickData." + tick_data->instrument_id();
+  msg.msg_name = "TickData";
   auto &recer_sender = RecerSender::GetInstance();
-  recer_sender.ROLE(Sender).ROLE(DirectSender).SendMsg(msg);
+  recer_sender.ROLE(Sender).ROLE(ProxySender).SendMsg(msg);
 
   p_c.heartbeat = 0;
 }
@@ -366,9 +367,10 @@ bool PublishData::IsValidLevel1Data(const PublishPara &p_c, XTPMD *p_d) {
 
 void PublishData::DirectForwardDataToStrategy(BtpMarketDataStruct *p_d) {
   auto &market_ser = MarketService::GetInstance();
+  auto &json_cfg = utils::JsonConfig::GetInstance();
   auto pos = market_ser.ROLE(PublishControl).publish_para_map.find(p_d->instrument_id);
   if (pos != market_ser.ROLE(PublishControl).publish_para_map.end() && market_ser.login_state == kLoginState) {
-    if (p_d->state == 0) {
+    if (p_d->state == 0 && json_cfg.GetConfig("market", "TimingPush") == "push") {
       OnceFromDefault(pos->second, p_d);
     } else {
       OnceFromDataflow(pos->second, p_d);
@@ -527,7 +529,7 @@ void PublishData::OnceFromDefault(const PublishPara &p_c, BtpMarketDataStruct *p
   utils::ItpMsg msg;
   tick.SerializeToString(&msg.pb_msg);
   msg.session_name = "strategy_market";
-  msg.msg_name = "TickData." + tick_data->instrument_id();
+  msg.msg_name = "TickData";
   auto &recer_sender = RecerSender::GetInstance();
   recer_sender.ROLE(Sender).ROLE(DirectSender).SendMsg(msg);
 

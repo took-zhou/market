@@ -84,8 +84,11 @@ void CtpviewEvent::BlockControlHandle(utils::ItpMsg &msg) {
   ctpview_market::BlockControl_Command command = indication.command();
   auto &market_event = MarketEvent::GetInstance();
 
-  INFO_LOG("set block quotation control: %d", command);
-  market_event.ROLE(CtpEvent).SetBlockControl(command);
+  for (int i = 0; i < indication.instrument_size(); i++) {
+    auto ins = indication.instrument(i);
+    INFO_LOG("set block quotation control: %s, %d", ins.c_str(), command);
+    market_event.ROLE(CtpEvent).SetBlockControl(ins, command);
+  }
 }
 
 void CtpviewEvent::BugInjectionHandle(utils::ItpMsg &msg) {

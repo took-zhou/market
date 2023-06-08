@@ -62,7 +62,8 @@ void CtpEvent::DeepMarktDataHandle(utils::ItpMsg &msg) {
   if (req_instrument_from_ == "api") {
     market_ser.ROLE(LoadData).LoadDepthMarketDataToCsv(deepdata);
   } else {
-    if (block_control_ == ctpview_market::BlockControl_Command_unblock) {
+    if (block_control_.block == false ||
+        (block_control_.block == true && block_control_.instruments.find(deepdata->InstrumentID) == block_control_.instruments.end())) {
       market_ser.ROLE(PublishData).DirectForwardDataToStrategy(deepdata);
     }
   }
@@ -143,4 +144,15 @@ void CtpEvent::UpdateInstrumentInfoFromTrader() {
   }
 }
 
-void CtpEvent::SetBlockControl(ctpview_market::BlockControl_Command command) { block_control_ = command; }
+void CtpEvent::SetBlockControl(const std::string &ins, ctpview_market::BlockControl_Command command) {
+  if (block_control_.instruments.find(ins) != block_control_.instruments.end() && command == ctpview_market::BlockControl::unblock) {
+    block_control_.instruments.erase(ins);
+  } else if (block_control_.instruments.find(ins) == block_control_.instruments.end() && command == ctpview_market::BlockControl::block) {
+    block_control_.instruments.insert(ins);
+  }
+  if (block_control_.instruments.size() > 0) {
+    block_control_.block = true;
+  } else {
+    block_control_.block = false;
+  }
+}
