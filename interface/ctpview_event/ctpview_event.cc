@@ -177,7 +177,6 @@ void CtpviewEvent::BackTestControlHandle(utils::ItpMsg &msg) {
   BacktestPara b_p;
   b_p.begin = indication.begin_time();
   b_p.end = indication.end_time();
-  b_p.now = b_p.begin;
   b_p.speed = indication.speed();
   auto &market_ser = MarketService::GetInstance();
   market_ser.ROLE(BacktestControl).BuildControlPara(b_p);

@@ -70,11 +70,19 @@ bool BacktestControl::WriteToJson(void) {
 }
 
 void BacktestControl::BuildControlPara(const BacktestPara &para) {
-  backtest_para_ = para;
+  if (utils::GetFileSize(json_path_) > 0) {
+    LoadFromJson();
+  }
+  backtest_para_.begin = para.begin;
+  backtest_para_.end = para.end;
+  backtest_para_.speed = para.speed;
   WriteToJson();
 }
 
 void BacktestControl::SetStartStopIndication(ctpview_market::TickStartStopIndication_MessageType indication) {
+  if (utils::GetFileSize(json_path_) > 0) {
+    LoadFromJson();
+  }
   backtest_para_.indication = indication;
   WriteToJson();
 }
