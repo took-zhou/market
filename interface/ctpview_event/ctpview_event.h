@@ -18,7 +18,6 @@ struct CtpviewEvent {
   void RegMsgFun();
 
   void LoginControlHandle(utils::ItpMsg &msg);
-  void CheckStrategyAliveHandle(utils::ItpMsg &msg);
   void BlockControlHandle(utils::ItpMsg &msg);
   void BugInjectionHandle(utils::ItpMsg &msg);
   void SimulateMarketStateHandle(utils::ItpMsg &msg);

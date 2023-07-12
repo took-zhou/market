@@ -22,7 +22,6 @@ void CtpviewEvent::RegMsgFun() {
   int cnt = 0;
   msg_func_map.clear();
   msg_func_map["LoginControl"] = [this](utils::ItpMsg &msg) { LoginControlHandle(msg); };
-  msg_func_map["CheckStrategyAlive"] = [this](utils::ItpMsg &msg) { CheckStrategyAliveHandle(msg); };
   msg_func_map["BlockControl"] = [this](utils::ItpMsg &msg) { BlockControlHandle(msg); };
   msg_func_map["BugInjection"] = [this](utils::ItpMsg &msg) { BugInjectionHandle(msg); };
   msg_func_map["SimulateMarketState"] = [this](utils::ItpMsg &msg) { SimulateMarketStateHandle(msg); };
@@ -57,23 +56,6 @@ void CtpviewEvent::LoginControlHandle(utils::ItpMsg &msg) {
 
   INFO_LOG("force set time state: %d", command);
   market_ser.ROLE(MarketTimeState).SetTimeState(command);
-}
-
-void CtpviewEvent::CheckStrategyAliveHandle(utils::ItpMsg &msg) {
-  string command = "";
-  ctpview_market::message check_alive;
-  check_alive.ParseFromString(msg.pb_msg);
-  auto indication = check_alive.check_alive();
-
-  command = indication.check();
-  auto &market_ser = MarketService::GetInstance();
-
-  if (command == "yes") {
-    // 开启检测合约是否存活线程
-    auto active_safety_func = [&]() { market_ser.ROLE(ActiveSafety).ReqAlive(); };
-    INFO_LOG("ActiveSafetyFunc prepare ok");
-    std::thread(active_safety_func).detach();
-  }
 }
 
 void CtpviewEvent::BlockControlHandle(utils::ItpMsg &msg) {

@@ -19,7 +19,6 @@ void StrategyEvent::RegMsgFun() {
   int cnt = 0;
   msg_func_map_.clear();
   msg_func_map_["TickSubscribeReq"] = [this](utils::ItpMsg &msg) { TickSubscribeReqHandle(msg); };
-  msg_func_map_["ActiveSafetyRsp"] = [this](utils::ItpMsg &msg) { StrategyAliveRspHandle(msg); };
   msg_func_map_["InstrumentReq"] = [this](utils::ItpMsg &msg) { InstrumentReqHandle(msg); };
   msg_func_map_["MarketStateRsp"] = [this](utils::ItpMsg &msg) { MarketStateRspHandle(msg); };
   msg_func_map_["PreProcessStateRsp"] = [this](utils::ItpMsg &msg) { PreProcessStateRspHandle(msg); };
@@ -123,8 +122,6 @@ void StrategyEvent::InstrumentReqHandle(utils::ItpMsg &msg) {
   auto &recer_sender = RecerSender::GetInstance();
   recer_sender.ROLE(Sender).ROLE(ProxySender).SendMsg(msg);
 }
-
-void StrategyEvent::StrategyAliveRspHandle(utils::ItpMsg &msg) { GlobalSem::GetInstance().PostSemBySemName(GlobalSem::kStrategyRsp); }
 
 void StrategyEvent::MarketStateRspHandle(utils::ItpMsg &msg) {
   strategy_market::message message;

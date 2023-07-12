@@ -33,7 +33,6 @@ MarketService::MarketService() {
       while (1) {
         // market_period_task begin
         ROLE(PublishData).HeartBeatDetect();
-        ROLE(ActiveSafety).CheckSafety();
         ROLE(MarketTimeState).Update();
         ROLE(PublishState).PublishEvent();
         RealTimeLoginLogoutChange();

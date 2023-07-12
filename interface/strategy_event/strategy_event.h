@@ -19,18 +19,10 @@ struct StrategyEvent {
   void Handle(utils::ItpMsg &msg);
   void RegMsgFun();
 
-  // 处理策略端请求的合约信息
   void TickSubscribeReqHandle(utils::ItpMsg &msg);
-
-  // 策略是否运行回复处理
-  void StrategyAliveRspHandle(utils::ItpMsg &msg);
-
   void TimeLimitReqHandle(utils::ItpMsg &msg);
-
   void InstrumentReqHandle(utils::ItpMsg &msg);
-
   void MarketStateRspHandle(utils::ItpMsg &msg);
-
   void PreProcessStateRspHandle(utils::ItpMsg &msg);
 
  private:

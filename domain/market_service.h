@@ -8,7 +8,6 @@
 #define WORKSPACE_MARKET_DOMAIN_MARKETSERVICE_H_
 
 #include "common/self/dci/role.h"
-#include "market/domain/components/active_safety.h"
 #include "market/domain/components/backtest_control.h"
 #include "market/domain/components/instrument_info.h"
 #include "market/domain/components/market_time_state.h"
@@ -28,7 +27,6 @@ struct MarketService : MarketTimeState,
                        BacktestControl,
                        PublishData,
                        PublishState,
-                       ActiveSafety,
                        SubscribeManager,
                        InstrumentInfo {
   MarketService();
@@ -45,7 +43,6 @@ struct MarketService : MarketTimeState,
   IMPL_ROLE(BacktestControl);
   IMPL_ROLE(PublishData);
   IMPL_ROLE(PublishState);
-  IMPL_ROLE(ActiveSafety);
   IMPL_ROLE(SubscribeManager);
   IMPL_ROLE(InstrumentInfo);
 
