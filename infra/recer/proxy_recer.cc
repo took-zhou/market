@@ -48,6 +48,7 @@ void ProxyRecer::SubscribeTopic() {
 
   // market_trader
   topic_list.push_back("market_trader.QryInstrumentRsp");
+  topic_list.push_back("market_trader.MarketStateRsp");
 
   topic_list.push_back("ctpview_market.LoginControl");
   topic_list.push_back("ctpview_market.CheckStrategyAlive");

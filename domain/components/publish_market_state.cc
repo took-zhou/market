@@ -1,5 +1,6 @@
 #include "market/domain/components/publish_market_state.h"
 #include "common/extern/log/log.h"
+#include "common/self/protobuf/market-trader.pb.h"
 #include "common/self/protobuf/strategy-market.pb.h"
 #include "common/self/semaphore.h"
 #include "market/domain/components/market_time_state.h"
@@ -79,6 +80,21 @@ int PublishState::IsLeapYear(int year) {
 }
 
 void PublishState::PublishEvent(BtpLoginLogoutStruct *login_logout) {
+  PublishToTrader(login_logout);
+  while (1) {
+    if (publish_flag_ == false) {
+      wait_publish_count_ = 0;
+      break;
+    } else if (publish_flag_ == true) {
+      wait_publish_count_++;
+      if (wait_publish_count_ >= max_wait_pushlish_count_) {
+        WARNING_LOG("wait publish market rsp time out");
+        break;
+      }
+    }
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+  }
+
   PublishToStrategy(login_logout);
   while (1) {
     if (publish_flag_ == false) {
@@ -93,6 +109,37 @@ void PublishState::PublishEvent(BtpLoginLogoutStruct *login_logout) {
     }
     std::this_thread::sleep_for(std::chrono::seconds(1));
   }
+}
+
+void PublishState::PublishToTrader(BtpLoginLogoutStruct *login_logout) {
+  market_trader::MarketStateReq_MarketState state = market_trader::MarketStateReq_MarketState_reserve;
+  if (strcmp(login_logout->market_state, "day_close") == 0) {
+    state = market_trader::MarketStateReq_MarketState_day_close;
+    INFO_LOG("Publish makret state: day_close, date: %s to strategy.", login_logout->date);
+  } else if (strcmp(login_logout->market_state, "night_close") == 0) {
+    state = market_trader::MarketStateReq_MarketState_night_close;
+    INFO_LOG("Publish makret state: night_close, date: %s to strategy.", login_logout->date);
+  } else if (strcmp(login_logout->market_state, "day_open") == 0) {
+    state = market_trader::MarketStateReq_MarketState_day_open;
+    INFO_LOG("Publish makret state: day_open, date: %s to strategy.", login_logout->date);
+  } else if (strcmp(login_logout->market_state, "night_open") == 0) {
+    state = market_trader::MarketStateReq_MarketState_night_open;
+    INFO_LOG("Publish makret state: night_open, date: %s to strategy.", login_logout->date);
+  }
+
+  market_trader::message tick;
+  auto market_state = tick.mutable_market_state_req();
+  market_state->set_market_state(state);
+  market_state->set_date(login_logout->date);
+  market_state->set_is_last((bool)true);
+
+  utils::ItpMsg msg;
+  tick.SerializeToString(&msg.pb_msg);
+  msg.session_name = "market_trader";
+  msg.msg_name = "MarketStateReq";
+  auto &recer_sender = RecerSender::GetInstance();
+  recer_sender.ROLE(Sender).ROLE(ProxySender).SendMsg(msg);
+  SetPublishFlag();
 }
 
 void PublishState::PublishToStrategy(BtpLoginLogoutStruct *login_logout) {

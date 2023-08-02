@@ -18,6 +18,7 @@ struct TraderEvent {
   void Handle(utils::ItpMsg &msg);
   void RegMsgFun();
   void QryInstrumentRspHandle(utils::ItpMsg &msg);
+  void MarketStateRspHandle(utils::ItpMsg &msg);
 
   std::map<std::string, std::function<void(utils::ItpMsg &msg)>> msg_func_map;
 };

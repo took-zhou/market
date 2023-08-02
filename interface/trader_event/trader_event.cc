@@ -29,6 +29,7 @@ void TraderEvent::RegMsgFun() {
   int cnt = 0;
   msg_func_map.clear();
   msg_func_map["QryInstrumentRsp"] = [this](utils::ItpMsg &msg) { QryInstrumentRspHandle(msg); };
+  msg_func_map["MarketStateRsp"] = [this](utils::ItpMsg &msg) { MarketStateRspHandle(msg); };
 
   for (auto &iter : msg_func_map) {
     INFO_LOG("msg_func_map[%d] key is [%s]", cnt, iter.first.c_str());
@@ -62,4 +63,16 @@ void TraderEvent::QryInstrumentRspHandle(utils::ItpMsg &msg) {
     auto &global_sem = GlobalSem::GetInstance();
     global_sem.PostSemBySemName(GlobalSem::kUpdateInstrumentInfo);
   }
+}
+
+void TraderEvent::MarketStateRspHandle(utils::ItpMsg &msg) {
+  market_trader::message message;
+  auto &market_ser = MarketService::GetInstance();
+  message.ParseFromString(msg.pb_msg);
+  auto result = message.market_state_rsp().result();
+  if (result == 0) {
+    ERROR_LOG("market state rsp error.");
+  }
+
+  market_ser.ROLE(PublishState).ClearPublishFlag();
 }

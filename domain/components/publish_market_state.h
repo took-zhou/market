@@ -13,6 +13,7 @@ struct PublishState {
 
   // 回撤模式
   void PublishEvent(BtpLoginLogoutStruct *login_logout);
+  void PublishToTrader(BtpLoginLogoutStruct *login_logout);
   void PublishToStrategy(BtpLoginLogoutStruct *login_logout);
 
   void ClearPublishFlag();
