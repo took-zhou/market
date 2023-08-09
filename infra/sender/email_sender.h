@@ -1,19 +1,31 @@
-/*
- * email_sender.h
- *
- *  Created on: 2022.04.28
- *      Author: Administrator
- */
-#ifndef WORKSPACE_MARKET_INFRA_EMAILSENDER_H_
-#define WORKSPACE_MARKET_INFRA_EMAILSENDER_H_
-#include <string>
+#ifndef WORKSPACE_MARKET_INFRA_SENDER_H_
+#define WORKSPACE_MARKET_INFRA_SENDER_H_
 
-#include "common/extern/csmtp/csmtp.h"
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "common/extern/curl/include/curl/curl.h"
 
 struct EmailSender {
+  struct UploadStatus {
+    int bytes_read;
+  };
+
  public:
   EmailSender();
-  void Send(const char *head, const char *msg);
+  ~EmailSender();
+  int Send(const std::string& subject = "", const std::string& body = "");
+
+ private:
+  std::string m_smtp_url_;
+  std::string m_from_;
+  std::string m_password_;
+  std::vector<std::pair<std::string, std::string>> m_recvs_;
+  std::vector<std::pair<std::string, std::string>> m_ccs_;
+  std::string m_email_subject_;
+  std::string m_email_body_;
+  std::vector<std::string> m_attachments_;
 };
 
-#endif /* WORKSPACE_MARKET_INFRA_EMAILSENDER_H_ */
+#endif

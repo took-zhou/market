@@ -16,4 +16,6 @@ target_link_libraries(marketlib
     zmq
     protobuf
     python3.8
+    z
+    curl
  )
