@@ -11,17 +11,19 @@
 #include "market/interface/btp_event/btp_event.h"
 #include "market/interface/ctp_event/ctp_event.h"
 #include "market/interface/ctpview_event/ctpview_event.h"
+#include "market/interface/ftp_event/ftp_event.h"
 #include "market/interface/otp_event/otp_event.h"
 #include "market/interface/strategy_event/strategy_event.h"
 #include "market/interface/trader_event/trader_event.h"
 #include "market/interface/xtp_event/xtp_event.h"
+
 
 #include <functional>
 #include <map>
 #include <string>
 #include "common/self/dci/role.h"
 
-struct MarketEvent : BtpEvent, CtpEvent, XtpEvent, OtpEvent, StrategyEvent, TraderEvent, CtpviewEvent {
+struct MarketEvent : BtpEvent, CtpEvent, XtpEvent, OtpEvent, FtpEvent, StrategyEvent, TraderEvent, CtpviewEvent {
   MarketEvent();
   MarketEvent(const MarketEvent &) = delete;
   MarketEvent &operator=(const MarketEvent &) = delete;
@@ -36,6 +38,7 @@ struct MarketEvent : BtpEvent, CtpEvent, XtpEvent, OtpEvent, StrategyEvent, Trad
   IMPL_ROLE(CtpEvent);
   IMPL_ROLE(XtpEvent);
   IMPL_ROLE(OtpEvent);
+  IMPL_ROLE(FtpEvent);
   IMPL_ROLE(StrategyEvent);
   IMPL_ROLE(TraderEvent);
   IMPL_ROLE(CtpviewEvent);

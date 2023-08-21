@@ -71,15 +71,7 @@ void PublishState::PublishToStrategy(void) {
   SetPublishFlag();
 }
 
-int PublishState::IsLeapYear(int year) {
-  if ((year % 4 == 0 && year % 100 != 0) || year % 400 == 0) {
-    return 1;
-  } else {
-    return 0;
-  }
-}
-
-void PublishState::PublishEvent(BtpLoginLogoutStruct *login_logout) {
+void PublishState::PublishEvent(FtpLoginLogoutStruct *login_logout) {
   PublishToTrader(login_logout);
   while (1) {
     if (publish_flag_ == false) {
@@ -111,7 +103,7 @@ void PublishState::PublishEvent(BtpLoginLogoutStruct *login_logout) {
   }
 }
 
-void PublishState::PublishToTrader(BtpLoginLogoutStruct *login_logout) {
+void PublishState::PublishToTrader(FtpLoginLogoutStruct *login_logout) {
   market_trader::MarketStateReq_MarketState state = market_trader::MarketStateReq_MarketState_reserve;
   if (strcmp(login_logout->market_state, "day_close") == 0) {
     state = market_trader::MarketStateReq_MarketState_day_close;
@@ -142,7 +134,7 @@ void PublishState::PublishToTrader(BtpLoginLogoutStruct *login_logout) {
   SetPublishFlag();
 }
 
-void PublishState::PublishToStrategy(BtpLoginLogoutStruct *login_logout) {
+void PublishState::PublishToStrategy(FtpLoginLogoutStruct *login_logout) {
   strategy_market::MarketStateReq_MarketState state = strategy_market::MarketStateReq_MarketState_reserve;
   if (strcmp(login_logout->market_state, "day_close") == 0) {
     state = strategy_market::MarketStateReq_MarketState_day_close;
@@ -186,71 +178,22 @@ void PublishState::SetPublishFlag() {
 }
 
 void PublishState::GetTradeData(char *buff) {
-  int year, mon, day, mon_days[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-
   auto &market_ser = MarketService::GetInstance();
   auto timenow = market_ser.ROLE(MarketTimeState).GetTimeNow();
   if (timenow != nullptr) {
-    year = 1900 + timenow->tm_year;
-    mon = 1 + timenow->tm_mon;
-    day = timenow->tm_mday;
-
-    if (IsLeapYear(year) == 1) {
-      mon_days[1] = 29;
-    }
-
     if (19 <= timenow->tm_hour && timenow->tm_hour <= 23) {
       if (timenow->tm_wday == 5) {
-        day += 3;
-        while (day > mon_days[mon - 1]) {
-          day -= mon_days[mon - 1];
-          mon++;
-          if (mon > 12) {
-            mon = 1;
-            year++;
-            if (IsLeapYear(year) == 1) {
-              mon_days[1] = 29;
-            } else {
-              mon_days[1] = 28;
-            }
-          }
-        }
-        sprintf(buff, "%04d%02d%02d", year, mon, day);
+        time_t tsecond = mktime(timenow) + 259200;
+        strftime(buff, 10, "%Y%m%d", localtime(&tsecond));
       } else {
-        day += 1;
-        while (day > mon_days[mon - 1]) {
-          day -= mon_days[mon - 1];
-          mon++;
-          if (mon > 12) {
-            mon = 1;
-            year++;
-            if (IsLeapYear(year) == 1) {
-              mon_days[1] = 29;
-            } else {
-              mon_days[1] = 28;
-            }
-          }
-        }
-        sprintf(buff, "%04d%02d%02d", year, mon, day);
+        time_t tsecond = mktime(timenow) + 86400;
+        strftime(buff, 10, "%Y%m%d", localtime(&tsecond));
       }
     } else if (1 <= timenow->tm_hour && timenow->tm_hour <= 3 && timenow->tm_wday == 6) {
-      day += 2;
-      while (day > mon_days[mon - 1]) {
-        day -= mon_days[mon - 1];
-        mon++;
-        if (mon > 12) {
-          mon = 1;
-          year++;
-          if (IsLeapYear(year) == 1) {
-            mon_days[1] = 29;
-          } else {
-            mon_days[1] = 28;
-          }
-        }
-      }
-      sprintf(buff, "%04d%02d%02d", year, mon, day);
+      time_t tsecond = mktime(timenow) + 172800;
+      strftime(buff, 10, "%Y%m%d", localtime(&tsecond));
     } else {
-      sprintf(buff, "%04d%02d%02d", year, mon, day);
+      strftime(buff, 10, "%Y%m%d", timenow);
     }
   }
 }

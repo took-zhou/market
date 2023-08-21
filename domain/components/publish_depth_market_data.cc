@@ -25,69 +25,7 @@ void PublishData::DirectForwardDataToStrategy(CThostFtdcDepthMarketDataField *p_
 }
 
 void PublishData::OnceFromDataflow(const PublishPara &p_c, CThostFtdcDepthMarketDataField *p_d) {
-  if (p_c.source == strategy_market::TickSubscribeReq_Source_rawtick) {
-    OnceFromDataflowSelectRawtick(p_c, p_d);
-  } else if (p_c.source == strategy_market::TickSubscribeReq_Source_level1) {
-    OnceFromDataflowSelectLevel1(p_c, p_d);
-  }
-}
-
-void PublishData::OnceFromDataflowSelectRawtick(const PublishPara &p_c, CThostFtdcDepthMarketDataField *p_d) {
   if (IsValidTickData(p_d) == false) {
-    return;
-  }
-
-  char time_array[100] = {0};
-  strategy_market::message tick;
-  auto tick_data = tick.mutable_tick_data();
-
-  GetAssemblingTime(time_array, p_d);
-  tick_data->set_time_point(time_array);
-
-  tick_data->set_state(strategy_market::TickData_TickState_active);
-  tick_data->set_instrument_id(p_d->InstrumentID);
-  tick_data->set_last_price(Max2zero(p_d->LastPrice));
-  tick_data->set_bid_price1(Max2zero(p_d->BidPrice1));
-  tick_data->set_bid_volume1(p_d->BidVolume1);
-  tick_data->set_ask_price1(Max2zero(p_d->AskPrice1));
-  tick_data->set_ask_volume1(p_d->AskVolume1);
-  if (kDataLevel_ == 2) {
-    tick_data->set_bid_price2(Max2zero(p_d->BidPrice2));
-    tick_data->set_bid_volume2(p_d->BidVolume2);
-    tick_data->set_ask_price2(Max2zero(p_d->AskPrice2));
-    tick_data->set_ask_volume2(p_d->AskVolume2);
-    tick_data->set_bid_price3(Max2zero(p_d->BidPrice3));
-    tick_data->set_bid_volume3(p_d->BidVolume3);
-    tick_data->set_ask_price3(Max2zero(p_d->AskPrice3));
-    tick_data->set_ask_volume3(p_d->AskVolume3);
-    tick_data->set_bid_price4(Max2zero(p_d->BidPrice4));
-    tick_data->set_bid_volume4(p_d->BidVolume4);
-    tick_data->set_ask_price4(Max2zero(p_d->AskPrice4));
-    tick_data->set_ask_volume4(p_d->AskVolume4);
-    tick_data->set_bid_price5(Max2zero(p_d->BidPrice5));
-    tick_data->set_bid_volume5(p_d->BidVolume5);
-    tick_data->set_ask_price5(Max2zero(p_d->AskPrice5));
-    tick_data->set_ask_volume5(p_d->AskVolume5);
-  }
-  tick_data->set_open_price(Max2zero(p_d->OpenPrice));
-  tick_data->set_volume(p_d->Volume);
-
-  utils::ItpMsg msg;
-  tick.SerializeToString(&msg.pb_msg);
-  msg.session_name = "strategy_market";
-  msg.msg_name = "TickData." + tick_data->instrument_id();
-  auto &recer_sender = RecerSender::GetInstance();
-  recer_sender.ROLE(Sender).ROLE(DirectSender).SendMsg(msg);
-
-  p_c.heartbeat = 0;
-}
-
-void PublishData::OnceFromDataflowSelectLevel1(const PublishPara &p_c, CThostFtdcDepthMarketDataField *p_d) {
-  if (IsValidTickData(p_d) == false) {
-    return;
-  }
-
-  if (IsValidLevel1Data(p_c, p_d) == false) {
     return;
   }
 
@@ -218,20 +156,6 @@ void PublishData::OnceFromDefault(const PublishPara &p_c, const string &ins) {
   p_c.heartbeat = 0;
 }
 
-bool PublishData::IsValidLevel1Data(const PublishPara &p_c, CThostFtdcDepthMarketDataField *p_d) {
-  bool ret = false;
-
-  auto &market_ser = MarketService::GetInstance();
-  double ticksize_from_instrument_info = market_ser.ROLE(InstrumentInfo).GetTickSize(p_d->InstrumentID);
-  double ticksize_from_rawtick = Max2zero(p_d->AskPrice1) - Max2zero(p_d->BidPrice1);
-
-  if (fabs(ticksize_from_rawtick - ticksize_from_instrument_info) < 1e-6 && fabs(ticksize_from_rawtick - 0) > 1e-6) {
-    ret = true;
-  }
-
-  return ret;
-}
-
 void PublishData::DirectForwardDataToStrategy(XTPMD *p_d) {
   auto &market_ser = MarketService::GetInstance();
   auto pos = market_ser.ROLE(PublishControl).publish_para_map.find(p_d->ticker);
@@ -243,14 +167,6 @@ void PublishData::DirectForwardDataToStrategy(XTPMD *p_d) {
 }
 
 void PublishData::OnceFromDataflow(const PublishPara &p_c, XTPMD *p_d) {
-  if (p_c.source == strategy_market::TickSubscribeReq_Source_rawtick) {
-    OnceFromDataflowSelectRawtick(p_c, p_d);
-  } else if (p_c.source == strategy_market::TickSubscribeReq_Source_level1) {
-    OnceFromDataflowSelectLevel1(p_c, p_d);
-  }
-}
-
-void PublishData::OnceFromDataflowSelectRawtick(const PublishPara &p_c, XTPMD *p_d) {
   if (IsValidTickData(p_d) == false) {
     return;
   }
@@ -296,151 +212,19 @@ void PublishData::OnceFromDataflowSelectRawtick(const PublishPara &p_c, XTPMD *p
   msg.msg_name = "TickData." + tick_data->instrument_id();
   auto &recer_sender = RecerSender::GetInstance();
   recer_sender.ROLE(Sender).ROLE(DirectSender).SendMsg(msg);
-}
-
-// 无法获取最小变动单位，暂不实现该功能
-void PublishData::OnceFromDataflowSelectLevel1(const PublishPara &p_c, XTPMD *p_d) {
-  if (IsValidTickData(p_d) == false) {
-    return;
-  }
-
-  if (IsValidLevel1Data(p_c, p_d) == false) {
-    return;
-  }
-
-  char time_array[100] = {0};
-  strategy_market::message tick;
-  auto tick_data = tick.mutable_tick_data();
-
-  GetAssemblingTime(time_array, p_d);
-  tick_data->set_time_point(time_array);
-
-  tick_data->set_state(strategy_market::TickData_TickState_active);
-  tick_data->set_instrument_id(p_d->ticker);
-  tick_data->set_last_price(Max2zero(p_d->last_price));
-  tick_data->set_bid_price1(Max2zero(p_d->bid[0]));
-  tick_data->set_bid_volume1(p_d->bid_qty[0]);
-  tick_data->set_ask_price1(Max2zero(p_d->ask[0]));
-  tick_data->set_ask_volume1(p_d->ask_qty[0]);
-  if (kDataLevel_ == 2) {
-    tick_data->set_bid_price2(Max2zero(p_d->bid[1]));
-    tick_data->set_bid_volume2(p_d->bid_qty[1]);
-    tick_data->set_ask_price2(Max2zero(p_d->ask[1]));
-    tick_data->set_ask_volume2(p_d->ask_qty[1]);
-    tick_data->set_bid_price3(Max2zero(p_d->bid[2]));
-    tick_data->set_bid_volume3(p_d->bid_qty[2]);
-    tick_data->set_ask_price3(Max2zero(p_d->ask[2]));
-    tick_data->set_ask_volume3(p_d->ask_qty[2]);
-    tick_data->set_bid_price4(Max2zero(p_d->bid[3]));
-    tick_data->set_bid_volume4(p_d->bid_qty[3]);
-    tick_data->set_ask_price4(Max2zero(p_d->ask[3]));
-    tick_data->set_ask_volume4(p_d->ask_qty[3]);
-    tick_data->set_bid_price5(Max2zero(p_d->bid[4]));
-    tick_data->set_bid_volume5(p_d->bid_qty[4]);
-    tick_data->set_ask_price5(Max2zero(p_d->ask[4]));
-    tick_data->set_ask_volume5(p_d->ask_qty[4]);
-  }
-  tick_data->set_open_price(Max2zero(p_d->open_price));
-  tick_data->set_volume(p_d->qty);
-
-  utils::ItpMsg msg;
-  tick.SerializeToString(&msg.pb_msg);
-  msg.session_name = "strategy_market";
-  msg.msg_name = "TickData." + tick_data->instrument_id();
-  auto &recer_sender = RecerSender::GetInstance();
-  recer_sender.ROLE(Sender).ROLE(DirectSender).SendMsg(msg);
-}
-
-bool PublishData::IsValidLevel1Data(const PublishPara &p_c, XTPMD *p_d) {
-  bool ret = false;
-
-  auto &market_ser = MarketService::GetInstance();
-  double ticksize_from_instrument_info = market_ser.ROLE(InstrumentInfo).GetTickSize(p_d->ticker);
-  double ticksize_from_rawtick = Max2zero(p_d->ask[0]) - Max2zero(p_d->bid[0]);
-
-  if (fabs(ticksize_from_rawtick - ticksize_from_instrument_info) < 1e-6 && fabs(ticksize_from_rawtick - 0) > 1e-6) {
-    ret = true;
-  }
-
-  return ret;
 }
 
 void PublishData::DirectForwardDataToStrategy(BtpMarketDataStruct *p_d) {
   auto &market_ser = MarketService::GetInstance();
-  auto &json_cfg = utils::JsonConfig::GetInstance();
   auto pos = market_ser.ROLE(PublishControl).publish_para_map.find(p_d->instrument_id);
   if (pos != market_ser.ROLE(PublishControl).publish_para_map.end() && market_ser.login_state == kLoginState) {
-    if (p_d->state == 0 && json_cfg.GetConfig("market", "TimingPush") == "push") {
-      OnceFromDefault(pos->second, p_d);
-    } else {
-      OnceFromDataflow(pos->second, p_d);
-    }
+    OnceFromDataflow(pos->second, p_d);
   } else if (pos == market_ser.ROLE(PublishControl).publish_para_map.end()) {
     ERROR_LOG("can not find ins from control para: %s", p_d->instrument_id);
   }
 }
+
 void PublishData::OnceFromDataflow(const PublishPara &p_c, BtpMarketDataStruct *p_d) {
-  if (p_c.source == strategy_market::TickSubscribeReq_Source_rawtick) {
-    OnceFromDataflowSelectRawtick(p_c, p_d);
-  } else if (p_c.source == strategy_market::TickSubscribeReq_Source_level1) {
-    OnceFromDataflowSelectLevel1(p_c, p_d);
-  }
-}
-
-void PublishData::OnceFromDataflowSelectRawtick(const PublishPara &p_c, BtpMarketDataStruct *p_d) {
-  strategy_market::message tick;
-  auto tick_data = tick.mutable_tick_data();
-
-  tick_data->set_time_point(p_d->date_time);
-
-  if (p_d->state == 1) {
-    tick_data->set_state(strategy_market::TickData_TickState_active);
-  } else {
-    tick_data->set_state(strategy_market::TickData_TickState_inactive);
-  }
-
-  tick_data->set_instrument_id(p_d->instrument_id);
-  tick_data->set_last_price(Max2zero(p_d->last_price));
-  tick_data->set_bid_price1(Max2zero(p_d->bid_price[0]));
-  tick_data->set_bid_volume1(p_d->bid_volume[0]);
-  tick_data->set_ask_price1(Max2zero(p_d->ask_price[0]));
-  tick_data->set_ask_volume1(p_d->ask_volume[0]);
-  if (kDataLevel_ == 2) {
-    tick_data->set_bid_price2(Max2zero(p_d->bid_price[1]));
-    tick_data->set_bid_volume2(p_d->bid_volume[1]);
-    tick_data->set_ask_price2(Max2zero(p_d->ask_price[1]));
-    tick_data->set_ask_volume2(p_d->ask_volume[1]);
-    tick_data->set_bid_price3(Max2zero(p_d->bid_price[2]));
-    tick_data->set_bid_volume3(p_d->bid_volume[2]);
-    tick_data->set_ask_price3(Max2zero(p_d->ask_price[2]));
-    tick_data->set_ask_volume3(p_d->ask_volume[2]);
-    tick_data->set_bid_price4(Max2zero(p_d->bid_price[3]));
-    tick_data->set_bid_volume4(p_d->bid_volume[3]);
-    tick_data->set_ask_price4(Max2zero(p_d->ask_price[3]));
-    tick_data->set_ask_volume4(p_d->ask_volume[3]);
-    tick_data->set_bid_price5(Max2zero(p_d->bid_price[4]));
-    tick_data->set_bid_volume5(p_d->bid_volume[4]);
-    tick_data->set_ask_price5(Max2zero(p_d->ask_price[4]));
-    tick_data->set_ask_volume5(p_d->ask_volume[4]);
-  }
-  // tick_data->set_open_price(Max2zero(p_d->open_price));
-  tick_data->set_volume(p_d->volume);
-
-  utils::ItpMsg msg;
-  tick.SerializeToString(&msg.pb_msg);
-  msg.session_name = "strategy_market";
-  msg.msg_name = "TickData." + tick_data->instrument_id();
-  auto &recer_sender = RecerSender::GetInstance();
-  recer_sender.ROLE(Sender).ROLE(DirectSender).SendMsg(msg);
-
-  p_c.heartbeat = 0;
-}
-
-void PublishData::OnceFromDataflowSelectLevel1(const PublishPara &p_c, BtpMarketDataStruct *p_d) {
-  if (IsValidLevel1Data(p_c, p_d) == false) {
-    return;
-  }
-
   strategy_market::message tick;
   auto tick_data = tick.mutable_tick_data();
 
@@ -484,7 +268,7 @@ void PublishData::OnceFromDataflowSelectLevel1(const PublishPara &p_c, BtpMarket
   p_c.heartbeat = 0;
 }
 
-void PublishData::OnceFromDefault(const PublishPara &p_c, BtpMarketDataStruct *p_d) {
+void PublishData::OnceFromDefault(const PublishPara &p_c, FtpMarketDataStruct *p_d) {
   strategy_market::message tick;
   auto tick_data = tick.mutable_tick_data();
 
@@ -536,20 +320,6 @@ void PublishData::OnceFromDefault(const PublishPara &p_c, BtpMarketDataStruct *p
   p_c.heartbeat = 0;
 }
 
-bool PublishData::IsValidLevel1Data(const PublishPara &p_c, BtpMarketDataStruct *p_d) {
-  bool ret = false;
-
-  auto &market_ser = MarketService::GetInstance();
-  double ticksize_from_instrument_info = market_ser.ROLE(InstrumentInfo).GetTickSize(p_d->instrument_id);
-  double ticksize_from_rawtick = Max2zero(p_d->ask_price[0]) - Max2zero(p_d->bid_price[0]);
-
-  if (fabs(ticksize_from_rawtick - ticksize_from_instrument_info) < 1e-6 && fabs(ticksize_from_rawtick - 0) > 1e-6) {
-    ret = true;
-  }
-
-  return ret;
-}
-
 void PublishData::DirectForwardDataToStrategy(MdsMktDataSnapshotT *p_d) {
   PZone("DirectForwardDataToStrategy");
   char instrument_id[16];
@@ -564,71 +334,7 @@ void PublishData::DirectForwardDataToStrategy(MdsMktDataSnapshotT *p_d) {
 }
 
 void PublishData::OnceFromDataflow(const PublishPara &p_c, MdsMktDataSnapshotT *p_d) {
-  if (p_c.source == strategy_market::TickSubscribeReq_Source_rawtick) {
-    OnceFromDataflowSelectRawtick(p_c, p_d);
-  } else if (p_c.source == strategy_market::TickSubscribeReq_Source_level1) {
-    OnceFromDataflowSelectLevel1(p_c, p_d);
-  }
-}
-
-void PublishData::OnceFromDataflowSelectRawtick(const PublishPara &p_c, MdsMktDataSnapshotT *p_d) {
   if (IsValidTickData(p_d) == false) {
-    return;
-  }
-
-  char time_array[100] = {0};
-  strategy_market::message tick;
-  auto tick_data = tick.mutable_tick_data();
-
-  GetAssemblingTime(time_array, p_d);
-  tick_data->set_time_point(time_array);
-
-  tick_data->set_state(strategy_market::TickData_TickState_active);
-  char instrument_id[16];
-  sprintf(instrument_id, "%06d", p_d->head.instrId);
-  tick_data->set_instrument_id(instrument_id);
-  tick_data->set_last_price(Max2zero(p_d->l2Stock.TradePx * 0.0001));
-  tick_data->set_bid_price1(Max2zero(p_d->l2Stock.BidLevels[0].Price * 0.0001));
-  tick_data->set_bid_volume1(p_d->l2Stock.BidLevels[0].NumberOfOrders);
-  tick_data->set_ask_price1(Max2zero(p_d->l2Stock.OfferLevels[0].Price * 0.0001));
-  tick_data->set_ask_volume1(p_d->l2Stock.OfferLevels[0].NumberOfOrders);
-  if (kDataLevel_ == 2) {
-    tick_data->set_bid_price2(Max2zero(p_d->l2Stock.BidLevels[1].Price * 0.0001));
-    tick_data->set_bid_volume2(p_d->l2Stock.BidLevels[1].NumberOfOrders);
-    tick_data->set_ask_price2(Max2zero(p_d->l2Stock.OfferLevels[1].Price * 0.0001));
-    tick_data->set_ask_volume2(p_d->l2Stock.OfferLevels[1].NumberOfOrders);
-    tick_data->set_bid_price3(Max2zero(p_d->l2Stock.BidLevels[2].Price * 0.0001));
-    tick_data->set_bid_volume3(p_d->l2Stock.BidLevels[2].NumberOfOrders);
-    tick_data->set_ask_price3(Max2zero(p_d->l2Stock.OfferLevels[2].Price * 0.0001));
-    tick_data->set_ask_volume3(p_d->l2Stock.OfferLevels[2].NumberOfOrders);
-    tick_data->set_bid_price4(Max2zero(p_d->l2Stock.BidLevels[3].Price * 0.0001));
-    tick_data->set_bid_volume4(p_d->l2Stock.BidLevels[3].NumberOfOrders);
-    tick_data->set_ask_price4(Max2zero(p_d->l2Stock.OfferLevels[3].Price * 0.0001));
-    tick_data->set_ask_volume4(p_d->l2Stock.OfferLevels[3].NumberOfOrders);
-    tick_data->set_bid_price5(Max2zero(p_d->l2Stock.BidLevels[4].Price * 0.0001));
-    tick_data->set_bid_volume5(p_d->l2Stock.BidLevels[4].NumberOfOrders);
-    tick_data->set_ask_price5(Max2zero(p_d->l2Stock.OfferLevels[4].Price * 0.0001));
-    tick_data->set_ask_volume5(p_d->l2Stock.OfferLevels[4].NumberOfOrders);
-  }
-  tick_data->set_open_price(Max2zero(p_d->l2Stock.OpenPx * 0.0001));
-  tick_data->set_volume(p_d->l2Stock.TotalVolumeTraded);
-
-  utils::ItpMsg msg;
-  tick.SerializeToString(&msg.pb_msg);
-  msg.session_name = "strategy_market";
-  msg.msg_name = "TickData." + tick_data->instrument_id();
-  auto &recer_sender = RecerSender::GetInstance();
-  recer_sender.ROLE(Sender).ROLE(DirectSender).SendMsg(msg);
-
-  p_c.heartbeat = 0;
-}
-
-void PublishData::OnceFromDataflowSelectLevel1(const PublishPara &p_c, MdsMktDataSnapshotT *p_d) {
-  if (IsValidTickData(p_d) == false) {
-    return;
-  }
-
-  if (IsValidLevel1Data(p_c, p_d) == false) {
     return;
   }
 
@@ -678,18 +384,61 @@ void PublishData::OnceFromDataflowSelectLevel1(const PublishPara &p_c, MdsMktDat
   p_c.heartbeat = 0;
 }
 
-bool PublishData::IsValidLevel1Data(const PublishPara &p_c, MdsMktDataSnapshotT *p_d) {
-  bool ret = false;
-
+void PublishData::DirectForwardDataToStrategy(FtpMarketDataStruct *p_d) {
   auto &market_ser = MarketService::GetInstance();
-  char instrument_id[16];
-  sprintf(instrument_id, "%06d", p_d->head.instrId);
-  double ticksize_from_instrument_info = market_ser.ROLE(InstrumentInfo).GetTickSize(instrument_id);
-  double ticksize_from_rawtick = (Max2zero(p_d->l2Stock.OfferLevels[0].Price) - Max2zero(p_d->l2Stock.BidLevels[0].Price)) * 0.0001;
-
-  if (fabs(ticksize_from_rawtick - ticksize_from_instrument_info) < 1e-6 && fabs(ticksize_from_rawtick - 0) > 1e-6) {
-    ret = true;
+  auto &json_cfg = utils::JsonConfig::GetInstance();
+  auto pos = market_ser.ROLE(PublishControl).publish_para_map.find(p_d->instrument_id);
+  if (pos != market_ser.ROLE(PublishControl).publish_para_map.end() && market_ser.login_state == kLoginState) {
+    if (p_d->state == 0 && json_cfg.GetConfig("market", "TimingPush") == "push") {
+      OnceFromDefault(pos->second, p_d);
+    } else {
+      OnceFromDataflow(pos->second, p_d);
+    }
+  } else if (pos == market_ser.ROLE(PublishControl).publish_para_map.end()) {
+    ERROR_LOG("can not find ins from control para: %s", p_d->instrument_id);
   }
+}
 
-  return ret;
+void PublishData::OnceFromDataflow(const PublishPara &p_c, FtpMarketDataStruct *p_d) {
+  strategy_market::message tick;
+  auto tick_data = tick.mutable_tick_data();
+
+  tick_data->set_time_point(p_d->date_time);
+
+  tick_data->set_state(strategy_market::TickData_TickState_active);
+  tick_data->set_instrument_id(p_d->instrument_id);
+  tick_data->set_last_price(Max2zero(p_d->last_price));
+  tick_data->set_bid_price1(Max2zero(p_d->bid_price[0]));
+  tick_data->set_bid_volume1(p_d->bid_volume[0]);
+  tick_data->set_ask_price1(Max2zero(p_d->ask_price[0]));
+  tick_data->set_ask_volume1(p_d->ask_volume[0]);
+  if (kDataLevel_ == 2) {
+    tick_data->set_bid_price2(Max2zero(p_d->bid_price[1]));
+    tick_data->set_bid_volume2(p_d->bid_volume[1]);
+    tick_data->set_ask_price2(Max2zero(p_d->ask_price[1]));
+    tick_data->set_ask_volume2(p_d->ask_volume[1]);
+    tick_data->set_bid_price3(Max2zero(p_d->bid_price[2]));
+    tick_data->set_bid_volume3(p_d->bid_volume[2]);
+    tick_data->set_ask_price3(Max2zero(p_d->ask_price[2]));
+    tick_data->set_ask_volume3(p_d->ask_volume[2]);
+    tick_data->set_bid_price4(Max2zero(p_d->bid_price[3]));
+    tick_data->set_bid_volume4(p_d->bid_volume[3]);
+    tick_data->set_ask_price4(Max2zero(p_d->ask_price[3]));
+    tick_data->set_ask_volume4(p_d->ask_volume[3]);
+    tick_data->set_bid_price5(Max2zero(p_d->bid_price[4]));
+    tick_data->set_bid_volume5(p_d->bid_volume[4]);
+    tick_data->set_ask_price5(Max2zero(p_d->ask_price[4]));
+    tick_data->set_ask_volume5(p_d->ask_volume[4]);
+  }
+  // tick_data->set_open_price(Max2zero(p_d->open_price));
+  tick_data->set_volume(p_d->volume);
+
+  utils::ItpMsg msg;
+  tick.SerializeToString(&msg.pb_msg);
+  msg.session_name = "strategy_market";
+  msg.msg_name = "TickData." + tick_data->instrument_id();
+  auto &recer_sender = RecerSender::GetInstance();
+  recer_sender.ROLE(Sender).ROLE(DirectSender).SendMsg(msg);
+
+  p_c.heartbeat = 0;
 }

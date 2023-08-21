@@ -7,11 +7,14 @@
 FdManage::FdManage() {
   auto &json_cfg = utils::JsonConfig::GetInstance();
   market_data_path = json_cfg.GetConfig("market", "ControlParaFilePath").get<std::string>();
+  auto users = json_cfg.GetConfig("market", "User");
+  for (auto &user : users) {
+    market_data_path = market_data_path + "/" + (std::string)user + "/control.db";
+    utils::CreatFile(market_data_path);
+    break;
+  }
 
-  std::string market_path = market_data_path + "/control.db";
-  utils::CreatFile(market_path);
-
-  if (sqlite3_open(market_path.c_str(), &market_conn) != SQLITE_OK) {
+  if (sqlite3_open(market_data_path.c_str(), &market_conn) != SQLITE_OK) {
     ERROR_LOG("Cannot open database: %s\n", sqlite3_errmsg(market_conn));
     sqlite3_close(market_conn);
   }

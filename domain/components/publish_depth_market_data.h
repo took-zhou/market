@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "common/extern//btp/inc/btp_market_struct.h"
+#include "common/extern//ftp/inc/ftp_market_struct.h"
 #include "common/extern/ctp/inc/ThostFtdcUserApiStruct.h"
 #include "common/extern/xtp/inc/xtp_quote_api.h"
 
@@ -25,47 +26,27 @@ struct PublishData : public MarketData {
   // 超时发送默认数据
   void HeartBeatDetect();
   void OnceFromDefault(const PublishPara &p_c, const std::string &ins);
-  void OnceFromDefault(const PublishPara &p_c, BtpMarketDataStruct *p_d);
+  void OnceFromDefault(const PublishPara &p_c, FtpMarketDataStruct *p_d);
 
   // ctp深度行情发送
- public:
   void DirectForwardDataToStrategy(CThostFtdcDepthMarketDataField *p_d);
   void OnceFromDataflow(const PublishPara &p_c, CThostFtdcDepthMarketDataField *p_d);
 
- private:
-  void OnceFromDataflowSelectRawtick(const PublishPara &p_c, CThostFtdcDepthMarketDataField *p_d);
-  void OnceFromDataflowSelectLevel1(const PublishPara &p_c, CThostFtdcDepthMarketDataField *p_d);
-  bool IsValidLevel1Data(const PublishPara &p_c, CThostFtdcDepthMarketDataField *p_d);
-
   // xtp深度行情发送
- public:
   void DirectForwardDataToStrategy(XTPMD *p_d);
   void OnceFromDataflow(const PublishPara &p_c, XTPMD *p_d);
 
- private:
-  void OnceFromDataflowSelectRawtick(const PublishPara &p_c, XTPMD *p_d);
-  void OnceFromDataflowSelectLevel1(const PublishPara &p_c, XTPMD *p_d);
-  bool IsValidLevel1Data(const PublishPara &p_c, XTPMD *p_d);
-
   // btp深度行情发送
- public:
   void DirectForwardDataToStrategy(BtpMarketDataStruct *p_d);
   void OnceFromDataflow(const PublishPara &p_c, BtpMarketDataStruct *p_d);
 
- private:
-  void OnceFromDataflowSelectRawtick(const PublishPara &p_c, BtpMarketDataStruct *p_d);
-  void OnceFromDataflowSelectLevel1(const PublishPara &p_c, BtpMarketDataStruct *p_d);
-  bool IsValidLevel1Data(const PublishPara &p_c, BtpMarketDataStruct *p_d);
-
   // otp深度行情发送
- public:
   void DirectForwardDataToStrategy(MdsMktDataSnapshotT *p_d);
   void OnceFromDataflow(const PublishPara &p_c, MdsMktDataSnapshotT *p_d);
 
- private:
-  void OnceFromDataflowSelectRawtick(const PublishPara &p_c, MdsMktDataSnapshotT *p_d);
-  void OnceFromDataflowSelectLevel1(const PublishPara &p_c, MdsMktDataSnapshotT *p_d);
-  bool IsValidLevel1Data(const PublishPara &p_c, MdsMktDataSnapshotT *p_d);
+  // ftp深度行情发送
+  void DirectForwardDataToStrategy(FtpMarketDataStruct *p_d);
+  void OnceFromDataflow(const PublishPara &p_c, FtpMarketDataStruct *p_d);
 
  private:
   const uint8_t kDataLevel_ = 1;

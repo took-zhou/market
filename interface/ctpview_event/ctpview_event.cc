@@ -134,21 +134,6 @@ void CtpviewEvent::TickStartStopIndicationHandle(utils::ItpMsg &msg) {
 
   auto &market_ser = MarketService::GetInstance();
   market_ser.ROLE(BacktestControl).SetStartStopIndication(indication.type());
-  if (indication.type() == ctpview_market::TickStartStopIndication_MessageType_start) {
-    if (market_ser.login_state == kLoginState) {
-      auto ins_vec = market_ser.ROLE(PublishControl).GetInstrumentList();
-      market_ser.ROLE(SubscribeManager).SubscribeInstrument(ins_vec);
-    } else {
-      WARNING_LOG("now is logout, wait login to subscribe new instruments");
-    }
-  } else if (indication.type() == ctpview_market::TickStartStopIndication_MessageType_finish) {
-    if (market_ser.login_state == kLoginState) {
-      auto ins_vec = market_ser.ROLE(PublishControl).GetInstrumentList();
-      market_ser.ROLE(SubscribeManager).UnSubscribeInstrument(ins_vec);
-    } else {
-      WARNING_LOG("now is logout, wait login to unsubscribe new instruments");
-    }
-  }
 }
 
 void CtpviewEvent::BackTestControlHandle(utils::ItpMsg &msg) {
@@ -160,6 +145,7 @@ void CtpviewEvent::BackTestControlHandle(utils::ItpMsg &msg) {
   b_p.begin = indication.begin_time();
   b_p.end = indication.end_time();
   b_p.speed = indication.speed();
+  b_p.source = indication.source();
   auto &market_ser = MarketService::GetInstance();
   market_ser.ROLE(BacktestControl).BuildControlPara(b_p);
 }

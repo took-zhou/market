@@ -1,18 +1,18 @@
-#include "market/infra/sender/btp_sender.h"
+#include "market/infra/sender/ftp_sender.h"
 #include <string>
 #include <thread>
 #include "common/extern/log/log.h"
 #include "common/self/file_util.h"
 #include "common/self/semaphore.h"
 #include "common/self/utils.h"
-#include "market/infra/recer/btp_recer.h"
+#include "market/infra/recer/ftp_recer.h"
 
-btp::api::MarketApi *BtpSender::market_api;
-BtpMarketSpi *BtpSender::market_spi;
+ftp::api::MarketApi *FtpSender::market_api;
+FtpMarketSpi *FtpSender::market_spi;
 
-BtpSender::BtpSender(void) { ; }
+FtpSender::FtpSender(void) { ; }
 
-bool BtpSender::Init(void) {
+bool FtpSender::Init(void) {
   bool out = true;
   if (is_init_ == false) {
     auto &json_cfg = utils::JsonConfig::GetInstance();
@@ -20,9 +20,9 @@ bool BtpSender::Init(void) {
     for (auto &user : users) {
       std::string temp_folder = json_cfg.GetConfig("market", "ControlParaFilePath").get<std::string>();
       std::string control_path = temp_folder + "/" + (std::string)user + "/control.db";
-      market_api = btp::api::MarketApi::CreateMarketApi(control_path.c_str());
+      market_api = ftp::api::MarketApi::CreateMarketApi(control_path.c_str());
 
-      market_spi = new BtpMarketSpi();
+      market_spi = new FtpMarketSpi();
       market_api->RegisterSpi(market_spi);
 
       INFO_LOG("quote_api init ok.");
@@ -34,7 +34,7 @@ bool BtpSender::Init(void) {
   return out;
 }
 
-bool BtpSender::ReqUserLogin(void) {
+bool FtpSender::ReqUserLogin(void) {
   INFO_LOG("login time, is going to login.");
   bool ret = true;
   Init();
@@ -42,7 +42,7 @@ bool BtpSender::ReqUserLogin(void) {
   return ret;
 }
 
-bool BtpSender::ReqUserLogout() {
+bool FtpSender::ReqUserLogout() {
   INFO_LOG("logout time, is going to logout.");
 
   if (market_api != nullptr) {
@@ -53,7 +53,7 @@ bool BtpSender::ReqUserLogout() {
   return true;
 }
 
-bool BtpSender::Release() {
+bool FtpSender::Release() {
   INFO_LOG("Is going to release quote_api.");
 
   if (market_api != nullptr) {
@@ -71,7 +71,7 @@ bool BtpSender::Release() {
   return true;
 }
 
-bool BtpSender::SubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id) {
+bool FtpSender::SubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id) {
   int result = true;
   if (name_vec.size() > 500) {
     WARNING_LOG("too much instruments to unSubscription.");
@@ -98,7 +98,7 @@ bool BtpSender::SubscribeMarketData(std::vector<utils::InstrumtntID> const &name
   return true;
 }
 
-bool BtpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id) {
+bool FtpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id) {
   int result = true;
   if (name_vec.size() > 500) {
     WARNING_LOG("too much instruments to unSubscription.");
@@ -127,4 +127,4 @@ bool BtpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &na
   return true;
 }
 
-bool BtpSender::LossConnection() { return false; }
+bool FtpSender::LossConnection() { return false; }

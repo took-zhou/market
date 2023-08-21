@@ -9,6 +9,7 @@
 #include "common/extern/log/log.h"
 #include "common/self/file_util.h"
 #include "common/self/protobuf/market-trader.pb.h"
+#include "market/domain/components/fd_manage.h"
 
 MarketService::MarketService() {
   auto &json_cfg = utils::JsonConfig::GetInstance();
@@ -19,9 +20,13 @@ MarketService::MarketService() {
   }
   if (run_mode == kFastBack) {
     auto market_period_task = [&]() {
+      uint32_t period_count = 0;
       while (1) {
         // market_period_task begin
         FastBackLoginLogoutChange();
+        if (period_count % 10 == 0) {
+          FdManage::GetInstance().OpenThingsUp();
+        }
         // market_period_task end
         std::this_thread::sleep_for(std::chrono::seconds(1));
       }
@@ -30,12 +35,16 @@ MarketService::MarketService() {
     INFO_LOG("market period task prepare ok");
   } else {
     auto market_period_task = [&]() {
+      uint32_t period_count = 0;
       while (1) {
         // market_period_task begin
         ROLE(PublishData).HeartBeatDetect();
         ROLE(MarketTimeState).Update();
         ROLE(PublishState).PublishEvent();
         RealTimeLoginLogoutChange();
+        if (period_count % 10 == 0) {
+          FdManage::GetInstance().OpenThingsUp();
+        }
         // market_period_task end
         std::this_thread::sleep_for(std::chrono::seconds(1));
       }

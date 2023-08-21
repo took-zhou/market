@@ -2,7 +2,7 @@
 #define PUBLISH_MARKET_STATE_H
 
 #include <pthread.h>
-#include "common/extern/btp/inc/btp_market_struct.h"
+#include "common/extern/ftp/inc/ftp_market_struct.h"
 
 struct PublishState {
  public:
@@ -12,9 +12,9 @@ struct PublishState {
   void PublishToStrategy(void);
 
   // 回撤模式
-  void PublishEvent(BtpLoginLogoutStruct *login_logout);
-  void PublishToTrader(BtpLoginLogoutStruct *login_logout);
-  void PublishToStrategy(BtpLoginLogoutStruct *login_logout);
+  void PublishEvent(FtpLoginLogoutStruct *login_logout);
+  void PublishToTrader(FtpLoginLogoutStruct *login_logout);
+  void PublishToStrategy(FtpLoginLogoutStruct *login_logout);
 
   void ClearPublishFlag();
   void SetPublishFlag();
@@ -22,7 +22,6 @@ struct PublishState {
 
  private:
   void GetTradeData(char *);
-  int IsLeapYear(int year);
   bool publish_flag_ = false;
   uint32_t wait_publish_count_ = 0;
   const uint32_t max_wait_pushlish_count_ = 3600;

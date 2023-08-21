@@ -56,17 +56,13 @@ void StrategyEvent::TickSubscribeReqHandle(utils::ItpMsg &msg) {
 
     PublishPara p_a;
     p_a.exch = req_info.instrument_info().exchange_id();
-    p_a.source = req_info.source();
     p_a.heartbeat = 0;
 
     market_ser.ROLE(PublishControl).BuildPublishPara(ins_id.ins, p_a);
-
-    if (market_ser.run_mode == kRealTime) {
-      if (market_ser.login_state == kLoginState) {
-        market_ser.ROLE(SubscribeManager).SubscribeInstrument(ins_vec);
-      } else {
-        WARNING_LOG("now is logout, wait login to subscribe new instruments");
-      }
+    if (market_ser.login_state == kLoginState) {
+      market_ser.ROLE(SubscribeManager).SubscribeInstrument(ins_vec);
+    } else {
+      WARNING_LOG("now is logout, wait login to subscribe new instruments");
     }
   } else if (req_info.action() == strategy_market::TickSubscribeReq_Action_unsub) {
     utils::InstrumtntID ins_id;
@@ -74,11 +70,9 @@ void StrategyEvent::TickSubscribeReqHandle(utils::ItpMsg &msg) {
     ins_id.ins = req_info.instrument_info().instrument_id();
     market_ser.ROLE(PublishControl).ErasePublishPara(ins_id.ins);
 
-    if (market_ser.run_mode == kRealTime) {
-      vector<utils::InstrumtntID> ins_vec;
-      ins_vec.push_back(ins_id);
-      market_ser.ROLE(SubscribeManager).UnSubscribeInstrument(ins_vec);
-    }
+    vector<utils::InstrumtntID> ins_vec;
+    ins_vec.push_back(ins_id);
+    market_ser.ROLE(SubscribeManager).UnSubscribeInstrument(ins_vec);
   }
 }
 
