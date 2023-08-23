@@ -21,7 +21,6 @@ struct CtpviewEvent {
   void BlockControlHandle(utils::ItpMsg &msg);
   void BugInjectionHandle(utils::ItpMsg &msg);
   void SimulateMarketStateHandle(utils::ItpMsg &msg);
-  void TickStartStopIndicationHandle(utils::ItpMsg &msg);
   void BackTestControlHandle(utils::ItpMsg &msg);
   void ProfilerControlHandle(utils::ItpMsg &msg);
   void UpdateParaHandle(utils::ItpMsg &msg);

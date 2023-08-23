@@ -19,8 +19,8 @@ bool FtpSender::Init(void) {
     auto users = json_cfg.GetConfig("market", "User");
     for (auto &user : users) {
       std::string temp_folder = json_cfg.GetConfig("market", "ControlParaFilePath").get<std::string>();
-      std::string control_path = temp_folder + "/" + (std::string)user + "/control.db";
-      market_api = ftp::api::MarketApi::CreateMarketApi(control_path.c_str());
+      std::string db_path = temp_folder + "/" + (std::string)user;
+      market_api = ftp::api::MarketApi::CreateMarketApi(db_path.c_str());
 
       market_spi = new FtpMarketSpi();
       market_api->RegisterSpi(market_spi);
@@ -128,3 +128,8 @@ bool FtpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &na
 }
 
 bool FtpSender::LossConnection() { return false; }
+
+bool FtpSender::SetBacktestControl(const std::string &begin, const std::string &end, uint32_t speed, uint32_t source, uint32_t indication) {
+  market_api->SetBacktestControl(begin, end, speed, source, indication);
+  return true;
+}

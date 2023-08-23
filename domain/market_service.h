@@ -8,7 +8,6 @@
 #define WORKSPACE_MARKET_DOMAIN_MARKETSERVICE_H_
 
 #include "common/self/dci/role.h"
-#include "market/domain/components/backtest_control.h"
 #include "market/domain/components/instrument_info.h"
 #include "market/domain/components/market_time_state.h"
 #include "market/domain/components/publish_control.h"
@@ -19,16 +18,8 @@
 #include "market/infra/recer_sender.h"
 
 enum MarketLoginState { kErrorState = 0, kLoginState = 1, kLogoutState = 2 };
-enum MarketRunMode { kFastBack = 0, kRealTime };
 
-struct MarketService : MarketTimeState,
-                       LoadData,
-                       PublishControl,
-                       BacktestControl,
-                       PublishData,
-                       PublishState,
-                       SubscribeManager,
-                       InstrumentInfo {
+struct MarketService : MarketTimeState, LoadData, PublishControl, PublishData, PublishState, SubscribeManager, InstrumentInfo {
   MarketService();
   MarketService(const MarketService &) = delete;
   MarketService &operator=(const MarketService &) = delete;
@@ -40,14 +31,12 @@ struct MarketService : MarketTimeState,
   IMPL_ROLE(MarketTimeState);
   IMPL_ROLE(LoadData);
   IMPL_ROLE(PublishControl);
-  IMPL_ROLE(BacktestControl);
   IMPL_ROLE(PublishData);
   IMPL_ROLE(PublishState);
   IMPL_ROLE(SubscribeManager);
   IMPL_ROLE(InstrumentInfo);
 
   MarketLoginState login_state = kLogoutState;
-  MarketRunMode run_mode = kRealTime;
 
  private:
   bool HandleAccountExitException();

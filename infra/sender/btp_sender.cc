@@ -19,8 +19,8 @@ bool BtpSender::Init(void) {
     auto users = json_cfg.GetConfig("market", "User");
     for (auto &user : users) {
       std::string temp_folder = json_cfg.GetConfig("market", "ControlParaFilePath").get<std::string>();
-      std::string control_path = temp_folder + "/" + (std::string)user + "/control.db";
-      market_api = btp::api::MarketApi::CreateMarketApi(control_path.c_str());
+      std::string db_path = temp_folder + "/" + (std::string)user;
+      market_api = btp::api::MarketApi::CreateMarketApi(db_path.c_str());
 
       market_spi = new BtpMarketSpi();
       market_api->RegisterSpi(market_spi);

@@ -9,6 +9,7 @@
 #include <string>
 #include <thread>
 #include "common/extern/log/log.h"
+#include "common/extern/pybind11/include/pybind11/embed.h"
 #include "common/self/file_util.h"
 #include "common/self/profiler.h"
 #include "common/self/utils.h"
@@ -17,6 +18,9 @@
 #include "market/interface/market_event.h"
 
 int main(int argc, char *agrv[]) {
+  pybind11::scoped_interpreter python;
+  pybind11::gil_scoped_release release;
+
   auto &json_cfg = utils::JsonConfig::GetInstance();
   json_cfg.SetFileName("/etc/marktrade/config.json");
 

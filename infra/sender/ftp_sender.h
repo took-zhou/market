@@ -21,6 +21,7 @@ struct FtpSender : SendApi {
   bool SubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id = 0);
   bool UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id = 0);
   bool LossConnection();
+  bool SetBacktestControl(const std::string &begin, const std::string &end, uint32_t speed, uint32_t source, uint32_t indication);
 
   static ftp::api::MarketApi *market_api;
   static FtpMarketSpi *market_spi;

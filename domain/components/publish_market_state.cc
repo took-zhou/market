@@ -107,16 +107,16 @@ void PublishState::PublishToTrader(FtpLoginLogoutStruct *login_logout) {
   market_trader::MarketStateReq_MarketState state = market_trader::MarketStateReq_MarketState_reserve;
   if (strcmp(login_logout->market_state, "day_close") == 0) {
     state = market_trader::MarketStateReq_MarketState_day_close;
-    INFO_LOG("Publish makret state: day_close, date: %s to strategy.", login_logout->date);
+    INFO_LOG("Publish makret state: day_close, date: %s to trader.", login_logout->date);
   } else if (strcmp(login_logout->market_state, "night_close") == 0) {
     state = market_trader::MarketStateReq_MarketState_night_close;
-    INFO_LOG("Publish makret state: night_close, date: %s to strategy.", login_logout->date);
+    INFO_LOG("Publish makret state: night_close, date: %s to trader.", login_logout->date);
   } else if (strcmp(login_logout->market_state, "day_open") == 0) {
     state = market_trader::MarketStateReq_MarketState_day_open;
-    INFO_LOG("Publish makret state: day_open, date: %s to strategy.", login_logout->date);
+    INFO_LOG("Publish makret state: day_open, date: %s to trader.", login_logout->date);
   } else if (strcmp(login_logout->market_state, "night_open") == 0) {
     state = market_trader::MarketStateReq_MarketState_night_open;
-    INFO_LOG("Publish makret state: night_open, date: %s to strategy.", login_logout->date);
+    INFO_LOG("Publish makret state: night_open, date: %s to trader.", login_logout->date);
   }
 
   market_trader::message tick;

@@ -56,7 +56,6 @@ void ProxyRecer::SubscribeTopic() {
   topic_list.push_back("ctpview_market.BugInjection");
   topic_list.push_back("ctpview_market.SimulateMarketState");
   topic_list.push_back("ctpview_market.BackTestControl");
-  topic_list.push_back("ctpview_market.TickStartStopIndication");
   topic_list.push_back("ctpview_market.ProfilerControl");
   topic_list.push_back("ctpview_market.UpdatePara");
 

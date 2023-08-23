@@ -13,12 +13,9 @@
 
 MarketService::MarketService() {
   auto &json_cfg = utils::JsonConfig::GetInstance();
-  if (json_cfg.GetConfig("common", "RunMode").get<std::string>() == "fastback") {
-    run_mode = kFastBack;
-  } else {
-    run_mode = kRealTime;
-  }
-  if (run_mode == kFastBack) {
+  auto api_type = json_cfg.GetConfig("common", "ApiType");
+
+  if (api_type == "ftp") {
     auto market_period_task = [&]() {
       uint32_t period_count = 0;
       while (1) {

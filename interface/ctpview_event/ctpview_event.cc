@@ -25,7 +25,6 @@ void CtpviewEvent::RegMsgFun() {
   msg_func_map["BlockControl"] = [this](utils::ItpMsg &msg) { BlockControlHandle(msg); };
   msg_func_map["BugInjection"] = [this](utils::ItpMsg &msg) { BugInjectionHandle(msg); };
   msg_func_map["SimulateMarketState"] = [this](utils::ItpMsg &msg) { SimulateMarketStateHandle(msg); };
-  msg_func_map["TickStartStopIndication"] = [this](utils::ItpMsg &msg) { TickStartStopIndicationHandle(msg); };
   msg_func_map["BackTestControl"] = [this](utils::ItpMsg &msg) { BackTestControlHandle(msg); };
   msg_func_map["ProfilerControl"] = [this](utils::ItpMsg &msg) { ProfilerControlHandle(msg); };
   msg_func_map["UpdatePara"] = [this](utils::ItpMsg &msg) { UpdateParaHandle(msg); };
@@ -127,27 +126,18 @@ void CtpviewEvent::SimulateMarketStateHandle(utils::ItpMsg &msg) {
   }
 }
 
-void CtpviewEvent::TickStartStopIndicationHandle(utils::ItpMsg &msg) {
-  ctpview_market::message message;
-  message.ParseFromString(msg.pb_msg);
-  auto indication = message.tick_start_stop_indication();
-
-  auto &market_ser = MarketService::GetInstance();
-  market_ser.ROLE(BacktestControl).SetStartStopIndication(indication.type());
-}
-
 void CtpviewEvent::BackTestControlHandle(utils::ItpMsg &msg) {
   ctpview_market::message message;
   message.ParseFromString(msg.pb_msg);
-  auto indication = message.backtest_control();
+  auto backtest = message.backtest_control();
 
-  BacktestPara b_p;
-  b_p.begin = indication.begin_time();
-  b_p.end = indication.end_time();
-  b_p.speed = indication.speed();
-  b_p.source = indication.source();
-  auto &market_ser = MarketService::GetInstance();
-  market_ser.ROLE(BacktestControl).BuildControlPara(b_p);
+  std::string begin = backtest.begin_time();
+  std::string end = backtest.end_time();
+  uint32_t speed = backtest.speed();
+  uint32_t source = backtest.source();
+  uint32_t indication = backtest.indication();
+  auto &recer_sender = RecerSender::GetInstance();
+  recer_sender.ROLE(Sender).ROLE(ItpSender).SetBacktestControl(begin, end, speed, source, indication);
 }
 
 void CtpviewEvent::ProfilerControlHandle(utils::ItpMsg &msg) {

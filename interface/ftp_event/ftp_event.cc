@@ -70,19 +70,8 @@ void FtpEvent::OnRspUserLoginHandle(utils::ItpMsg &msg) {
   auto &itp_msg = message.itp_msg();
 
   auto rsp_info = reinterpret_cast<FtpLoginLogoutStruct *>(itp_msg.address());
-
   auto &market_ser = MarketService::GetInstance();
-  if (market_ser.run_mode == kFastBack) {
-    market_ser.ROLE(PublishState).PublishEvent(rsp_info);
-  } else {
-    if (req_instrument_from_ == "local") {
-      market_ser.ROLE(SubscribeManager).ReqInstrumentsFromLocal();
-    } else if (req_instrument_from_ == "api") {
-      market_ser.ROLE(SubscribeManager).ReqInstrumentsFromApi();
-    } else if (req_instrument_from_ == "strategy") {
-      market_ser.ROLE(SubscribeManager).ReqInstrumrntFromControlPara();
-    }
-  }
+  market_ser.ROLE(PublishState).PublishEvent(rsp_info);
 }
 
 void FtpEvent::OnRspUserLogoutHandle(utils::ItpMsg &msg) {
@@ -91,21 +80,8 @@ void FtpEvent::OnRspUserLogoutHandle(utils::ItpMsg &msg) {
   auto &itp_msg = message.itp_msg();
 
   auto rsp_info = reinterpret_cast<FtpLoginLogoutStruct *>(itp_msg.address());
-
   auto &market_ser = MarketService::GetInstance();
-
-  if (market_ser.run_mode == kFastBack) {
-    market_ser.ROLE(PublishState).PublishEvent(rsp_info);
-  } else {
-    market_ser.ROLE(SubscribeManager).UnSubscribeAll();
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-
-    if (req_instrument_from_ == "api" && market_ser.ROLE(MarketTimeState).GetTimeState() == kLogoutTime) {
-      market_ser.ROLE(LoadData).ClassifyContractFiles();
-    }
-
-    market_ser.ROLE(InstrumentInfo).EraseAllInstrumentInfo();
-  }
+  market_ser.ROLE(PublishState).PublishEvent(rsp_info);
 }
 
 void FtpEvent::OnRspAllInstrumentInfoHandle(utils::ItpMsg &msg) {

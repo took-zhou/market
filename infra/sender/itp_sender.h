@@ -1,6 +1,7 @@
 #ifndef WORKSPACE_MARKET_INFRA_ITPSENDER_H_
 #define WORKSPACE_MARKET_INFRA_ITPSENDER_H_
 
+#include <memory>
 #include "market/infra/sender/send_api.h"
 
 struct ItpSender {
@@ -18,9 +19,10 @@ struct ItpSender {
   bool SubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id = 0);
   bool UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id = 0);
   bool LossConnection();
+  bool SetBacktestControl(const std::string &begin, const std::string &end, uint32_t speed, uint32_t source, uint32_t indication);
 
  private:
-  SendApi *send_api_ = nullptr;
+  std::unique_ptr<SendApi> send_api_;
 };
 
 #endif

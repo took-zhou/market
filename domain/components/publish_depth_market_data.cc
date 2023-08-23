@@ -83,8 +83,12 @@ void PublishData::HeartBeatDetect() {
   if (market_ser.login_state == kLoginState) {
     for (auto &item_p_c : market_ser.ROLE(PublishControl).publish_para_map) {
       item_p_c.second.heartbeat++;
-      if (item_p_c.second.heartbeat >= kHeartBeatWaitTime_ && json_cfg.GetConfig("market", "TimingPush") == "push") {
-        OnceFromDefault(item_p_c.second, item_p_c.first);
+      if (item_p_c.second.heartbeat >= kHeartBeatWaitTime_) {
+        if (json_cfg.GetConfig("market", "TimingPush") == "push") {
+          OnceFromDefault(item_p_c.second, item_p_c.first);
+        } else {
+          item_p_c.second.heartbeat = 0;
+        }
       }
     }
     entry_logoutstate_flag = false;
@@ -389,8 +393,10 @@ void PublishData::DirectForwardDataToStrategy(FtpMarketDataStruct *p_d) {
   auto &json_cfg = utils::JsonConfig::GetInstance();
   auto pos = market_ser.ROLE(PublishControl).publish_para_map.find(p_d->instrument_id);
   if (pos != market_ser.ROLE(PublishControl).publish_para_map.end() && market_ser.login_state == kLoginState) {
-    if (p_d->state == 0 && json_cfg.GetConfig("market", "TimingPush") == "push") {
-      OnceFromDefault(pos->second, p_d);
+    if (p_d->state == 0) {
+      if (json_cfg.GetConfig("market", "TimingPush") == "push") {
+        OnceFromDefault(pos->second, p_d);
+      }
     } else {
       OnceFromDataflow(pos->second, p_d);
     }
