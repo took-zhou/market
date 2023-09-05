@@ -36,12 +36,15 @@ struct MarketService : MarketTimeState, LoadData, PublishControl, PublishData, P
   IMPL_ROLE(SubscribeManager);
   IMPL_ROLE(InstrumentInfo);
 
+  bool UpdateLoginState(MarketLoginState state);
   MarketLoginState login_state = kLogoutState;
 
  private:
   bool HandleAccountExitException();
   bool RealTimeLoginLogoutChange();
   bool FastBackLoginLogoutChange();
+  void InitDatabase();
+  bool init_database_flag_ = false;
   uint32_t try_login_heartbeat_ = 0;
   uint32_t try_login_count_ = 0;
 };

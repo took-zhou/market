@@ -11,10 +11,7 @@
 #include <chrono>
 #include <thread>
 
-PublishState::PublishState() {
-  ;
-  ;
-}
+PublishState::PublishState() {}
 
 void PublishState::PublishEvent(void) {
   auto &market_ser = MarketService::GetInstance();

@@ -55,7 +55,9 @@ void TraderEvent::QryInstrumentRspHandle(utils::ItpMsg &msg) {
   instrument_info.max_market_order_volume = rsp.max_market_volume();
   instrument_info.min_market_order_volume = rsp.min_market_volume();
 
-  market_server.ROLE(InstrumentInfo).BuildInstrumentInfo(rsp.instrument_id(), instrument_info);
+  if (IsValidInsName(rsp.instrument_id())) {
+    market_server.ROLE(InstrumentInfo).BuildInstrumentInfo(rsp.instrument_id(), instrument_info);
+  }
 
   if (rsp.finish_flag() == true) {
     market_server.ROLE(InstrumentInfo).ShowInstrumentInfo();
@@ -75,4 +77,33 @@ void TraderEvent::MarketStateRspHandle(utils::ItpMsg &msg) {
   }
 
   market_ser.ROLE(PublishState).ClearPublishFlag();
+}
+
+bool TraderEvent::IsValidInsName(const std::string &name) {
+  bool ret = true;
+  uint32_t prev_type = 0;
+  uint32_t count = 0;
+  for (auto &item : name) {
+    if ('0' <= item && item <= '9') {
+      if (prev_type != 1) {
+        count++;
+      }
+      prev_type = 1;
+    } else if (('a' <= item && item <= 'z') || ('A' <= item && item <= 'Z')) {
+      if (prev_type != 2) {
+        count++;
+      }
+      prev_type = 2;
+    } else if (item == '-' || item == '_') {
+      continue;
+    } else if (item == ' ' || item == '(' || item == ')') {
+      ret = false;
+      break;
+    }
+  }
+  if (count != 2 && count != 4) {
+    ret = false;
+  }
+
+  return ret;
 }

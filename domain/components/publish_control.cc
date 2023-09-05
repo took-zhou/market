@@ -82,7 +82,6 @@ void PublishControl::ErasePublishPara(const std::string &ins) {
   for (auto publish_iter = publish_para_map.begin(); publish_iter != publish_para_map.end();) {
     if (publish_iter->first == ins || ins == "") {
       INFO_LOG("ins: %s, doesn't exist anymore, erase it.", publish_iter->first.c_str());
-      publish_iter = publish_para_map.erase(publish_iter);
       sqlite3_reset(delete_control_);
       sqlite3_bind_text(delete_control_, 1, publish_iter->first.c_str(), publish_iter->first.size(), 0);
       sqlite3_bind_text(delete_control_, 2, publish_iter->second.exch.c_str(), publish_iter->second.exch.size(), 0);
@@ -90,6 +89,7 @@ void PublishControl::ErasePublishPara(const std::string &ins) {
         ERROR_LOG("do sql sentence error.");
         sqlite3_close(FdManage::GetInstance().market_conn);
       }
+      publish_iter = publish_para_map.erase(publish_iter);
     } else {
       publish_iter++;
     }

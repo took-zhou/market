@@ -19,6 +19,7 @@ struct TraderEvent {
   void RegMsgFun();
   void QryInstrumentRspHandle(utils::ItpMsg &msg);
   void MarketStateRspHandle(utils::ItpMsg &msg);
+  bool IsValidInsName(const std::string &name);
 
   std::map<std::string, std::function<void(utils::ItpMsg &msg)>> msg_func_map;
 };

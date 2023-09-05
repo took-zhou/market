@@ -33,10 +33,6 @@ int main(int argc, char *agrv[]) {
   utils::CreatFolder(market_data_path);
   profiler::FlameGraphWriter::Instance().SetFilePath(market_data_path);
 
-  std::string compile_time = utils::GetCompileTime();
-  json_cfg.WriteConfig("market", "CompileTime", compile_time);
-  INFO_LOG("program last build at %s.", compile_time.c_str());
-
   MarketService::GetInstance();
   INFO_LOG("market_ser init ok");
 
