@@ -27,7 +27,7 @@ void PublishState::PublishEvent(void) {
   }
   if (publish_flag_ == true) {
     wait_publish_count_++;
-    if (wait_publish_count_ >= max_wait_pushlish_count_) {
+    if (wait_publish_count_ == max_wait_pushlish_count_) {
       WARNING_LOG("wait publish market rsp time out");
     }
   }
@@ -76,7 +76,7 @@ void PublishState::PublishEvent(FtpLoginLogoutStruct *login_logout) {
       break;
     } else if (publish_flag_ == true) {
       wait_publish_count_++;
-      if (wait_publish_count_ >= max_wait_pushlish_count_) {
+      if (wait_publish_count_ == max_wait_pushlish_count_) {
         WARNING_LOG("wait publish market rsp time out");
         break;
       }
@@ -91,7 +91,7 @@ void PublishState::PublishEvent(FtpLoginLogoutStruct *login_logout) {
       break;
     } else if (publish_flag_ == true) {
       wait_publish_count_++;
-      if (wait_publish_count_ >= max_wait_pushlish_count_) {
+      if (wait_publish_count_ == max_wait_pushlish_count_) {
         WARNING_LOG("wait publish market rsp time out");
         break;
       }
