@@ -134,20 +134,6 @@ void MarketTimeState::SetTimeState(int command) {
   }
 }
 
-void MarketTimeState::SetSubTimeState(int command) {
-  if (command == ctpview_market::SimulateMarketState_MarketState_reserve) {
-    debug_sub_time_state_ = kInInitSts;
-  } else if (command == ctpview_market::SimulateMarketState_MarketState_day_open) {
-    debug_sub_time_state_ = kInDayLogin;
-  } else if (command == ctpview_market::SimulateMarketState_MarketState_day_close) {
-    debug_sub_time_state_ = kInDayLogout;
-  } else if (command == ctpview_market::SimulateMarketState_MarketState_night_open) {
-    debug_sub_time_state_ = kInNightLogin;
-  } else if (command == ctpview_market::SimulateMarketState_MarketState_night_close) {
-    debug_sub_time_state_ = kInNightLogout;
-  }
-}
-
 MarketTimeState::MarketTimeState() {
   auto &json_cfg = utils::JsonConfig::GetInstance();
 

@@ -32,7 +32,3 @@ bool ItpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &na
   return send_api_->UnSubscribeMarketData(name_vec, request_id);
 }
 bool ItpSender::LossConnection() { return send_api_->LossConnection(); }
-
-bool ItpSender::SetBacktestControl(const std::string &begin, const std::string &end, uint32_t speed, uint32_t source, uint32_t indication) {
-  return send_api_->SetBacktestControl(begin, end, speed, source, indication);
-}

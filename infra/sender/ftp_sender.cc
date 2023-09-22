@@ -128,8 +128,3 @@ bool FtpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &na
 }
 
 bool FtpSender::LossConnection() { return false; }
-
-bool FtpSender::SetBacktestControl(const std::string &begin, const std::string &end, uint32_t speed, uint32_t source, uint32_t indication) {
-  market_api->SetBacktestControl(begin, end, speed, source, indication);
-  return true;
-}

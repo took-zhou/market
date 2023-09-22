@@ -51,11 +51,8 @@ void ProxyRecer::SubscribeTopic() {
   topic_list.push_back("market_trader.MarketStateRsp");
 
   topic_list.push_back("ctpview_market.LoginControl");
-  topic_list.push_back("ctpview_market.CheckStrategyAlive");
   topic_list.push_back("ctpview_market.BlockControl");
   topic_list.push_back("ctpview_market.BugInjection");
-  topic_list.push_back("ctpview_market.SimulateMarketState");
-  topic_list.push_back("ctpview_market.BackTestControl");
   topic_list.push_back("ctpview_market.ProfilerControl");
   topic_list.push_back("ctpview_market.UpdatePara");
 

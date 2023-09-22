@@ -24,8 +24,6 @@ void CtpviewEvent::RegMsgFun() {
   msg_func_map["LoginControl"] = [this](utils::ItpMsg &msg) { LoginControlHandle(msg); };
   msg_func_map["BlockControl"] = [this](utils::ItpMsg &msg) { BlockControlHandle(msg); };
   msg_func_map["BugInjection"] = [this](utils::ItpMsg &msg) { BugInjectionHandle(msg); };
-  msg_func_map["SimulateMarketState"] = [this](utils::ItpMsg &msg) { SimulateMarketStateHandle(msg); };
-  msg_func_map["BackTestControl"] = [this](utils::ItpMsg &msg) { BackTestControlHandle(msg); };
   msg_func_map["ProfilerControl"] = [this](utils::ItpMsg &msg) { ProfilerControlHandle(msg); };
   msg_func_map["UpdatePara"] = [this](utils::ItpMsg &msg) { UpdateParaHandle(msg); };
 
@@ -86,58 +84,6 @@ void CtpviewEvent::BugInjectionHandle(utils::ItpMsg &msg) {
     std::shared_ptr<int> ptr(tempa);
     delete tempa;
   }
-}
-
-void CtpviewEvent::SimulateMarketStateHandle(utils::ItpMsg &msg) {
-  ctpview_market::message message;
-  message.ParseFromString(msg.pb_msg);
-  auto simulate_market_state = message.simulate_market_state();
-
-  strategy_market::MarketStateReq_MarketState state = strategy_market::MarketStateReq_MarketState_reserve;
-  if (simulate_market_state.market_state() == ctpview_market::SimulateMarketState_MarketState_day_open) {
-    state = strategy_market::MarketStateReq_MarketState_day_open;
-    INFO_LOG("Publish makret state: day_open, date: %s  to strategy.", simulate_market_state.date().c_str());
-  } else if (simulate_market_state.market_state() == ctpview_market::SimulateMarketState_MarketState_day_close) {
-    state = strategy_market::MarketStateReq_MarketState_day_close;
-    INFO_LOG("Publish makret state: day_close, date: %s  to strategy.", simulate_market_state.date().c_str());
-  } else if (simulate_market_state.market_state() == ctpview_market::SimulateMarketState_MarketState_night_open) {
-    state = strategy_market::MarketStateReq_MarketState_night_open;
-    INFO_LOG("Publish makret state: night_open, date: %s  to strategy.", simulate_market_state.date().c_str());
-  } else if (simulate_market_state.market_state() == ctpview_market::SimulateMarketState_MarketState_night_close) {
-    state = strategy_market::MarketStateReq_MarketState_night_close;
-    INFO_LOG("Publish makret state: night_close, date: %s  to strategy.", simulate_market_state.date().c_str());
-  }
-
-  {
-    auto &market_ser = MarketService::GetInstance();
-    strategy_market::message tick;
-    auto market_state = tick.mutable_market_state_req();
-    market_state->set_market_state(state);
-    market_state->set_date(simulate_market_state.date());
-    market_state->set_is_last(1);
-
-    utils::ItpMsg msg;
-    tick.SerializeToString(&msg.pb_msg);
-    msg.session_name = "strategy_market";
-    msg.msg_name = "MarketStateReq";
-    auto &recer_sender = RecerSender::GetInstance();
-    recer_sender.ROLE(Sender).ROLE(ProxySender).SendMsg(msg);
-    market_ser.ROLE(PublishState).SetPublishFlag();
-  }
-}
-
-void CtpviewEvent::BackTestControlHandle(utils::ItpMsg &msg) {
-  ctpview_market::message message;
-  message.ParseFromString(msg.pb_msg);
-  auto backtest = message.backtest_control();
-
-  std::string begin = backtest.begin_time();
-  std::string end = backtest.end_time();
-  uint32_t speed = backtest.speed();
-  uint32_t source = backtest.source();
-  uint32_t indication = backtest.indication();
-  auto &recer_sender = RecerSender::GetInstance();
-  recer_sender.ROLE(Sender).ROLE(ItpSender).SetBacktestControl(begin, end, speed, source, indication);
 }
 
 void CtpviewEvent::ProfilerControlHandle(utils::ItpMsg &msg) {
