@@ -13,13 +13,26 @@
 #include "common/self/file_util.h"
 #include "common/self/profiler.h"
 #include "common/self/utils.h"
+#include "market/domain/components/fd_manage.h"
 #include "market/domain/market_service.h"
 #include "market/infra/recer_sender.h"
 #include "market/interface/market_event.h"
 
+
+void SignalHandler(int signal) {
+  auto &market_ser = MarketService::GetInstance();
+  market_ser.UpdateLoginState(MarketLoginState::kManualExit);
+  FdManage::GetInstance().OpenThingsUp();
+  INFO_LOG("the process manually exits safely.");
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  exit(0);
+}
+
 int main(int argc, char *agrv[]) {
   pybind11::scoped_interpreter python;
   pybind11::gil_scoped_release release;
+
+  signal(SIGINT, SignalHandler);
 
   auto &json_cfg = utils::JsonConfig::GetInstance();
   json_cfg.SetFileName("/etc/marktrade/config.json");

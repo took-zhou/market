@@ -17,7 +17,7 @@
 #include "market/domain/components/subscribe_manage.h"
 #include "market/infra/recer_sender.h"
 
-enum MarketLoginState { kErrorState = 0, kLoginState = 1, kLogoutState = 2 };
+enum MarketLoginState { kErrorState = 0, kLoginState = 1, kLogoutState = 2, kManualExit = 3 };
 
 struct MarketService : MarketTimeState, LoadData, PublishControl, PublishData, PublishState, SubscribeManager, InstrumentInfo {
   MarketService();

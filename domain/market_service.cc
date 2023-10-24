@@ -69,10 +69,10 @@ bool MarketService::RealTimeLoginLogoutChange() {
     if (try_login_heartbeat_++ % 600 == 599 && try_login_count_++ <= 3 && recer_sender.ROLE(Sender).ROLE(ItpSender).ReqUserLogin()) {
       UpdateLoginState(kLoginState);
     }
-  } else if (ROLE(MarketTimeState).GetTimeState() == kLogoutTime && login_state != kLogoutState) {
+  } else if (ROLE(MarketTimeState).GetTimeState() == kLogoutTime && (login_state == kErrorState || login_state == kLoginState)) {
     recer_sender.ROLE(Sender).ROLE(ItpSender).ReqUserLogout();
     UpdateLoginState(kLogoutState);
-  } else if (recer_sender.ROLE(Sender).ROLE(ItpSender).LossConnection() && login_state != kLogoutState) {
+  } else if (recer_sender.ROLE(Sender).ROLE(ItpSender).LossConnection() && (login_state == kErrorState || login_state == kLoginState)) {
     HandleAccountExitException();
   }
 
@@ -105,21 +105,14 @@ bool MarketService::HandleAccountExitException() {
 void MarketService::InitDatabase() {
   if (init_database_flag_ == false) {
     char *error_msg = nullptr;
-    const char *sql = "drop table if exists service_info;";
+    const char *sql = "create table if not exists service_info(compile_time TEXT, login_state INT);";
     if (sqlite3_exec(FdManage::GetInstance().market_conn, sql, NULL, NULL, &error_msg) != SQLITE_OK) {
       ERROR_LOG("Sql error %s.", error_msg);
       sqlite3_free(error_msg);
       sqlite3_close(FdManage::GetInstance().market_conn);
     }
 
-    sql = "create table if not exists service_info(compile_time TEXT, login_state INT);";
-    if (sqlite3_exec(FdManage::GetInstance().market_conn, sql, NULL, NULL, &error_msg) != SQLITE_OK) {
-      ERROR_LOG("Sql error %s.", error_msg);
-      sqlite3_free(error_msg);
-      sqlite3_close(FdManage::GetInstance().market_conn);
-    }
-
-    sql = "insert into service_info(compile_time, login_state) select '', 2 where not exists (select * from service_info);";
+    sql = "insert into service_info(compile_time, login_state) select '', 3 where not exists (select * from service_info);";
     if (sqlite3_exec(FdManage::GetInstance().market_conn, sql, NULL, NULL, &error_msg) != SQLITE_OK) {
       ERROR_LOG("Sql error %s.", error_msg);
       sqlite3_free(error_msg);
