@@ -15,7 +15,7 @@
 
 void CtpMarketSpi::OnFrontConnected() {
   INFO_LOG("OnFrontConnected():is excuted...");
-  // 在登出后系统会重新调用OnFrontConnected, 这里简单判断并忽略第1次之后的所有调用。
+  //  在登出后系统会重新调用OnFrontConnected, 这里简单判断并忽略第1次之后的所有调用。
   if (re_connect++ == 0) {
     auto &global_sem = GlobalSem::GetInstance();
     global_sem.PostSemBySemName(GlobalSem::kLoginLogout);
@@ -103,7 +103,7 @@ void CtpMarketSpi::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *depth_ma
 #ifdef BENCH_TEST
   ScopedTimer t("OnRtnDepthMarketData");
 #endif
-  PZone("OnRtnDepthMarketData");
+  PZone("b");
   if (depth_market_data != nullptr) {
     ipc::message req_msg;
     auto send_msg = req_msg.mutable_itp_msg();

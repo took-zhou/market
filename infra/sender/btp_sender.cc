@@ -21,13 +21,19 @@ bool BtpSender::Init(void) {
       std::string temp_folder = json_cfg.GetConfig("market", "ControlParaFilePath").get<std::string>();
       std::string db_path = temp_folder + "/" + (std::string)user;
       market_api = btp::api::MarketApi::CreateMarketApi(db_path.c_str());
+      if (market_api == nullptr) {
+        out = false;
+        INFO_LOG("quote_api init fail.");
+        break;
+      } else {
+        out = true;
+        market_spi = new BtpMarketSpi();
+        market_api->RegisterSpi(market_spi);
 
-      market_spi = new BtpMarketSpi();
-      market_api->RegisterSpi(market_spi);
-
-      INFO_LOG("quote_api init ok.");
-      std::this_thread::sleep_for(std::chrono::seconds(1));
-      break;
+        INFO_LOG("quote_api init ok.");
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        break;
+      }
     }
     is_init_ = true;
   }
@@ -37,8 +43,13 @@ bool BtpSender::Init(void) {
 bool BtpSender::ReqUserLogin(void) {
   INFO_LOG("login time, is going to login.");
   bool ret = true;
-  Init();
-  market_api->Login();
+  if (Init() == false) {
+    Release();
+    ret = false;
+  } else {
+    market_api->Login();
+  }
+
   return ret;
 }
 

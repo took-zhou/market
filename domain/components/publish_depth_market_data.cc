@@ -1,6 +1,6 @@
 #include <thread>
 
-//自定义头文件
+// 自定义头文件
 #include "common/extern/log/log.h"
 #include "common/self/file_util.h"
 #include "common/self/profiler.h"
@@ -14,7 +14,6 @@
 PublishData::PublishData() { ; }
 
 void PublishData::DirectForwardDataToStrategy(CThostFtdcDepthMarketDataField *p_d) {
-  PZone("DirectForwardDataToStrategy");
   auto &market_ser = MarketService::GetInstance();
   auto pos = market_ser.ROLE(PublishControl).publish_para_map.find(p_d->InstrumentID);
   if (pos != market_ser.ROLE(PublishControl).publish_para_map.end() && market_ser.login_state == kLoginState) {
@@ -84,7 +83,7 @@ void PublishData::HeartBeatDetect() {
     for (auto &item_p_c : market_ser.ROLE(PublishControl).publish_para_map) {
       item_p_c.second.heartbeat++;
       if (item_p_c.second.heartbeat >= kHeartBeatWaitTime_) {
-        if (json_cfg.GetConfig("market", "TimingPush") == "push") {
+        if (json_cfg.GetConfig("market", "TimingPush") == "yes") {
           OnceFromDefault(item_p_c.second, item_p_c.first);
         } else {
           item_p_c.second.heartbeat = 0;
@@ -325,7 +324,6 @@ void PublishData::OnceFromDefault(const PublishPara &p_c, FtpMarketDataStruct *p
 }
 
 void PublishData::DirectForwardDataToStrategy(MdsMktDataSnapshotT *p_d) {
-  PZone("DirectForwardDataToStrategy");
   char instrument_id[16];
   sprintf(instrument_id, "%06d", p_d->head.instrId);
   auto &market_ser = MarketService::GetInstance();
@@ -394,7 +392,7 @@ void PublishData::DirectForwardDataToStrategy(FtpMarketDataStruct *p_d) {
   auto pos = market_ser.ROLE(PublishControl).publish_para_map.find(p_d->instrument_id);
   if (pos != market_ser.ROLE(PublishControl).publish_para_map.end() && market_ser.login_state == kLoginState) {
     if (p_d->state == 0) {
-      if (json_cfg.GetConfig("market", "TimingPush") == "push") {
+      if (json_cfg.GetConfig("market", "TimingPush") == "yes") {
         OnceFromDefault(pos->second, p_d);
       }
     } else {

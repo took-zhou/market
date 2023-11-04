@@ -53,7 +53,6 @@ void BtpEvent::Handle(utils::ItpMsg &msg) {
 }
 
 void BtpEvent::OnDepthMarketDataHandle(utils::ItpMsg &msg) {
-  PZone("DeepMarktDataHandle");
   ipc::message message;
   message.ParseFromString(msg.pb_msg);
   auto &itp_msg = message.itp_msg();

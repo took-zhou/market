@@ -51,7 +51,6 @@ void CtpEvent::Handle(utils::ItpMsg &msg) {
 }
 
 void CtpEvent::DeepMarktDataHandle(utils::ItpMsg &msg) {
-  PZone("DeepMarktDataHandle");
   ipc::message message;
   message.ParseFromString(msg.pb_msg);
   auto &itp_msg = message.itp_msg();
@@ -76,7 +75,7 @@ void CtpEvent::OnRspUserLoginHandle(utils::ItpMsg &msg) {
 
   auto rsp_info = reinterpret_cast<CThostFtdcRspInfoField *>(itp_msg.address());
   TThostFtdcErrorMsgType errormsg;
-  utils::Gbk2Utf8(rsp_info->ErrorMsg, errormsg, sizeof(errormsg));  //报错返回信息
+  utils::Gbk2Utf8(rsp_info->ErrorMsg, errormsg, sizeof(errormsg));  // 报错返回信息
   if (rsp_info->ErrorID != 0) {
     // 端登失败，客户端需进行错误处理
     ERROR_LOG("Failed to login, errorcode=%d errormsg=%s", rsp_info->ErrorID, errormsg);
@@ -103,7 +102,7 @@ void CtpEvent::OnRspUserLogoutHandle(utils::ItpMsg &msg) {
 
   auto rsp_info = reinterpret_cast<CThostFtdcRspInfoField *>(itp_msg.address());
   TThostFtdcErrorMsgType errormsg;
-  utils::Gbk2Utf8(rsp_info->ErrorMsg, errormsg, sizeof(errormsg));  //报错返回信息
+  utils::Gbk2Utf8(rsp_info->ErrorMsg, errormsg, sizeof(errormsg));  // 报错返回信息
 
   if (rsp_info->ErrorID != 0) {
     // 端登失败，客户端需进行错误处理

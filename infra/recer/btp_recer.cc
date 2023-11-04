@@ -53,7 +53,7 @@ void BtpMarketSpi::OnDepthMarketData(const BtpMarketDataStruct *market_data) {
 #ifdef BENCH_TEST
   ScopedTimer timer("OnDepthMarketData");
 #endif
-  PZone("OnRtnDepthMarketData");
+  PZone("b");
   if (market_data != nullptr) {
     ipc::message req_msg;
     auto send_msg = req_msg.mutable_itp_msg();

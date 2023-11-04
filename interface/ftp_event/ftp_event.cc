@@ -53,7 +53,6 @@ void FtpEvent::Handle(utils::ItpMsg &msg) {
 }
 
 void FtpEvent::OnDepthMarketDataHandle(utils::ItpMsg &msg) {
-  PZone("DeepMarktDataHandle");
   ipc::message message;
   message.ParseFromString(msg.pb_msg);
   auto &itp_msg = message.itp_msg();
