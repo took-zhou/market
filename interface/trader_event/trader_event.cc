@@ -7,17 +7,18 @@
 
 #include "market/interface/trader_event/trader_event.h"
 #include "common/extern/log/log.h"
+#include "common/self/global_sem.h"
 #include "common/self/protobuf/market-trader.pb.h"
-#include "common/self/semaphore.h"
 #include "common/self/utils.h"
 #include "market/domain/components/instrument_info.h"
 #include "market/domain/market_service.h"
 
+
 TraderEvent::TraderEvent() { RegMsgFun(); }
 
 void TraderEvent::Handle(utils::ItpMsg &msg) {
-  auto iter = msg_func_map.find(msg.msg_name);
-  if (iter != msg_func_map.end()) {
+  auto iter = msg_func_map_.find(msg.msg_name);
+  if (iter != msg_func_map_.end()) {
     iter->second(msg);
     return;
   }
@@ -27,12 +28,12 @@ void TraderEvent::Handle(utils::ItpMsg &msg) {
 
 void TraderEvent::RegMsgFun() {
   int cnt = 0;
-  msg_func_map.clear();
-  msg_func_map["QryInstrumentRsp"] = [this](utils::ItpMsg &msg) { QryInstrumentRspHandle(msg); };
-  msg_func_map["MarketStateRsp"] = [this](utils::ItpMsg &msg) { MarketStateRspHandle(msg); };
+  msg_func_map_.clear();
+  msg_func_map_["QryInstrumentRsp"] = [this](utils::ItpMsg &msg) { QryInstrumentRspHandle(msg); };
+  msg_func_map_["MarketStateRsp"] = [this](utils::ItpMsg &msg) { MarketStateRspHandle(msg); };
 
-  for (auto &iter : msg_func_map) {
-    INFO_LOG("msg_func_map[%d] key is [%s]", cnt, iter.first.c_str());
+  for (auto &iter : msg_func_map_) {
+    INFO_LOG("msg_func_map_[%d] key is [%s]", cnt, iter.first.c_str());
     cnt++;
   }
   return;
@@ -59,11 +60,11 @@ void TraderEvent::QryInstrumentRspHandle(utils::ItpMsg &msg) {
     market_server.ROLE(InstrumentInfo).BuildInstrumentInfo(rsp.instrument_id(), instrument_info);
   }
 
-  if (rsp.finish_flag() == true) {
+  if (rsp.finish_flag()) {
     market_server.ROLE(InstrumentInfo).ShowInstrumentInfo();
 
     auto &global_sem = GlobalSem::GetInstance();
-    global_sem.PostSemBySemName(GlobalSem::kUpdateInstrumentInfo);
+    global_sem.PostSemBySemName(SemName::kUpdateInstrumentInfo);
   }
 }
 

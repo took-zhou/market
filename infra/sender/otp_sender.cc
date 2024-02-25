@@ -5,7 +5,7 @@
 #include "common/extern/log/log.h"
 #include "common/extern/otp/inc/mds_api/mds_async_api.h"
 #include "common/self/file_util.h"
-#include "common/self/semaphore.h"
+#include "common/self/global_sem.h"
 #include "common/self/utils.h"
 #include "market/infra/recer/otp_recer.h"
 #include "mds_api/mds_api.h"
@@ -23,7 +23,7 @@ OtpSender::OtpSender(void) { ; }
 
 bool OtpSender::Init(void) {
   bool out = true;
-  if (is_init_ == false) {
+  if (!is_init_) {
     INFO_LOG("begin OtpMarketApi init");
     if (!__MdsApi_CheckApiVersion()) {
       ERROR_LOG("api version error, version[%s], libversion[%s]", MDS_APPL_VER_ID, MdsApi_GetApiVersion());
@@ -51,8 +51,8 @@ bool OtpSender::Init(void) {
     auto users = json_cfg.GetConfig("market", "User");
     for (auto &user : users) {
       MdsApiRemoteCfgT remote_cfg = {NULLOBJ_MDSAPI_REMOTE_CFG};
-      auto tcp_server = json_cfg.GetDeepConfig("users", (std::string)user, "FrontMdTcpServer").get<std::string>();
-      auto qry_server = json_cfg.GetDeepConfig("users", (std::string)user, "FrontMdQryServer").get<std::string>();
+      auto tcp_server = json_cfg.GetDeepConfig("users", static_cast<std::string>(user), "FrontMdTcpServer").get<std::string>();
+      auto qry_server = json_cfg.GetDeepConfig("users", static_cast<std::string>(user), "FrontMdQryServer").get<std::string>();
       auto user_id = json_cfg.GetDeepConfig("users", user, "UserID").get<std::string>();
       auto password = json_cfg.GetDeepConfig("users", user, "Password").get<std::string>();
       remote_cfg.addrCnt = MdsApi_ParseAddrListString(tcp_server.c_str(), remote_cfg.addrList, GENERAL_CLI_MAX_REMOTE_CNT);
@@ -81,7 +81,7 @@ bool OtpSender::Init(void) {
 bool OtpSender::ReqUserLogin(void) {
   INFO_LOG("login time, is going to login.");
   bool ret = true;
-  if (Init() == false) {
+  if (!Init()) {
     Release();
     ret = false;
   } else {
@@ -175,7 +175,7 @@ bool OtpSender::SubscribeMarketData(std::vector<utils::InstrumtntID> const &name
   if (count == 0) {
     INFO_LOG("no instrument need to Subscription.");
   } else {
-    if (result == true) {
+    if (static_cast<bool>(result)) {
       INFO_LOG("Subscription request ......Send a success, total number: %d", count);
     } else {
       ERROR_LOG("SubscribeMarketData fail, error code[%d]", result);
@@ -218,7 +218,7 @@ bool OtpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &na
   if (count == 0) {
     INFO_LOG("no instrument need to unSubscription.");
   } else {
-    if (result == true) {
+    if (static_cast<bool>(result)) {
       INFO_LOG("UnSubscription request ......Send a success, total number: %d", count);
     } else {
       ERROR_LOG("UnSubscription fail, error code[%d]", result);
@@ -231,8 +231,8 @@ bool OtpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &na
 bool OtpSender::LossConnection() { return false; }
 
 static int32 HandleMsg(MdsApiSessionInfoT *session, SMsgHeadT *head, void *item, void *callback) {
-  MdsMktRspMsgBodyT *rsp_msg = (MdsMktRspMsgBodyT *)item;
-  OtpMarketSpi *market_spi = (OtpMarketSpi *)callback;
+  auto *rsp_msg = static_cast<MdsMktRspMsgBodyT *>(item);
+  auto *market_spi = static_cast<OtpMarketSpi *>(callback);
 
   switch (head->msgId) {
     case MDS_MSGTYPE_L2_MARKET_DATA_SNAPSHOT:
@@ -246,22 +246,22 @@ static int32 HandleMsg(MdsApiSessionInfoT *session, SMsgHeadT *head, void *item,
 }
 
 static int32 ApiAsyncConnect(MdsAsyncApiChannelT *async_channel, void *callback) {
-  // OtpMarketSpi *market_spi = (OtpMarketSpi *)callback;
-  // std::string result = "success";
-  // market_spi->OnRspUserLogin(&result);
+  auto *market_spi = static_cast<OtpMarketSpi *>(callback);
+  std::string result = "success";
+  market_spi->OnRspUserLogin(&result);
   return 0;
 }
 
 static int32 ApiAsyncDisconnect(MdsAsyncApiChannelT *async_channel, void *callback) {
-  // OtpMarketSpi *market_spi = (OtpMarketSpi *)callback;
-  // std::string result = "success";
-  // market_spi->OnRspUserLogout(&result);
+  auto *market_spi = static_cast<OtpMarketSpi *>(callback);
+  std::string result = "success";
+  market_spi->OnRspUserLogout(&result);
   return 0;
 }
 
 static int32 QryStockStaticInfo(MdsApiSessionInfoT *session, SMsgHeadT *head, void *item, MdsQryCursorT *cursor, void *callback) {
-  MdsStockStaticInfoT *static_info = (MdsStockStaticInfoT *)item;
-  OtpMarketSpi *market_spi = (OtpMarketSpi *)callback;
+  auto *static_info = static_cast<MdsStockStaticInfoT *>(item);
+  auto *market_spi = static_cast<OtpMarketSpi *>(callback);
   market_spi->OnRspStockStaticInfo(static_info, cursor->isEnd);
   return 0;
 }

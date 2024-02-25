@@ -3,9 +3,9 @@
 #include <iostream>
 #include <memory>
 #include "common/extern/log/log.h"
+#include "common/self/global_sem.h"
 #include "common/self/profiler.h"
 #include "common/self/protobuf/ipc.pb.h"
-#include "common/self/semaphore.h"
 #include "common/self/utils.h"
 #include "market/infra/recer_sender.h"
 
@@ -23,7 +23,7 @@ void FtpMarketSpi::OnRspUserLogin(const FtpLoginLogoutStruct *login_info) {
     auto &global_sem = GlobalSem::GetInstance();
     auto &recer_sender = RecerSender::GetInstance();
     recer_sender.ROLE(InnerSender).SendMsg(msg);
-    global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
+    global_sem.WaitSemBySemName(SemName::kApiRecv);
   } else {
     ERROR_LOG("login_info is nullptr");
   }
@@ -43,7 +43,7 @@ void FtpMarketSpi::OnRspUserLogout(const FtpLoginLogoutStruct *login_info) {
     auto &global_sem = GlobalSem::GetInstance();
     auto &recer_sender = RecerSender::GetInstance();
     recer_sender.ROLE(InnerSender).SendMsg(msg);
-    global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
+    global_sem.WaitSemBySemName(SemName::kApiRecv);
   } else {
     ERROR_LOG("login_info is nullptr");
   }
@@ -66,7 +66,7 @@ void FtpMarketSpi::OnDepthMarketData(const FtpMarketDataStruct *market_data) {
     auto &global_sem = GlobalSem::GetInstance();
     auto &recer_sender = RecerSender::GetInstance();
     recer_sender.ROLE(InnerSender).SendMsg(msg);
-    global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
+    global_sem.WaitSemBySemName(SemName::kApiRecv);
   } else {
     ERROR_LOG("market_data is nullptr");
   }
@@ -85,7 +85,7 @@ void FtpMarketSpi::OnRspAllInstrumentInfo(FtpInstrumentInfo *ticker_info) {
     auto &global_sem = GlobalSem::GetInstance();
     auto &recer_sender = RecerSender::GetInstance();
     recer_sender.ROLE(InnerSender).SendMsg(msg);
-    global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
+    global_sem.WaitSemBySemName(SemName::kApiRecv);
   } else {
     ERROR_LOG("ticker_info is nullptr");
   }

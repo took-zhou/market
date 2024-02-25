@@ -8,13 +8,14 @@
 #include "market/interface/ftp_event/ftp_event.h"
 #include "common/extern/log/log.h"
 #include "common/self/file_util.h"
+#include "common/self/global_sem.h"
 #include "common/self/profiler.h"
 #include "common/self/protobuf/ipc.pb.h"
 #include "common/self/protobuf/market-trader.pb.h"
-#include "common/self/semaphore.h"
 #include "common/self/utils.h"
 #include "market/domain/market_service.h"
 #include "market/infra/recer_sender.h"
+
 
 #include <unistd.h>
 #include <sstream>
@@ -57,7 +58,7 @@ void FtpEvent::OnDepthMarketDataHandle(utils::ItpMsg &msg) {
   message.ParseFromString(msg.pb_msg);
   auto &itp_msg = message.itp_msg();
 
-  auto deepdata = (FtpMarketDataStruct *)itp_msg.address();
+  auto deepdata = reinterpret_cast<FtpMarketDataStruct *>(itp_msg.address());
   auto &market_ser = MarketService::GetInstance();
 
   market_ser.ROLE(PublishData).DirectForwardDataToStrategy(deepdata);
@@ -103,7 +104,7 @@ void FtpEvent::OnRspAllInstrumentInfoHandle(utils::ItpMsg &msg) {
   auto &market_ser = MarketService::GetInstance();
   market_ser.ROLE(InstrumentInfo).BuildInstrumentInfo(ins_info->instrument_id, instrument_info);
 
-  if (ins_info->is_last == true) {
+  if (ins_info->is_last) {
     market_ser.ROLE(InstrumentInfo).ShowInstrumentInfo();
   }
 }

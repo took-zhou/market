@@ -10,9 +10,9 @@
 #include "market/infra/base_zmq.h"
 
 DirectSender::DirectSender() {
-  publisher_ = zmq_socket(BaseZmq::GetInstance().context, ZMQ_PUB);
+  publisher_ = zmq_socket(BaseZmq::GetInstance().GetContext(), ZMQ_PUB);
 
-  string pub_ipaddport = "tcp://" + BaseZmq::GetInstance().local_ip + ":5557";
+  string pub_ipaddport = "tcp://" + BaseZmq::GetInstance().GetLocalIp() + ":5557";
   int result = zmq_bind(publisher_, pub_ipaddport.c_str());
 
   if (result != 0) {
@@ -30,5 +30,5 @@ bool DirectSender::SendMsg(utils::ItpMsg &msg) {
   outstring += " ";
   outstring += msg.pb_msg;
   int size = zmq_send(publisher_, const_cast<char *>(outstring.c_str()), outstring.length(), 0);
-  return (bool)(size > 0);
+  return (size > 0);
 }

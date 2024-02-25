@@ -25,28 +25,31 @@ struct PublishData : public MarketData {
 
   // 超时发送默认数据
   void HeartBeatDetect();
-  void OnceFromDefault(const PublishPara &p_c, const std::string &ins);
-  void OnceFromDefault(const PublishPara &p_c, FtpMarketDataStruct *p_d);
+  void UpdateLoginHeartBeat();
+  void UpdateLogoutHeartBeat();
+
+  void OnceFromDefault(const std::string &ins);
+  void OnceFromDefault(FtpMarketDataStruct *p_d);
 
   // ctp深度行情发送
   void DirectForwardDataToStrategy(CThostFtdcDepthMarketDataField *p_d);
-  void OnceFromDataflow(const PublishPara &p_c, CThostFtdcDepthMarketDataField *p_d);
+  void OnceFromDataflow(CThostFtdcDepthMarketDataField *p_d);
 
   // xtp深度行情发送
   void DirectForwardDataToStrategy(XTPMD *p_d);
-  void OnceFromDataflow(const PublishPara &p_c, XTPMD *p_d);
+  void OnceFromDataflow(XTPMD *p_d);
 
   // btp深度行情发送
   void DirectForwardDataToStrategy(BtpMarketDataStruct *p_d);
-  void OnceFromDataflow(const PublishPara &p_c, BtpMarketDataStruct *p_d);
+  void OnceFromDataflow(BtpMarketDataStruct *p_d);
 
   // otp深度行情发送
   void DirectForwardDataToStrategy(MdsMktDataSnapshotT *p_d);
-  void OnceFromDataflow(const PublishPara &p_c, MdsMktDataSnapshotT *p_d);
+  void OnceFromDataflow(MdsMktDataSnapshotT *p_d);
 
   // ftp深度行情发送
   void DirectForwardDataToStrategy(FtpMarketDataStruct *p_d);
-  void OnceFromDataflow(const PublishPara &p_c, FtpMarketDataStruct *p_d);
+  void OnceFromDataflow(FtpMarketDataStruct *p_d);
 
  private:
   const uint8_t kDataLevel_ = 1;

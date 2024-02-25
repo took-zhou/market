@@ -6,39 +6,41 @@
 
 FdManage::FdManage() {
   auto &json_cfg = utils::JsonConfig::GetInstance();
-  market_data_path = json_cfg.GetConfig("market", "ControlParaFilePath").get<std::string>();
+  market_data_path_ = json_cfg.GetConfig("market", "ControlParaFilePath").get<std::string>();
   auto users = json_cfg.GetConfig("market", "User");
   for (auto &user : users) {
-    market_data_path = market_data_path + "/" + (std::string)user + "/control.db";
-    utils::CreatFile(market_data_path);
+    market_data_path_ = market_data_path_ + "/" + static_cast<std::string>(user) + "/control.db";
+    utils::CreatFile(market_data_path_);
     break;
   }
 
-  if (sqlite3_open(market_data_path.c_str(), &market_conn) != SQLITE_OK) {
-    ERROR_LOG("Cannot open database: %s\n", sqlite3_errmsg(market_conn));
-    sqlite3_close(market_conn);
+  if (sqlite3_open(market_data_path_.c_str(), &market_conn_) != SQLITE_OK) {
+    ERROR_LOG("Cannot open database: %s\n", sqlite3_errmsg(market_conn_));
+    sqlite3_close(market_conn_);
   }
-  sqlite3_exec(market_conn, "PRAGMA synchronous = OFF; ", 0, 0, 0);
-  sqlite3_busy_timeout(market_conn, 3000);
+  sqlite3_exec(market_conn_, "PRAGMA synchronous = OFF; ", 0, 0, 0);
+  sqlite3_busy_timeout(market_conn_, 3000);
 
   char *error_msg = nullptr;
-  if (sqlite3_exec(market_conn, "BEGIN", 0, 0, &error_msg) != SQLITE_OK) {
+  if (sqlite3_exec(market_conn_, "BEGIN", 0, 0, &error_msg) != SQLITE_OK) {
     ERROR_LOG("Sql error %s.", error_msg);
     sqlite3_free(error_msg);
-    sqlite3_close(market_conn);
+    sqlite3_close(market_conn_);
   }
 }
 
 void FdManage::OpenThingsUp(void) {
   char *error_msg = nullptr;
-  if (sqlite3_exec(market_conn, "COMMIT", 0, 0, &error_msg) != SQLITE_OK) {
+  if (sqlite3_exec(market_conn_, "COMMIT", 0, 0, &error_msg) != SQLITE_OK) {
     ERROR_LOG("Sql error %s.", error_msg);
     sqlite3_free(error_msg);
-    sqlite3_close(market_conn);
+    sqlite3_close(market_conn_);
   }
-  if (sqlite3_exec(market_conn, "BEGIN", 0, 0, &error_msg) != SQLITE_OK) {
+  if (sqlite3_exec(market_conn_, "BEGIN", 0, 0, &error_msg) != SQLITE_OK) {
     ERROR_LOG("Sql error %s.", error_msg);
     sqlite3_free(error_msg);
-    sqlite3_close(market_conn);
+    sqlite3_close(market_conn_);
   }
 }
+
+sqlite3 *FdManage::GetMarketConn(void) { return market_conn_; }

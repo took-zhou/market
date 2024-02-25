@@ -15,16 +15,17 @@ PublishData::PublishData() { ; }
 
 void PublishData::DirectForwardDataToStrategy(CThostFtdcDepthMarketDataField *p_d) {
   auto &market_ser = MarketService::GetInstance();
-  auto pos = market_ser.ROLE(PublishControl).publish_para_map.find(p_d->InstrumentID);
-  if (pos != market_ser.ROLE(PublishControl).publish_para_map.end() && market_ser.login_state == kLoginState) {
-    OnceFromDataflow(pos->second, p_d);
-  } else if (pos == market_ser.ROLE(PublishControl).publish_para_map.end()) {
+  auto publish_para_ptr = market_ser.ROLE(PublishControl).GetPublishPara(p_d->InstrumentID);
+  if (publish_para_ptr != nullptr && market_ser.GetLoginState() == kLoginState) {
+    OnceFromDataflow(p_d);
+    publish_para_ptr->ClearHeartbeat();
+  } else if (!publish_para_ptr) {
     ERROR_LOG("can not find ins from control para: %s", p_d->InstrumentID);
   }
 }
 
-void PublishData::OnceFromDataflow(const PublishPara &p_c, CThostFtdcDepthMarketDataField *p_d) {
-  if (IsValidTickData(p_d) == false) {
+void PublishData::OnceFromDataflow(CThostFtdcDepthMarketDataField *p_d) {
+  if (!IsValidTickData(p_d)) {
     return;
   }
 
@@ -70,38 +71,44 @@ void PublishData::OnceFromDataflow(const PublishPara &p_c, CThostFtdcDepthMarket
   msg.msg_name = "TickData." + tick_data->instrument_id();
   auto &recer_sender = RecerSender::GetInstance();
   recer_sender.ROLE(Sender).ROLE(DirectSender).SendMsg(msg);
-
-  p_c.heartbeat = 0;
 }
 
 void PublishData::HeartBeatDetect() {
   auto &market_ser = MarketService::GetInstance();
-  auto &json_cfg = utils::JsonConfig::GetInstance();
-  unsigned char entry_logoutstate_flag = false;
+  bool entry_logoutstate_flag = false;
 
-  if (market_ser.login_state == kLoginState) {
-    for (auto &item_p_c : market_ser.ROLE(PublishControl).publish_para_map) {
-      item_p_c.second.heartbeat++;
-      if (item_p_c.second.heartbeat >= kHeartBeatWaitTime_) {
-        if (json_cfg.GetConfig("market", "TimingPush") == "yes") {
-          OnceFromDefault(item_p_c.second, item_p_c.first);
-        } else {
-          item_p_c.second.heartbeat = 0;
-        }
-      }
-    }
+  if (market_ser.GetLoginState() == kLoginState) {
+    UpdateLoginHeartBeat();
     entry_logoutstate_flag = false;
   } else {
-    if (entry_logoutstate_flag == false) {
-      for (auto &item_p_c : market_ser.ROLE(PublishControl).publish_para_map) {
-        item_p_c.second.heartbeat = 0;
-      }
+    if (!entry_logoutstate_flag) {
+      UpdateLogoutHeartBeat();
     }
     entry_logoutstate_flag = true;
   }
 }
 
-void PublishData::OnceFromDefault(const PublishPara &p_c, const string &ins) {
+void PublishData::UpdateLoginHeartBeat() {
+  auto &market_ser = MarketService::GetInstance();
+  auto &json_cfg = utils::JsonConfig::GetInstance();
+  for (auto &item_p_c : market_ser.ROLE(PublishControl).GetPublishParaMap()) {
+    if (item_p_c.second->IncHeartbeat() >= kHeartBeatWaitTime_) {
+      if (json_cfg.GetConfig("market", "TimingPush") == "yes") {
+        OnceFromDefault(item_p_c.first);
+      }
+      item_p_c.second->ClearHeartbeat();
+    }
+  }
+}
+
+void PublishData::UpdateLogoutHeartBeat() {
+  auto &market_ser = MarketService::GetInstance();
+  for (auto &item_p_c : market_ser.ROLE(PublishControl).GetPublishParaMap()) {
+    item_p_c.second->ClearHeartbeat();
+  }
+}
+
+void PublishData::OnceFromDefault(const string &ins) {
   auto &market_ser = MarketService::GetInstance();
   strategy_market::message tick;
   auto tick_data = tick.mutable_tick_data();
@@ -152,25 +159,24 @@ void PublishData::OnceFromDefault(const PublishPara &p_c, const string &ins) {
   utils::ItpMsg msg;
   tick.SerializeToString(&msg.pb_msg);
   msg.session_name = "strategy_market";
-  msg.msg_name = "TickData";
+  msg.msg_name = "TickData." + tick_data->instrument_id();
   auto &recer_sender = RecerSender::GetInstance();
   recer_sender.ROLE(Sender).ROLE(ProxySender).SendMsg(msg);
-
-  p_c.heartbeat = 0;
 }
 
 void PublishData::DirectForwardDataToStrategy(XTPMD *p_d) {
   auto &market_ser = MarketService::GetInstance();
-  auto pos = market_ser.ROLE(PublishControl).publish_para_map.find(p_d->ticker);
-  if (pos != market_ser.ROLE(PublishControl).publish_para_map.end() && market_ser.login_state == kLoginState) {
-    OnceFromDataflow(pos->second, p_d);
-  } else if (pos == market_ser.ROLE(PublishControl).publish_para_map.end()) {
+  auto publish_para_ptr = market_ser.ROLE(PublishControl).GetPublishPara(p_d->ticker);
+  if (publish_para_ptr != nullptr && market_ser.GetLoginState() == kLoginState) {
+    OnceFromDataflow(p_d);
+    publish_para_ptr->ClearHeartbeat();
+  } else if (!publish_para_ptr) {
     ERROR_LOG("can not find ins from control para: %s", p_d->ticker);
   }
 }
 
-void PublishData::OnceFromDataflow(const PublishPara &p_c, XTPMD *p_d) {
-  if (IsValidTickData(p_d) == false) {
+void PublishData::OnceFromDataflow(XTPMD *p_d) {
+  if (!IsValidTickData(p_d)) {
     return;
   }
 
@@ -219,15 +225,16 @@ void PublishData::OnceFromDataflow(const PublishPara &p_c, XTPMD *p_d) {
 
 void PublishData::DirectForwardDataToStrategy(BtpMarketDataStruct *p_d) {
   auto &market_ser = MarketService::GetInstance();
-  auto pos = market_ser.ROLE(PublishControl).publish_para_map.find(p_d->instrument_id);
-  if (pos != market_ser.ROLE(PublishControl).publish_para_map.end() && market_ser.login_state == kLoginState) {
-    OnceFromDataflow(pos->second, p_d);
-  } else if (pos == market_ser.ROLE(PublishControl).publish_para_map.end()) {
+  auto publish_para_ptr = market_ser.ROLE(PublishControl).GetPublishPara(p_d->instrument_id);
+  if (publish_para_ptr != nullptr && market_ser.GetLoginState() == kLoginState) {
+    OnceFromDataflow(p_d);
+    publish_para_ptr->ClearHeartbeat();
+  } else if (!publish_para_ptr) {
     ERROR_LOG("can not find ins from control para: %s", p_d->instrument_id);
   }
 }
 
-void PublishData::OnceFromDataflow(const PublishPara &p_c, BtpMarketDataStruct *p_d) {
+void PublishData::OnceFromDataflow(BtpMarketDataStruct *p_d) {
   strategy_market::message tick;
   auto tick_data = tick.mutable_tick_data();
 
@@ -258,7 +265,6 @@ void PublishData::OnceFromDataflow(const PublishPara &p_c, BtpMarketDataStruct *
     tick_data->set_ask_price5(Max2zero(p_d->ask_price[4]));
     tick_data->set_ask_volume5(p_d->ask_volume[4]);
   }
-  // tick_data->set_open_price(Max2zero(p_d->open_price));
   tick_data->set_volume(p_d->volume);
 
   utils::ItpMsg msg;
@@ -267,11 +273,9 @@ void PublishData::OnceFromDataflow(const PublishPara &p_c, BtpMarketDataStruct *
   msg.msg_name = "TickData." + tick_data->instrument_id();
   auto &recer_sender = RecerSender::GetInstance();
   recer_sender.ROLE(Sender).ROLE(DirectSender).SendMsg(msg);
-
-  p_c.heartbeat = 0;
 }
 
-void PublishData::OnceFromDefault(const PublishPara &p_c, FtpMarketDataStruct *p_d) {
+void PublishData::OnceFromDefault(FtpMarketDataStruct *p_d) {
   strategy_market::message tick;
   auto tick_data = tick.mutable_tick_data();
 
@@ -316,27 +320,26 @@ void PublishData::OnceFromDefault(const PublishPara &p_c, FtpMarketDataStruct *p
   utils::ItpMsg msg;
   tick.SerializeToString(&msg.pb_msg);
   msg.session_name = "strategy_market";
-  msg.msg_name = "TickData";
+  msg.msg_name = "TickData." + tick_data->instrument_id();
   auto &recer_sender = RecerSender::GetInstance();
   recer_sender.ROLE(Sender).ROLE(DirectSender).SendMsg(msg);
-
-  p_c.heartbeat = 0;
 }
 
 void PublishData::DirectForwardDataToStrategy(MdsMktDataSnapshotT *p_d) {
   char instrument_id[16];
   sprintf(instrument_id, "%06d", p_d->head.instrId);
   auto &market_ser = MarketService::GetInstance();
-  auto pos = market_ser.ROLE(PublishControl).publish_para_map.find(instrument_id);
-  if (pos != market_ser.ROLE(PublishControl).publish_para_map.end() && market_ser.login_state == kLoginState) {
-    OnceFromDataflow(pos->second, p_d);
-  } else if (pos == market_ser.ROLE(PublishControl).publish_para_map.end()) {
+  auto publish_para_ptr = market_ser.ROLE(PublishControl).GetPublishPara(instrument_id);
+  if (publish_para_ptr != nullptr && market_ser.GetLoginState() == kLoginState) {
+    OnceFromDataflow(p_d);
+    publish_para_ptr->ClearHeartbeat();
+  } else if (!publish_para_ptr) {
     ERROR_LOG("can not find ins from control para: %06d", p_d->head.instrId);
   }
 }
 
-void PublishData::OnceFromDataflow(const PublishPara &p_c, MdsMktDataSnapshotT *p_d) {
-  if (IsValidTickData(p_d) == false) {
+void PublishData::OnceFromDataflow(MdsMktDataSnapshotT *p_d) {
+  if (!IsValidTickData(p_d)) {
     return;
   }
 
@@ -382,28 +385,27 @@ void PublishData::OnceFromDataflow(const PublishPara &p_c, MdsMktDataSnapshotT *
   msg.msg_name = "TickData." + tick_data->instrument_id();
   auto &recer_sender = RecerSender::GetInstance();
   recer_sender.ROLE(Sender).ROLE(DirectSender).SendMsg(msg);
-
-  p_c.heartbeat = 0;
 }
 
 void PublishData::DirectForwardDataToStrategy(FtpMarketDataStruct *p_d) {
   auto &market_ser = MarketService::GetInstance();
   auto &json_cfg = utils::JsonConfig::GetInstance();
-  auto pos = market_ser.ROLE(PublishControl).publish_para_map.find(p_d->instrument_id);
-  if (pos != market_ser.ROLE(PublishControl).publish_para_map.end() && market_ser.login_state == kLoginState) {
+  auto publish_para_ptr = market_ser.ROLE(PublishControl).GetPublishPara(p_d->instrument_id);
+  if (publish_para_ptr != nullptr && market_ser.GetLoginState() == kLoginState) {
     if (p_d->state == 0) {
       if (json_cfg.GetConfig("market", "TimingPush") == "yes") {
-        OnceFromDefault(pos->second, p_d);
+        OnceFromDefault(p_d);
       }
     } else {
-      OnceFromDataflow(pos->second, p_d);
+      OnceFromDataflow(p_d);
     }
-  } else if (pos == market_ser.ROLE(PublishControl).publish_para_map.end()) {
+    publish_para_ptr->ClearHeartbeat();
+  } else if (!publish_para_ptr) {
     ERROR_LOG("can not find ins from control para: %s", p_d->instrument_id);
   }
 }
 
-void PublishData::OnceFromDataflow(const PublishPara &p_c, FtpMarketDataStruct *p_d) {
+void PublishData::OnceFromDataflow(FtpMarketDataStruct *p_d) {
   strategy_market::message tick;
   auto tick_data = tick.mutable_tick_data();
 
@@ -434,7 +436,6 @@ void PublishData::OnceFromDataflow(const PublishPara &p_c, FtpMarketDataStruct *
     tick_data->set_ask_price5(Max2zero(p_d->ask_price[4]));
     tick_data->set_ask_volume5(p_d->ask_volume[4]);
   }
-  // tick_data->set_open_price(Max2zero(p_d->open_price));
   tick_data->set_volume(p_d->volume);
 
   utils::ItpMsg msg;
@@ -443,6 +444,4 @@ void PublishData::OnceFromDataflow(const PublishPara &p_c, FtpMarketDataStruct *
   msg.msg_name = "TickData." + tick_data->instrument_id();
   auto &recer_sender = RecerSender::GetInstance();
   recer_sender.ROLE(Sender).ROLE(DirectSender).SendMsg(msg);
-
-  p_c.heartbeat = 0;
 }

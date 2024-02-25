@@ -8,10 +8,10 @@
 #include <thread>
 #include "common/extern/log/log.h"
 #include "common/self/file_util.h"
+#include "common/self/global_sem.h"
 #include "common/self/profiler.h"
 #include "common/self/protobuf/ctpview-market.pb.h"
 #include "common/self/protobuf/strategy-market.pb.h"
-#include "common/self/semaphore.h"
 #include "market/domain/market_service.h"
 #include "market/infra/recer_sender.h"
 #include "market/interface/market_event.h"
@@ -20,22 +20,22 @@ CtpviewEvent::CtpviewEvent() { RegMsgFun(); }
 
 void CtpviewEvent::RegMsgFun() {
   int cnt = 0;
-  msg_func_map.clear();
-  msg_func_map["LoginControl"] = [this](utils::ItpMsg &msg) { LoginControlHandle(msg); };
-  msg_func_map["BlockControl"] = [this](utils::ItpMsg &msg) { BlockControlHandle(msg); };
-  msg_func_map["BugInjection"] = [this](utils::ItpMsg &msg) { BugInjectionHandle(msg); };
-  msg_func_map["ProfilerControl"] = [this](utils::ItpMsg &msg) { ProfilerControlHandle(msg); };
-  msg_func_map["UpdatePara"] = [this](utils::ItpMsg &msg) { UpdateParaHandle(msg); };
+  msg_func_map_.clear();
+  msg_func_map_["LoginControl"] = [this](utils::ItpMsg &msg) { LoginControlHandle(msg); };
+  msg_func_map_["BlockControl"] = [this](utils::ItpMsg &msg) { BlockControlHandle(msg); };
+  msg_func_map_["BugInjection"] = [this](utils::ItpMsg &msg) { BugInjectionHandle(msg); };
+  msg_func_map_["ProfilerControl"] = [this](utils::ItpMsg &msg) { ProfilerControlHandle(msg); };
+  msg_func_map_["UpdatePara"] = [this](utils::ItpMsg &msg) { UpdateParaHandle(msg); };
 
-  for (auto &iter : msg_func_map) {
-    INFO_LOG("msg_func_map[%d] key is [%s]", cnt, iter.first.c_str());
+  for (auto &iter : msg_func_map_) {
+    INFO_LOG("msg_func_map_[%d] key is [%s]", cnt, iter.first.c_str());
     cnt++;
   }
 }
 
 void CtpviewEvent::Handle(utils::ItpMsg &msg) {
-  auto iter = msg_func_map.find(msg.msg_name);
-  if (iter != msg_func_map.end()) {
+  auto iter = msg_func_map_.find(msg.msg_name);
+  if (iter != msg_func_map_.end()) {
     iter->second(msg);
     return;
   }

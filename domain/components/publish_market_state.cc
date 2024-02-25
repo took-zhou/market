@@ -1,8 +1,8 @@
 #include "market/domain/components/publish_market_state.h"
 #include "common/extern/log/log.h"
+#include "common/self/global_sem.h"
 #include "common/self/protobuf/market-trader.pb.h"
 #include "common/self/protobuf/strategy-market.pb.h"
-#include "common/self/semaphore.h"
 #include "market/domain/components/market_time_state.h"
 #include "market/domain/market_service.h"
 #include "market/infra/recer_sender.h"
@@ -20,12 +20,12 @@ void PublishState::PublishEvent(void) {
   if (prev_sub_time_state == kInInitSts) {
     prev_sub_time_state = now_sub_time_state;
   }
-  if (prev_sub_time_state != now_sub_time_state && market_ser.login_state == kLoginState) {
+  if (prev_sub_time_state != now_sub_time_state && market_ser.GetLoginState() == kLoginState) {
     PublishToStrategy();
     prev_sub_time_state = now_sub_time_state;
     wait_publish_count_ = 0;
   }
-  if (publish_flag_ == true) {
+  if (publish_flag_) {
     wait_publish_count_++;
     if (wait_publish_count_ == max_wait_pushlish_count_) {
       WARNING_LOG("wait publish market rsp time out");
@@ -71,10 +71,10 @@ void PublishState::PublishToStrategy(void) {
 void PublishState::PublishEvent(FtpLoginLogoutStruct *login_logout) {
   PublishToTrader(login_logout);
   while (1) {
-    if (publish_flag_ == false) {
+    if (!publish_flag_) {
       wait_publish_count_ = 0;
       break;
-    } else if (publish_flag_ == true) {
+    } else {
       wait_publish_count_++;
       if (wait_publish_count_ == max_wait_pushlish_count_) {
         WARNING_LOG("wait publish market rsp time out");
@@ -86,10 +86,10 @@ void PublishState::PublishEvent(FtpLoginLogoutStruct *login_logout) {
 
   PublishToStrategy(login_logout);
   while (1) {
-    if (publish_flag_ == false) {
+    if (!publish_flag_) {
       wait_publish_count_ = 0;
       break;
-    } else if (publish_flag_ == true) {
+    } else {
       wait_publish_count_++;
       if (wait_publish_count_ == max_wait_pushlish_count_) {
         WARNING_LOG("wait publish market rsp time out");
@@ -120,7 +120,7 @@ void PublishState::PublishToTrader(FtpLoginLogoutStruct *login_logout) {
   auto market_state = tick.mutable_market_state_req();
   market_state->set_market_state(state);
   market_state->set_date(login_logout->date);
-  market_state->set_is_last((bool)true);
+  market_state->set_is_last(true);
 
   utils::ItpMsg msg;
   tick.SerializeToString(&msg.pb_msg);
@@ -151,7 +151,7 @@ void PublishState::PublishToStrategy(FtpLoginLogoutStruct *login_logout) {
   auto market_state = tick.mutable_market_state_req();
   market_state->set_market_state(state);
   market_state->set_date(login_logout->date);
-  market_state->set_is_last((bool)true);
+  market_state->set_is_last(true);
 
   utils::ItpMsg msg;
   tick.SerializeToString(&msg.pb_msg);

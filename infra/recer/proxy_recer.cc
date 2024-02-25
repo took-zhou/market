@@ -12,9 +12,9 @@
 #include "market/infra/base_zmq.h"
 
 ProxyRecer::ProxyRecer() {
-  receiver_ = zmq_socket(BaseZmq::GetInstance().context, ZMQ_SUB);
+  receiver_ = zmq_socket(BaseZmq::GetInstance().GetContext(), ZMQ_SUB);
 
-  string sub_ipaddport = "tcp://" + BaseZmq::GetInstance().local_ip + ":8100";
+  string sub_ipaddport = "tcp://" + BaseZmq::GetInstance().GetLocalIp() + ":8100";
   int result = zmq_connect(receiver_, sub_ipaddport.c_str());
   std::this_thread::sleep_for(std::chrono::seconds(1));
   if (result != 0) {
@@ -26,8 +26,8 @@ ProxyRecer::ProxyRecer() {
   SubscribeTopic();
 }
 
-bool ProxyRecer::IsTopicInSubTopics(std::string title) {
-  for (auto &topic : topic_list) {
+bool ProxyRecer::IsTopicInSubTopics(const std::string &title) {
+  for (auto &topic : topic_list_) {
     if (topic == title) {
       return true;
     }
@@ -36,27 +36,27 @@ bool ProxyRecer::IsTopicInSubTopics(std::string title) {
 }
 
 void ProxyRecer::SubscribeTopic() {
-  topic_list.clear();
+  topic_list_.clear();
 
   // strategy_market
-  topic_list.push_back("strategy_market.TickSubscribeReq");
-  topic_list.push_back("strategy_market.TickStartStopIndication");
-  topic_list.push_back("strategy_market.InstrumentReq");
-  topic_list.push_back("strategy_market.MarketStateRsp");
-  // market_market
-  topic_list.push_back("market_market.HeartBeat");
+  topic_list_.push_back("strategy_market.TickSubscribeReq");
+  topic_list_.push_back("strategy_market.TickStartStopIndication");
+  topic_list_.push_back("strategy_market.InstrumentReq");
+  topic_list_.push_back("strategy_market.MarketStateRsp");
+  topic_list_.push_back("strategy_market.CheckMarketAliveReq");
 
   // market_trader
-  topic_list.push_back("market_trader.QryInstrumentRsp");
-  topic_list.push_back("market_trader.MarketStateRsp");
+  topic_list_.push_back("market_trader.QryInstrumentRsp");
+  topic_list_.push_back("market_trader.MarketStateRsp");
 
-  topic_list.push_back("ctpview_market.LoginControl");
-  topic_list.push_back("ctpview_market.BlockControl");
-  topic_list.push_back("ctpview_market.BugInjection");
-  topic_list.push_back("ctpview_market.ProfilerControl");
-  topic_list.push_back("ctpview_market.UpdatePara");
+  // ctpview_market
+  topic_list_.push_back("ctpview_market.LoginControl");
+  topic_list_.push_back("ctpview_market.BlockControl");
+  topic_list_.push_back("ctpview_market.BugInjection");
+  topic_list_.push_back("ctpview_market.ProfilerControl");
+  topic_list_.push_back("ctpview_market.UpdatePara");
 
-  for (auto &topic : topic_list) {
+  for (auto &topic : topic_list_) {
     INFO_LOG("%s", topic.c_str());
     zmq_setsockopt(receiver_, ZMQ_SUBSCRIBE, topic.c_str(), strlen(topic.c_str()));
   }

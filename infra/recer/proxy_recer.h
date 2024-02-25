@@ -14,13 +14,13 @@
 struct ProxyRecer {
   ProxyRecer();
   bool ReceMsg(utils::ItpMsg &msg);
-  bool IsTopicInSubTopics(std::string title);
-  std::vector<std::string> topic_list;
+  bool IsTopicInSubTopics(const std::string &title);
 
  private:
-  void *receiver_{nullptr};
   void SubscribeTopic();
   void UnSubscribeTopic();
+  std::vector<std::string> topic_list_;
+  void *receiver_{nullptr};
 };
 
 #endif /* WORKSPACE_MARKET_INFRA_PROXYRECER_H_ */

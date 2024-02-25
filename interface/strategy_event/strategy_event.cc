@@ -9,7 +9,7 @@
 #include "common/self/protobuf/strategy-market.pb.h"
 #include "common/self/utils.h"
 
-#include "common/self/semaphore.h"
+#include "common/self/global_sem.h"
 #include "market/domain/market_service.h"
 #include "market/interface/strategy_event/strategy_event.h"
 
@@ -22,6 +22,7 @@ void StrategyEvent::RegMsgFun() {
   msg_func_map_["InstrumentReq"] = [this](utils::ItpMsg &msg) { InstrumentReqHandle(msg); };
   msg_func_map_["MarketStateRsp"] = [this](utils::ItpMsg &msg) { MarketStateRspHandle(msg); };
   msg_func_map_["PreProcessStateRsp"] = [this](utils::ItpMsg &msg) { PreProcessStateRspHandle(msg); };
+  msg_func_map_["CheckMarketAliveReq"] = [this](utils::ItpMsg &msg) { CheckMarketAliveReqHandle(msg); };
 
   for (auto &iter : msg_func_map_) {
     INFO_LOG("msg_func_map_[%d] key is [%s]", cnt, iter.first.c_str());
@@ -54,12 +55,10 @@ void StrategyEvent::TickSubscribeReqHandle(utils::ItpMsg &msg) {
     ins_id.exch = req_info.instrument_info().exchange_id();
     ins_vec.push_back(ins_id);
 
-    PublishPara p_a;
-    p_a.exch = req_info.instrument_info().exchange_id();
-    p_a.heartbeat = 0;
+    PublishPara p_a = {req_info.instrument_info().exchange_id(), 0};
 
     market_ser.ROLE(PublishControl).BuildPublishPara(ins_id.ins, p_a);
-    if (market_ser.login_state == kLoginState) {
+    if (market_ser.GetLoginState() == kLoginState) {
       market_ser.ROLE(SubscribeManager).SubscribeInstrument(ins_vec);
     } else {
       WARNING_LOG("now is logout, wait login to subscribe new instruments");
@@ -84,7 +83,7 @@ void StrategyEvent::InstrumentReqHandle(utils::ItpMsg &msg) {
   auto &market_ser = MarketService::GetInstance();
   strategy_market::message rsp;
   auto *instrument_rsp = rsp.mutable_instrument_rsp();
-  if (market_ser.login_state != kLoginState) {
+  if (market_ser.GetLoginState() != kLoginState) {
     instrument_rsp->set_instrument_id(ins);
     instrument_rsp->set_exchange_id(exch);
     instrument_rsp->set_result(strategy_market::Result::failed);
@@ -131,5 +130,17 @@ void StrategyEvent::MarketStateRspHandle(utils::ItpMsg &msg) {
 
 void StrategyEvent::PreProcessStateRspHandle(utils::ItpMsg &msg) {
   INFO_LOG("post sem name: kStrategyRsp");
-  GlobalSem::GetInstance().PostSemBySemName(GlobalSem::kStrategyRsp);
+  GlobalSem::GetInstance().PostSemBySemName(SemName::kStrategyRsp);
+}
+
+void StrategyEvent::CheckMarketAliveReqHandle(utils::ItpMsg &msg) {
+  strategy_market::message message;
+  auto *market_alive = message.mutable_market_alive_rsp();
+  market_alive->set_alive_rsp(true);
+
+  utils::ItpMsg send_msg;
+  message.SerializeToString(&send_msg.pb_msg);
+  send_msg.session_name = "strategy_market";
+  send_msg.msg_name = "CheckMarketAliveRsp";
+  RecerSender::GetInstance().ROLE(Sender).ROLE(ProxySender).SendMsg(send_msg);
 }

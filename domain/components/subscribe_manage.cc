@@ -105,23 +105,23 @@ void SubscribeManager::UnSubscribeAll() {
     ins_vec.clear();
   }
 
-  int i_k = pthread_mutex_lock(&(subscribed_.sm_mutex));
+  pthread_mutex_lock(&(subscribed_.sm_mutex));
   subscribed_.instrument_ids.clear();
-  i_k = pthread_mutex_unlock(&(subscribed_.sm_mutex));
+  pthread_mutex_unlock(&(subscribed_.sm_mutex));
   INFO_LOG("The number of contracts being unsubscribe is: %d.", count);
 }
 
 void SubscribeManager::EraseAllSubscribed() {
   int count = 0;
   count = subscribed_.instrument_ids.size();
-  int i_k = pthread_mutex_lock(&(subscribed_.sm_mutex));
+  pthread_mutex_lock(&(subscribed_.sm_mutex));
   subscribed_.instrument_ids.clear();
-  i_k = pthread_mutex_unlock(&(subscribed_.sm_mutex));
+  pthread_mutex_unlock(&(subscribed_.sm_mutex));
   INFO_LOG("The number of contracts being erased is: %d.", count);
 }
 
 void SubscribeManager::AddSubscribed(std::vector<utils::InstrumtntID>& name_vec) {
-  int i_k = pthread_mutex_lock(&(subscribed_.sm_mutex));
+  pthread_mutex_lock(&(subscribed_.sm_mutex));
 
   for (auto iter = name_vec.begin(); iter != name_vec.end();) {
     if (subscribed_.instrument_ids.find(*iter) == end(subscribed_.instrument_ids)) {
@@ -131,11 +131,11 @@ void SubscribeManager::AddSubscribed(std::vector<utils::InstrumtntID>& name_vec)
       iter = name_vec.erase(iter);
     }
   }
-  i_k = pthread_mutex_unlock(&(subscribed_.sm_mutex));
+  pthread_mutex_unlock(&(subscribed_.sm_mutex));
 }
 
 void SubscribeManager::RemoveSubscribed(std::vector<utils::InstrumtntID>& name_vec) {
-  int i_k = pthread_mutex_lock(&(subscribed_.sm_mutex));
+  pthread_mutex_lock(&(subscribed_.sm_mutex));
   for (auto iter = name_vec.begin(); iter != name_vec.end();) {
     if (subscribed_.instrument_ids.find(*iter) == end(subscribed_.instrument_ids)) {
       iter = name_vec.erase(iter);
@@ -144,5 +144,5 @@ void SubscribeManager::RemoveSubscribed(std::vector<utils::InstrumtntID>& name_v
       iter++;
     }
   }
-  i_k = pthread_mutex_unlock(&(subscribed_.sm_mutex));
+  pthread_mutex_unlock(&(subscribed_.sm_mutex));
 }

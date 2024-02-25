@@ -6,13 +6,13 @@
 #include "market/infra/base_zmq.h"
 
 InnerRecer::InnerRecer() {
-  puller_ = zmq_socket(BaseZmq::GetInstance().context, ZMQ_PULL);
-  int result = zmq_bind(puller_, BaseZmq::GetInstance().inproc_address.c_str());
+  puller_ = zmq_socket(BaseZmq::GetInstance().GetContext(), ZMQ_PULL);
+  int result = zmq_bind(puller_, BaseZmq::GetInstance().GetInprocAddress().c_str());
   std::this_thread::sleep_for(std::chrono::seconds(1));
   if (result != 0) {
-    ERROR_LOG("puller_ bind to %s failed", BaseZmq::GetInstance().inproc_address.c_str());
+    ERROR_LOG("puller_ bind to %s failed", BaseZmq::GetInstance().GetInprocAddress().c_str());
   } else {
-    INFO_LOG("puller_ bind to %s ok", BaseZmq::GetInstance().inproc_address.c_str());
+    INFO_LOG("puller_ bind to %s ok", BaseZmq::GetInstance().GetInprocAddress().c_str());
   }
 }
 

@@ -3,7 +3,7 @@
 #include <thread>
 #include "common/extern/log/log.h"
 #include "common/self/file_util.h"
-#include "common/self/semaphore.h"
+#include "common/self/global_sem.h"
 #include "common/self/utils.h"
 #include "market/infra/recer/xtp_recer.h"
 
@@ -14,23 +14,23 @@ XtpSender::XtpSender(void) { ; }
 
 bool XtpSender::Init(void) {
   bool out = true;
-  if (is_init_ == false) {
+  if (!is_init_) {
     auto &json_cfg = utils::JsonConfig::GetInstance();
     auto users = json_cfg.GetConfig("market", "User");
     for (auto &user : users) {
-      con_path_ = json_cfg.GetConfig("market", "ConPath").get<std::string>() + "/" + (std::string)user;
+      con_path_ = json_cfg.GetConfig("market", "ConPath").get<std::string>() + "/" + static_cast<std::string>(user);
       utils::CreatFolder(con_path_);
 
-      uint8_t client_id = json_cfg.GetConfig("common", "ClientId").get<std::uint8_t>();
+      auto client_id = json_cfg.GetConfig("common", "ClientId").get<std::uint8_t>();
       quote_api = XTP::API::QuoteApi::CreateQuoteApi(client_id, con_path_.c_str(), XTP_LOG_LEVEL_DEBUG);
       INFO_LOG("xtp version: %s.", quote_api->GetApiVersion());
 
       quote_spi = new XtpQuoteSpi();
       quote_api->RegisterSpi(quote_spi);
 
-      //设定行情服务器超时时间，单位为秒
+      // 设定行情服务器超时时间，单位为秒
       quote_api->SetHeartBeatInterval(120);
-      //设定行情本地缓存大小，单位为MB
+      // 设定行情本地缓存大小，单位为MB
       quote_api->SetUDPBufferSize(1);
 
       INFO_LOG("quote_api init ok.");
@@ -49,9 +49,9 @@ bool XtpSender::ReqUserLogin(void) {
   auto &json_cfg = utils::JsonConfig::GetInstance();
   auto users = json_cfg.GetConfig("market", "User");
   for (auto &user : users) {
-    std::string frontaddr = json_cfg.GetDeepConfig("users", (std::string)user, "FrontMdAddr").get<std::string>();
-    std::string user_id = json_cfg.GetDeepConfig("users", (std::string)user, "UserID").get<std::string>();
-    std::string password = json_cfg.GetDeepConfig("users", (std::string)user, "Password").get<std::string>();
+    auto frontaddr = json_cfg.GetDeepConfig("users", static_cast<std::string>(user), "FrontMdAddr").get<std::string>();
+    auto user_id = json_cfg.GetDeepConfig("users", static_cast<std::string>(user), "UserID").get<std::string>();
+    auto password = json_cfg.GetDeepConfig("users", static_cast<std::string>(user), "Password").get<std::string>();
 
     auto protocol_ip_port = utils::SplitString(frontaddr, ":");
     std::string ip_str = utils::SplitString(protocol_ip_port[1], "//")[1];
@@ -72,7 +72,7 @@ bool XtpSender::ReqUserLogin(void) {
     } else {
       UpdateInstrumentInfoFromMarket();
       auto &global_sem = GlobalSem::GetInstance();
-      if (global_sem.WaitSemBySemName(GlobalSem::kLoginLogout, 3) != 0) {
+      if (global_sem.WaitSemBySemName(SemName::kLoginLogout, 3) != 0) {
         quote_spi->OnRspUserLogin();
       }
     }
@@ -90,7 +90,7 @@ bool XtpSender::ReqUserLogout() {
     INFO_LOG("ReqUserLogout send result is [%d]", result);
 
     auto &global_sem = GlobalSem::GetInstance();
-    if (global_sem.WaitSemBySemName(GlobalSem::kLoginLogout, 3) != 0) {
+    if (global_sem.WaitSemBySemName(SemName::kLoginLogout, 3) != 0) {
       quote_spi->OnRspUserLogout();
     }
 
@@ -220,7 +220,7 @@ void XtpSender::UpdateInstrumentInfoFromMarket() {
     if (result != 0) {
       ERROR_LOG("request full shse market instruments, result[%d]", result);
     }
-    if (!global_sem.WaitSemBySemName(GlobalSem::kUpdateInstrumentInfo, 60)) {
+    if (!global_sem.WaitSemBySemName(SemName::kUpdateInstrumentInfo, 60)) {
       break;
     }
   }
@@ -230,7 +230,7 @@ void XtpSender::UpdateInstrumentInfoFromMarket() {
     if (result != 0) {
       ERROR_LOG("request full szse market instruments, result[%d]", result);
     }
-    if (!global_sem.WaitSemBySemName(GlobalSem::kUpdateInstrumentInfo, 60)) {
+    if (!global_sem.WaitSemBySemName(SemName::kUpdateInstrumentInfo, 60)) {
       break;
     }
   }
@@ -238,4 +238,4 @@ void XtpSender::UpdateInstrumentInfoFromMarket() {
   INFO_LOG("UpdateInstrumentInfoFromMarket ok");
 }
 
-bool XtpSender::LossConnection() { return (quote_spi != nullptr && quote_spi->front_disconnected == true); }
+bool XtpSender::LossConnection() { return (quote_spi != nullptr && quote_spi->GetFrontDisconnect()); }

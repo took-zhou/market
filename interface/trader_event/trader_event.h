@@ -21,7 +21,8 @@ struct TraderEvent {
   void MarketStateRspHandle(utils::ItpMsg &msg);
   bool IsValidInsName(const std::string &name);
 
-  std::map<std::string, std::function<void(utils::ItpMsg &msg)>> msg_func_map;
+ private:
+  std::map<std::string, std::function<void(utils::ItpMsg &msg)>> msg_func_map_;
 };
 
 #endif /* WORKSPACE_MARKET_INTERFACE_TRADEREVENT_TRADEREVENT_H_ */

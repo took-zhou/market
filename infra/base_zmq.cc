@@ -8,6 +8,12 @@
 #include "common/self/utils.h"
 
 BaseZmq::BaseZmq() {
-  context = zmq_ctx_new();
-  utils::GetLocalIp(local_ip);
+  context_ = zmq_ctx_new();
+  utils::GetLocalIp(local_ip_);
 }
+
+std::string &BaseZmq::GetLocalIp() { return local_ip_; }
+
+std::string &BaseZmq::GetInprocAddress() { return inproc_address_; }
+
+void *BaseZmq::GetContext() { return context_; }

@@ -3,7 +3,7 @@
 #include <thread>
 #include "common/extern/log/log.h"
 #include "common/self/file_util.h"
-#include "common/self/semaphore.h"
+#include "common/self/global_sem.h"
 #include "common/self/utils.h"
 #include "market/infra/recer/btp_recer.h"
 
@@ -14,12 +14,12 @@ BtpSender::BtpSender(void) { ; }
 
 bool BtpSender::Init(void) {
   bool out = true;
-  if (is_init_ == false) {
+  if (!is_init_) {
     auto &json_cfg = utils::JsonConfig::GetInstance();
     auto users = json_cfg.GetConfig("market", "User");
     for (auto &user : users) {
-      std::string temp_folder = json_cfg.GetConfig("market", "ControlParaFilePath").get<std::string>();
-      std::string db_path = temp_folder + "/" + (std::string)user;
+      auto temp_folder = json_cfg.GetConfig("market", "ControlParaFilePath").get<std::string>();
+      std::string db_path = temp_folder + "/" + static_cast<std::string>(user);
       market_api = btp::api::MarketApi::CreateMarketApi(db_path.c_str());
       if (market_api == nullptr) {
         out = false;
@@ -43,7 +43,7 @@ bool BtpSender::Init(void) {
 bool BtpSender::ReqUserLogin(void) {
   INFO_LOG("login time, is going to login.");
   bool ret = true;
-  if (Init() == false) {
+  if (!Init()) {
     Release();
     ret = false;
   } else {

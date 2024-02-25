@@ -6,7 +6,7 @@
 static char payload_text[1000];
 
 static size_t PayloadSource(void *ptr, size_t size, size_t nmemb, void *userp) {
-  struct EmailSender::UploadStatus *upload_ctx = (struct EmailSender::UploadStatus *)userp;
+  auto *upload_ctx = static_cast<struct EmailSender::UploadStatus *>(userp);
   const char *data;
   size_t room = size * nmemb;
 
@@ -36,7 +36,7 @@ EmailSender::EmailSender() {
 
   auto redipients = json_cfg.GetConfig("emailbox", "redipients");
   for (auto &redipient : redipients) {
-    std::string recv_email = redipient.get<std::string>();
+    auto recv_email = redipient.get<std::string>();
     std::string recv_name = utils::SplitString(redipient.get<std::string>(), "@")[0];
     m_recvs_.push_back(std::make_pair(recv_email, recv_name));
   }
@@ -80,5 +80,5 @@ int EmailSender::Send(const std::string &subject, const std::string &body) {
     curl_easy_cleanup(curl);
   }
 
-  return (int)res;
+  return static_cast<int>(res);
 }

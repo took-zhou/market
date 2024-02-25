@@ -8,6 +8,7 @@
 #define WORKSPACE_MARKET_DOMAIN_MARKETSERVICE_H_
 
 #include "common/self/dci/role.h"
+#include "market/domain/components/diagnostic.h"
 #include "market/domain/components/instrument_info.h"
 #include "market/domain/components/market_time_state.h"
 #include "market/domain/components/publish_control.h"
@@ -17,9 +18,9 @@
 #include "market/domain/components/subscribe_manage.h"
 #include "market/infra/recer_sender.h"
 
-enum MarketLoginState { kErrorState = 0, kLoginState = 1, kLogoutState = 2, kManualExit = 3 };
+enum MarketLoginState { kErrorState = 0, kLoginState = 1, kLogoutState = 2, kManualExit = 3, kLossConnection = 4 };
 
-struct MarketService : MarketTimeState, LoadData, PublishControl, PublishData, PublishState, SubscribeManager, InstrumentInfo {
+struct MarketService : MarketTimeState, LoadData, PublishControl, PublishData, PublishState, SubscribeManager, InstrumentInfo, Diagnostic {
   MarketService();
   MarketService(const MarketService &) = delete;
   MarketService &operator=(const MarketService &) = delete;
@@ -35,16 +36,22 @@ struct MarketService : MarketTimeState, LoadData, PublishControl, PublishData, P
   IMPL_ROLE(PublishState);
   IMPL_ROLE(SubscribeManager);
   IMPL_ROLE(InstrumentInfo);
+  IMPL_ROLE(Diagnostic);
 
   bool UpdateLoginState(MarketLoginState state);
-  MarketLoginState login_state = kLogoutState;
+  MarketLoginState GetLoginState();
 
  private:
-  bool HandleAccountExitException();
-  bool RealTimeLoginLogoutChange();
+  void FastBackTask();
+  void RealTimeTask();
+  bool HandleErrorState();
+  bool HandleLoginState();
+  bool HandleLogoutState();
+  bool HandleLossConnection();
   bool FastBackLoginLogoutChange();
+  bool RealTimeLoginLogoutChange();
   void InitDatabase();
-  bool init_database_flag_ = false;
+  MarketLoginState login_state_ = kLogoutState;
   uint32_t try_login_heartbeat_ = 0;
   uint32_t try_login_count_ = 0;
 };

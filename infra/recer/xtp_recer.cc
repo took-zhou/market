@@ -3,8 +3,8 @@
 #include <iostream>
 #include <memory>
 #include "common/extern/log/log.h"
+#include "common/self/global_sem.h"
 #include "common/self/protobuf/ipc.pb.h"
-#include "common/self/semaphore.h"
 #include "common/self/utils.h"
 #include "market/infra/recer_sender.h"
 
@@ -16,7 +16,7 @@ XtpQuoteSpi::~XtpQuoteSpi() {}
 
 void XtpQuoteSpi::OnDisconnected(int reason) {
   ERROR_LOG("front_disconnected, ErrorCode:%#x", reason);
-  front_disconnected = true;
+  front_disconnected_ = true;
 }
 
 // market端ctp登入没有反馈，主动调用反馈接口
@@ -36,9 +36,9 @@ void XtpQuoteSpi::OnRspUserLogin(void) {
   auto &global_sem = GlobalSem::GetInstance();
   auto &recer_sender = RecerSender::GetInstance();
   recer_sender.ROLE(InnerSender).SendMsg(msg);
-  global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
+  global_sem.WaitSemBySemName(SemName::kApiRecv);
 
-  front_disconnected = false;
+  front_disconnected_ = false;
 }
 
 // market端xtp登出没有反馈，主动调用反馈接口
@@ -58,7 +58,7 @@ void XtpQuoteSpi::OnRspUserLogout(void) {
   auto &global_sem = GlobalSem::GetInstance();
   auto &recer_sender = RecerSender::GetInstance();
   recer_sender.ROLE(InnerSender).SendMsg(msg);
-  global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
+  global_sem.WaitSemBySemName(SemName::kApiRecv);
 }
 
 void XtpQuoteSpi::OnDepthMarketData(XTPMD *market_data, int64_t bid1_qty[], int32_t bid1_count, int32_t max_bid1_count, int64_t ask1_qty[],
@@ -78,7 +78,7 @@ void XtpQuoteSpi::OnDepthMarketData(XTPMD *market_data, int64_t bid1_qty[], int3
     auto &global_sem = GlobalSem::GetInstance();
     auto &recer_sender = RecerSender::GetInstance();
     recer_sender.ROLE(InnerSender).SendMsg(msg);
-    global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
+    global_sem.WaitSemBySemName(SemName::kApiRecv);
   } else {
     ERROR_LOG("market_data is nullptr");
   }
@@ -100,7 +100,7 @@ void XtpQuoteSpi::OnQueryAllTickers(XTPQSI *ticker_info, XTPRI *error_info, bool
     auto &global_sem = GlobalSem::GetInstance();
     auto &recer_sender = RecerSender::GetInstance();
     recer_sender.ROLE(InnerSender).SendMsg(msg);
-    global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
+    global_sem.WaitSemBySemName(SemName::kApiRecv);
   } else {
     ERROR_LOG("ticker_info is nullptr");
   }
@@ -156,3 +156,5 @@ bool XtpQuoteSpi::IsErrorRspInfo(XTPRI *p_rsp_info) {
 
   return b_result;
 }
+
+bool XtpQuoteSpi::GetFrontDisconnect() { return front_disconnected_; }

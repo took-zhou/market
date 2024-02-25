@@ -24,7 +24,7 @@ struct LoadData : public MarketData {
   void LoadDepthMarketDataToCsv(MdsMktDataSnapshotT *p_d);
 
   bool ClassifyContractFiles(void);
-  bool MoveContractToFolder(std::string contract_name, std::string exchange_name);
+  bool MoveContractToFolder(const std::string &contract_name, const std::string &exchange_name);
 
  private:
   std::string history_tick_folder_;

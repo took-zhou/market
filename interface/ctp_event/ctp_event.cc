@@ -12,13 +12,14 @@
 #include <thread>
 #include "common/extern/log/log.h"
 #include "common/self/file_util.h"
+#include "common/self/global_sem.h"
 #include "common/self/profiler.h"
 #include "common/self/protobuf/ipc.pb.h"
 #include "common/self/protobuf/market-trader.pb.h"
-#include "common/self/semaphore.h"
 #include "common/self/utils.h"
 #include "market/domain/market_service.h"
 #include "market/infra/recer_sender.h"
+
 
 CtpEvent::CtpEvent() {
   RegMsgFun();
@@ -29,20 +30,20 @@ CtpEvent::CtpEvent() {
 
 void CtpEvent::RegMsgFun() {
   int cnt = 0;
-  msg_func_map.clear();
-  msg_func_map["OnRtnDepthMarketData"] = [this](utils::ItpMsg &msg) { DeepMarktDataHandle(msg); };
-  msg_func_map["OnRspUserLogin"] = [this](utils::ItpMsg &msg) { OnRspUserLoginHandle(msg); };
-  msg_func_map["OnRspUserLogout"] = [this](utils::ItpMsg &msg) { OnRspUserLogoutHandle(msg); };
+  msg_func_map_.clear();
+  msg_func_map_["OnRtnDepthMarketData"] = [this](utils::ItpMsg &msg) { DeepMarktDataHandle(msg); };
+  msg_func_map_["OnRspUserLogin"] = [this](utils::ItpMsg &msg) { OnRspUserLoginHandle(msg); };
+  msg_func_map_["OnRspUserLogout"] = [this](utils::ItpMsg &msg) { OnRspUserLogoutHandle(msg); };
 
-  for (auto &iter : msg_func_map) {
-    INFO_LOG("msg_func_map[%d] key is [%s]", cnt, iter.first.c_str());
+  for (auto &iter : msg_func_map_) {
+    INFO_LOG("msg_func_map_[%d] key is [%s]", cnt, iter.first.c_str());
     cnt++;
   }
 }
 
 void CtpEvent::Handle(utils::ItpMsg &msg) {
-  auto iter = msg_func_map.find(msg.msg_name);
-  if (iter != msg_func_map.end()) {
+  auto iter = msg_func_map_.find(msg.msg_name);
+  if (iter != msg_func_map_.end()) {
     iter->second(msg);
     return;
   }
@@ -55,14 +56,14 @@ void CtpEvent::DeepMarktDataHandle(utils::ItpMsg &msg) {
   message.ParseFromString(msg.pb_msg);
   auto &itp_msg = message.itp_msg();
 
-  auto deepdata = (CThostFtdcDepthMarketDataField *)itp_msg.address();
+  auto deepdata = reinterpret_cast<CThostFtdcDepthMarketDataField *>(itp_msg.address());
   auto &market_ser = MarketService::GetInstance();
 
   if (req_instrument_from_ == "api") {
     market_ser.ROLE(LoadData).LoadDepthMarketDataToCsv(deepdata);
   } else {
-    if (block_control_.block == false ||
-        (block_control_.block == true && block_control_.instruments.find(deepdata->InstrumentID) == block_control_.instruments.end())) {
+    if (!block_control_.block ||
+        (block_control_.block && block_control_.instruments.find(deepdata->InstrumentID) == block_control_.instruments.end())) {
       market_ser.ROLE(PublishData).DirectForwardDataToStrategy(deepdata);
     }
   }
@@ -137,7 +138,7 @@ void CtpEvent::UpdateInstrumentInfoFromTrader() {
   for (uint8_t wait_count = 0; wait_count < 3; wait_count++) {
     recer_sender.ROLE(Sender).ROLE(ProxySender).SendMsg(msg);
     INFO_LOG("update instrument info from trader send ok, waiting trader rsp.");
-    if (!global_sem.WaitSemBySemName(GlobalSem::kUpdateInstrumentInfo, 60)) {
+    if (!global_sem.WaitSemBySemName(SemName::kUpdateInstrumentInfo, 60)) {
       break;
     }
   }
@@ -149,9 +150,5 @@ void CtpEvent::SetBlockControl(const std::string &ins, ctpview_market::BlockCont
   } else if (block_control_.instruments.find(ins) == block_control_.instruments.end() && command == ctpview_market::BlockControl::block) {
     block_control_.instruments.insert(ins);
   }
-  if (block_control_.instruments.size() > 0) {
-    block_control_.block = true;
-  } else {
-    block_control_.block = false;
-  }
+  block_control_.block = block_control_.instruments.size() > 0;
 }

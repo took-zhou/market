@@ -10,7 +10,7 @@
 #include <string>
 #include "common/extern/log/log.h"
 #include "common/self/file_util.h"
-#include "common/self/semaphore.h"
+#include "common/self/global_sem.h"
 #include "common/self/utils.h"
 #include "market/infra/recer/ctp_recer.h"
 
@@ -21,11 +21,11 @@ CtpSender::CtpSender(void) { ; }
 
 bool CtpSender::Init(void) {
   bool out = true;
-  if (is_init_ == false) {
+  if (!is_init_) {
     auto &json_cfg = utils::JsonConfig::GetInstance();
     auto users = json_cfg.GetConfig("market", "User");
     for (auto &user : users) {
-      con_path_ = json_cfg.GetConfig("market", "ConPath").get<std::string>() + "/" + std::string(user) + "/";
+      con_path_ = json_cfg.GetConfig("market", "ConPath").get<std::string>() + "/" + static_cast<std::string>(user) + "/";
       utils::CreatFolder(con_path_);
       market_api = CThostFtdcMdApi::CreateFtdcMdApi(con_path_.c_str(), true, true);
       INFO_LOG("ctp version: %s.", market_api->GetApiVersion());
@@ -33,13 +33,13 @@ bool CtpSender::Init(void) {
       market_spi = new CtpMarketSpi();
       market_api->RegisterSpi(market_spi);
 
-      std::string frontaddr = json_cfg.GetDeepConfig("users", std::string(user), "FrontMdAddr").get<std::string>();
+      auto frontaddr = json_cfg.GetDeepConfig("users", static_cast<std::string>(user), "FrontMdAddr").get<std::string>();
 
       market_api->RegisterFront(const_cast<char *>(frontaddr.c_str()));
       market_api->Init();
 
       auto &global_sem = GlobalSem::GetInstance();
-      if (global_sem.WaitSemBySemName(GlobalSem::kLoginLogout, 3)) {
+      if (global_sem.WaitSemBySemName(SemName::kLoginLogout, 3)) {
         out = false;
         ERROR_LOG("market init fail.");
       } else {
@@ -74,7 +74,7 @@ bool CtpSender::Release() {
 
 bool CtpSender::ReqUserLogin() {
   bool ret = true;
-  if (Init() == false) {
+  if (!Init()) {
     ret = false;
     Release();
   } else {
@@ -83,9 +83,9 @@ bool CtpSender::ReqUserLogin() {
 
     auto users = json_cfg.GetConfig("market", "User");
     for (auto &user : users) {
-      std::string user_id = json_cfg.GetDeepConfig("users", std::string(user), "UserID");
-      std::string broker_id = json_cfg.GetDeepConfig("users", (std::string)user, "BrokerID");
-      std::string pass_word = json_cfg.GetDeepConfig("users", (std::string)user, "Password");
+      std::string user_id = json_cfg.GetDeepConfig("users", static_cast<std::string>(user), "UserID");
+      std::string broker_id = json_cfg.GetDeepConfig("users", static_cast<std::string>(user), "BrokerID");
+      std::string pass_word = json_cfg.GetDeepConfig("users", static_cast<std::string>(user), "Password");
       strcpy(req_user_login.BrokerID, broker_id.c_str());
       strcpy(req_user_login.UserID, user_id.c_str());
       strcpy(req_user_login.Password, pass_word.c_str());
@@ -95,7 +95,7 @@ bool CtpSender::ReqUserLogin() {
         INFO_LOG("ReqUserLogin send result is [%d]", result);
       } else {
         auto &global_sem = GlobalSem::GetInstance();
-        global_sem.WaitSemBySemName(GlobalSem::kLoginLogout);
+        global_sem.WaitSemBySemName(SemName::kLoginLogout);
       }
 
       break;
@@ -112,8 +112,8 @@ bool CtpSender::ReqUserLogout() {
   INFO_LOG("logout time, is going to logout.");
   auto users = json_cfg.GetConfig("market", "User");
   for (auto &user : users) {
-    std::string user_id = json_cfg.GetDeepConfig("users", (std::string)user, "UserID").get<std::string>();
-    std::string broker_id = json_cfg.GetDeepConfig("users", (std::string)user, "BrokerID").get<std::string>();
+    auto user_id = json_cfg.GetDeepConfig("users", static_cast<std::string>(user), "UserID").get<std::string>();
+    auto broker_id = json_cfg.GetDeepConfig("users", static_cast<std::string>(user), "BrokerID").get<std::string>();
     strcpy(req_user_logout.UserID, user_id.c_str());
     strcpy(req_user_logout.BrokerID, broker_id.c_str());
 
@@ -123,7 +123,7 @@ bool CtpSender::ReqUserLogout() {
         INFO_LOG("ReqUserLogout send result is [%d]", result);
       }
       auto &global_sem = GlobalSem::GetInstance();
-      if (global_sem.WaitSemBySemName(GlobalSem::kLoginLogout, 3) != 0) {
+      if (global_sem.WaitSemBySemName(SemName::kLoginLogout, 3) != 0) {
         market_spi->OnRspUserLogout();
       }
       Release();
@@ -198,4 +198,4 @@ bool CtpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &na
   return result;
 };
 
-bool CtpSender::LossConnection() { return (market_spi != nullptr && market_spi->front_disconnected == true); }
+bool CtpSender::LossConnection() { return (market_spi != nullptr && market_spi->GetFrontDisconnect()); }

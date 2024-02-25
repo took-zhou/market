@@ -24,6 +24,7 @@ struct StrategyEvent {
   void InstrumentReqHandle(utils::ItpMsg &msg);
   void MarketStateRspHandle(utils::ItpMsg &msg);
   void PreProcessStateRspHandle(utils::ItpMsg &msg);
+  void CheckMarketAliveReqHandle(utils::ItpMsg &msg);
 
  private:
   std::map<std::string, std::function<void(utils::ItpMsg &msg)>> msg_func_map_;

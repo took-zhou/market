@@ -17,13 +17,13 @@
 #include "market/interface/trader_event/trader_event.h"
 #include "market/interface/xtp_event/xtp_event.h"
 
-
 #include <functional>
 #include <map>
 #include <string>
 #include "common/self/dci/role.h"
 
 struct MarketEvent : BtpEvent, CtpEvent, XtpEvent, OtpEvent, FtpEvent, StrategyEvent, TraderEvent, CtpviewEvent {
+ public:
   MarketEvent();
   MarketEvent(const MarketEvent &) = delete;
   MarketEvent &operator=(const MarketEvent &) = delete;
@@ -42,7 +42,9 @@ struct MarketEvent : BtpEvent, CtpEvent, XtpEvent, OtpEvent, FtpEvent, StrategyE
   IMPL_ROLE(StrategyEvent);
   IMPL_ROLE(TraderEvent);
   IMPL_ROLE(CtpviewEvent);
-  std::map<std::string, std::function<void(utils::ItpMsg msg)>> session_func_map;
+
+ private:
+  std::map<std::string, std::function<void(utils::ItpMsg msg)>> session_func_map_;
 };
 
 #endif /* WORKSPACE_MARKET_INTERFACE_MARKETEVENT_H_ */

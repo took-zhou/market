@@ -33,9 +33,8 @@ struct XtpEvent {
 
   void SetBlockControl(ctpview_market::BlockControl_Command command);
 
-  std::map<std::string, std::function<void(utils::ItpMsg &msg)>> msg_func_map;
-
  private:
+  std::map<std::string, std::function<void(utils::ItpMsg &msg)>> msg_func_map_;
   std::string req_instrument_from_ = "local";
   ctpview_market::BlockControl_Command block_control_ = ctpview_market::BlockControl_Command_unblock;
 };

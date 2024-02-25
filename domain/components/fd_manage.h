@@ -1,5 +1,6 @@
 #ifndef MARKET_FD_MANAGE_H
 #define MARKET_FD_MANAGE_H
+#include <memory>
 #include <string>
 #include "common/extern/sqlite3/sqlite3.h"
 
@@ -14,8 +15,11 @@ struct FdManage {
   }
 
   void OpenThingsUp(void);
-  sqlite3 *market_conn = NULL;
-  std::string market_data_path = "";
+  sqlite3 *GetMarketConn(void);
+
+ private:
+  sqlite3 *market_conn_ = nullptr;
+  std::string market_data_path_ = "";
 };
 
 #endif

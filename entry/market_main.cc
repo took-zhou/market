@@ -18,7 +18,6 @@
 #include "market/infra/recer_sender.h"
 #include "market/interface/market_event.h"
 
-
 void SignalHandler(int signal) {
   auto &market_ser = MarketService::GetInstance();
   market_ser.UpdateLoginState(MarketLoginState::kManualExit);
@@ -37,12 +36,12 @@ int main(int argc, char *agrv[]) {
   auto &json_cfg = utils::JsonConfig::GetInstance();
   json_cfg.SetFileName("/etc/marktrade/config.json");
 
-  std::string market_log_path = json_cfg.GetConfig("market", "LogPath").get<std::string>();
+  auto market_log_path = json_cfg.GetConfig("market", "LogPath").get<std::string>();
   utils::CreatFolder(market_log_path);
   LOG_INIT(market_log_path.c_str(), "marketlog", 6);
   INFO_LOG("markt log path is %s", market_log_path.c_str());
 
-  std::string market_data_path = json_cfg.GetConfig("market", "ControlParaFilePath").get<std::string>();
+  auto market_data_path = json_cfg.GetConfig("market", "ControlParaFilePath").get<std::string>();
   utils::CreatFolder(market_data_path);
   profiler::FlameGraphWriter::Instance().SetFilePath(market_data_path);
 

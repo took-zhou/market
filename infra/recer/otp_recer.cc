@@ -3,9 +3,9 @@
 #include <iostream>
 #include <memory>
 #include "common/extern/log/log.h"
+#include "common/self/global_sem.h"
 #include "common/self/profiler.h"
 #include "common/self/protobuf/ipc.pb.h"
-#include "common/self/semaphore.h"
 #include "common/self/utils.h"
 #include "market/infra/recer_sender.h"
 
@@ -23,7 +23,7 @@ void OtpMarketSpi::OnRspUserLogin(const std::string *login_info) {
     auto &global_sem = GlobalSem::GetInstance();
     auto &recer_sender = RecerSender::GetInstance();
     recer_sender.ROLE(InnerSender).SendMsg(msg);
-    global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
+    global_sem.WaitSemBySemName(SemName::kApiRecv);
   } else {
     ERROR_LOG("login_info is nullptr");
   }
@@ -43,7 +43,7 @@ void OtpMarketSpi::OnRspUserLogout(const std::string *logout_info) {
     auto &global_sem = GlobalSem::GetInstance();
     auto &recer_sender = RecerSender::GetInstance();
     recer_sender.ROLE(InnerSender).SendMsg(msg);
-    global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
+    global_sem.WaitSemBySemName(SemName::kApiRecv);
   } else {
     ERROR_LOG("logout_info is nullptr");
   }
@@ -63,7 +63,7 @@ void OtpMarketSpi::OnRspStockStaticInfo(const MdsStockStaticInfoT *static_info, 
     auto &global_sem = GlobalSem::GetInstance();
     auto &recer_sender = RecerSender::GetInstance();
     recer_sender.ROLE(InnerSender).SendMsg(msg);
-    global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
+    global_sem.WaitSemBySemName(SemName::kApiRecv);
   } else {
     ERROR_LOG("static_info is nullptr");
   }
@@ -86,7 +86,7 @@ void OtpMarketSpi::OnDepthMarketData(const MdsMktDataSnapshotT *market_data) {
     auto &global_sem = GlobalSem::GetInstance();
     auto &recer_sender = RecerSender::GetInstance();
     recer_sender.ROLE(InnerSender).SendMsg(msg);
-    global_sem.WaitSemBySemName(GlobalSem::kApiRecv);
+    global_sem.WaitSemBySemName(SemName::kApiRecv);
   } else {
     ERROR_LOG("market_data is nullptr");
   }

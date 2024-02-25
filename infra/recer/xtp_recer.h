@@ -54,10 +54,11 @@ class XtpQuoteSpi : public XTP::API::QuoteSpi {
 
   void OnRspUserLogin(void);
   void OnRspUserLogout(void);
-  bool front_disconnected = false;
+  bool GetFrontDisconnect();
 
  private:
   bool IsErrorRspInfo(XTPRI *p_rsp_info);
+  bool front_disconnected_ = false;
 };
 
 #endif /* WORKSPACE_MARKET_INFRA_CTPRECER_H_ */

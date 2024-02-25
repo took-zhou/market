@@ -1,6 +1,7 @@
 #ifndef MARKET_PUBLISH_CONTROL_H
 #define MARKET_PUBLISH_CONTROL_H
 
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -10,9 +11,15 @@
 #include "common/self/utils.h"
 
 struct PublishPara {
-  /*realtime*/
-  std::string exch = "";
-  mutable uint32_t heartbeat = 0;
+ public:
+  PublishPara(const std::string &exch, uint32_t heartbeat) : exch_(exch), heartbeat_(heartbeat) {}
+  const void ClearHeartbeat(void) const { heartbeat_ = 0; };
+  uint32_t IncHeartbeat(void) { return ++heartbeat_; };
+  const std::string &GetExch() const { return exch_; };
+
+ private:
+  std::string exch_ = "";
+  mutable uint32_t heartbeat_ = 0;
 };
 
 struct PublishControl {
@@ -21,15 +28,17 @@ struct PublishControl {
 
   void BuildPublishPara(const std::string &ins, const PublishPara &para);
   void ErasePublishPara(const std::string &ins = "");
+  const PublishPara *GetPublishPara(const std::string &ins);
 
-  std::vector<utils::InstrumtntID> GetInstrumentList();
-  std::unordered_map<std::string, PublishPara> publish_para_map;
-  bool init_database_flag = false;
+  const std::vector<utils::InstrumtntID> &GetInstrumentList();
+  const std::unordered_map<std::string, std::unique_ptr<PublishPara>> &GetPublishParaMap();
 
  private:
   void PrepareSqlSentence();
   void RestoreFromSqlite3();
   void InitDatabase();
+  std::vector<utils::InstrumtntID> instrument_vec_;
+  std::unordered_map<std::string, std::unique_ptr<PublishPara>> publish_para_map_;
   sqlite3_stmt *insert_control_ = nullptr;
   sqlite3_stmt *delete_control_ = nullptr;
 };

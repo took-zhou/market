@@ -10,9 +10,9 @@
 #include "market/infra/base_zmq.h"
 
 ProxySender::ProxySender() {
-  publisher_ = zmq_socket(BaseZmq::GetInstance().context, ZMQ_PUB);
+  publisher_ = zmq_socket(BaseZmq::GetInstance().GetContext(), ZMQ_PUB);
 
-  string pub_ipaddport = "tcp://" + BaseZmq::GetInstance().local_ip + ":5556";
+  string pub_ipaddport = "tcp://" + BaseZmq::GetInstance().GetLocalIp() + ":5556";
   int result = zmq_connect(publisher_, pub_ipaddport.c_str());
 
   if (result != 0) {
@@ -32,5 +32,5 @@ bool ProxySender::SendMsg(utils::ItpMsg &msg) {
   outstring += msg.pb_msg;
   int size = zmq_send(publisher_, const_cast<char *>(outstring.c_str()), outstring.length(), 0);
   m_lock_.unlock();
-  return (bool)(size > 0);
+  return (size > 0);
 }

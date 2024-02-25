@@ -11,14 +11,14 @@
 #include "market/infra/base_zmq.h"
 
 InnerSender::InnerSender() {
-  pusher_ = zmq_socket(BaseZmq::GetInstance().context, ZMQ_PUSH);
+  pusher_ = zmq_socket(BaseZmq::GetInstance().GetContext(), ZMQ_PUSH);
 
-  int result = zmq_connect(pusher_, BaseZmq::GetInstance().inproc_address.c_str());
+  int result = zmq_connect(pusher_, BaseZmq::GetInstance().GetInprocAddress().c_str());
   std::this_thread::sleep_for(std::chrono::seconds(1));
   if (result != 0) {
-    ERROR_LOG("publisher connect to %s failed", BaseZmq::GetInstance().inproc_address.c_str());
+    ERROR_LOG("publisher connect to %s failed", BaseZmq::GetInstance().GetInprocAddress().c_str());
   } else {
-    INFO_LOG("publisher connect to %s ok", BaseZmq::GetInstance().inproc_address.c_str());
+    INFO_LOG("publisher connect to %s ok", BaseZmq::GetInstance().GetInprocAddress().c_str());
   }
 }
 
@@ -30,5 +30,5 @@ bool InnerSender::SendMsg(utils::ItpMsg &msg) {
   outstring += " ";
   outstring += msg.pb_msg;
   int size = zmq_send(pusher_, const_cast<char *>(outstring.c_str()), outstring.length(), 0);
-  return (bool)(size > 0);
+  return (size > 0);
 }

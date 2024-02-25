@@ -118,7 +118,7 @@ void MarketTimeState::Update(void) {
   time_t now = {0};
 
   time(&now);
-  timenow_ = localtime(&now);  //获取当前时间
+  timenow_ = localtime(&now);  // 获取当前时间
   now_mins_ = timenow_->tm_hour * 60 + timenow_->tm_min;
 
   Step();
@@ -137,7 +137,7 @@ void MarketTimeState::SetTimeState(int command) {
 MarketTimeState::MarketTimeState() {
   auto &json_cfg = utils::JsonConfig::GetInstance();
 
-  string time_str = json_cfg.GetConfig("market", "LogInTimeList").get<std::string>();
+  auto time_str = json_cfg.GetConfig("market", "LogInTimeList").get<std::string>();
   vector<string> time_duration_splited = utils::SplitString(time_str, ";");
   if (time_duration_splited.size() == 1) {
     vector<string> day_time_str_split = utils::SplitString(time_duration_splited[0], "-");
@@ -183,6 +183,4 @@ SubTimeState MarketTimeState::GetSubTimeState() {
   }
 }
 
-struct tm *MarketTimeState::GetTimeNow() {
-  return timenow_;
-}
+struct tm *MarketTimeState::GetTimeNow() { return timenow_; }
