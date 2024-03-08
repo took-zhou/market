@@ -8,12 +8,10 @@
 #include <thread>
 #include "common/extern/log/log.h"
 #include "common/self/file_util.h"
-#include "common/self/global_sem.h"
 #include "common/self/profiler.h"
 #include "common/self/protobuf/ctpview-market.pb.h"
 #include "common/self/protobuf/strategy-market.pb.h"
 #include "market/domain/market_service.h"
-#include "market/infra/recer_sender.h"
 #include "market/interface/market_event.h"
 
 CtpviewEvent::CtpviewEvent() { RegMsgFun(); }
@@ -26,6 +24,7 @@ void CtpviewEvent::RegMsgFun() {
   msg_func_map_["BugInjection"] = [this](utils::ItpMsg &msg) { BugInjectionHandle(msg); };
   msg_func_map_["ProfilerControl"] = [this](utils::ItpMsg &msg) { ProfilerControlHandle(msg); };
   msg_func_map_["UpdatePara"] = [this](utils::ItpMsg &msg) { UpdateParaHandle(msg); };
+  msg_func_map_["ClearDiagnosticEvent"] = [this](utils::ItpMsg &msg) { ClearDiagnosticEventHandle(msg); };
 
   for (auto &iter : msg_func_map_) {
     INFO_LOG("msg_func_map_[%d] key is [%s]", cnt, iter.first.c_str());
@@ -64,7 +63,7 @@ void CtpviewEvent::BlockControlHandle(utils::ItpMsg &msg) {
   auto &market_event = MarketEvent::GetInstance();
 
   for (int i = 0; i < indication.instrument_size(); i++) {
-    auto ins = indication.instrument(i);
+    const auto &ins = indication.instrument(i);
     INFO_LOG("set block quotation control: %s, %d", ins.c_str(), command);
     market_event.ROLE(CtpEvent).SetBlockControl(ins, command);
   }
@@ -111,4 +110,14 @@ void CtpviewEvent::UpdateParaHandle(utils::ItpMsg &msg) {
     utils::JsonConfig::GetInstance().GetConfig();
     INFO_LOG("reload config file");
   }
+}
+
+void CtpviewEvent::ClearDiagnosticEventHandle(utils::ItpMsg &msg) {
+  auto &market_ser = MarketService::GetInstance();
+  ctpview_market::message message;
+  message.ParseFromString(msg.pb_msg);
+  auto clear_diagnostic_event = message.clear_diagnostic_event();
+  auto event_id = clear_diagnostic_event.diagnostic_event_id();
+
+  market_ser.ROLE(Diagnostic).ClearStatus(static_cast<DiagnosticEventId>(event_id));
 }

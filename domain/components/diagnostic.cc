@@ -9,10 +9,8 @@
 
 #include "common/extern/log/log.h"
 #include "common/self/dem.h"
-#include "common/self/global_sem.h"
 #include "market/domain/components/diagnostic.h"
 #include "market/domain/components/fd_manage.h"
-#include "market/domain/market_service.h"
 
 Diagnostic::Diagnostic() {
   AddTestConfig(kApiCallFailed, 10, 10);
@@ -57,21 +55,31 @@ void Diagnostic::MonitorStatus() {
     if (event_id_mask == 0) {
       break;
     }
-    if (event_id_mask & 1) {
-      RecordStatus(static_cast<DiagnosticEventId>(index));
+    if ((event_id_mask & 1) && !diagnostic_recorded_map_[static_cast<DiagnosticEventId>(index)]) {
+      RecordStatus(static_cast<DiagnosticEventId>(index), DiagEventStatus::kFail);
+      diagnostic_recorded_map_[static_cast<DiagnosticEventId>(index)] = true;
     }
     event_id_mask >>= 1;
   }
 }
 
-void Diagnostic::RecordStatus(DiagnosticEventId event_id) {
+void Diagnostic::ClearStatus(DiagnosticEventId event_id) {
+  if (event_id >= kEventMax) {
+    return;
+  }
+  diagnostic_recorded_map_[event_id] = false;
+  RecordStatus(event_id, DiagEventStatus::kTestNocompleted);
+  INFO_LOG("clear diagnostic event id %d' status ok.", event_id);
+}
+
+void Diagnostic::RecordStatus(DiagnosticEventId event_id, DiagEventStatus status) {
   time_t now = time(0);
   tm* local_time = localtime(&now);
   char snapshot_time[24];
   strftime(snapshot_time, sizeof(snapshot_time), "%Y-%m-%d %H:%M:%S", local_time);
 
   sqlite3_reset(update_diagnostic_info_);
-  sqlite3_bind_int(update_diagnostic_info_, 1, DiagEventStatus::kFail);
+  sqlite3_bind_int(update_diagnostic_info_, 1, status);
   sqlite3_bind_text(update_diagnostic_info_, 2, snapshot_time, sizeof(snapshot_time), 0);
   sqlite3_bind_int(update_diagnostic_info_, 3, event_id);
   if (sqlite3_step(update_diagnostic_info_) != SQLITE_DONE) {

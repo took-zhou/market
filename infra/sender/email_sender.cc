@@ -1,7 +1,9 @@
 #include "market/infra/sender/email_sender.h"
+#include "common/extern/curl/include/curl/curl.h"
 #include "common/extern/log/log.h"
 #include "common/self/file_util.h"
 #include "common/self/utils.h"
+
 
 static char payload_text[1000];
 

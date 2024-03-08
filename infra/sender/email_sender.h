@@ -5,8 +5,6 @@
 #include <utility>
 #include <vector>
 
-#include "common/extern/curl/include/curl/curl.h"
-
 struct EmailSender {
   struct UploadStatus {
     int bytes_read;

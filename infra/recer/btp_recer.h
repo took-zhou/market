@@ -8,7 +8,6 @@
 #ifndef WORKSPACE_MARKET_INFRA_BTPRECER_H_
 #define WORKSPACE_MARKET_INFRA_BTPRECER_H_
 #include "common/extern/btp/inc/btp_market_api.h"
-#include "common/self/utils.h"
 
 class BtpMarketSpi : public btp::api::MarketSpi {
  public:

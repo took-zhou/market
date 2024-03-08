@@ -1,6 +1,5 @@
 #include "market/domain/components/publish_market_state.h"
 #include "common/extern/log/log.h"
-#include "common/self/global_sem.h"
 #include "common/self/protobuf/market-trader.pb.h"
 #include "common/self/protobuf/strategy-market.pb.h"
 #include "market/domain/components/market_time_state.h"

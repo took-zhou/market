@@ -7,6 +7,7 @@
 
 #include "market/infra/sender/inner_sender.h"
 #include <thread>
+#include "common/extern/libzmq/include/zmq.h"
 #include "common/extern/log/log.h"
 #include "market/infra/base_zmq.h"
 

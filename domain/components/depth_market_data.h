@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "common/extern/ctp/inc/ThostFtdcUserApiStruct.h"
-#include "common/extern/otp/inc/mds_api/mds_async_api.h"
+#include "common/extern/otp/inc/mds_global/mds_base_model.h"
 #include "common/extern/xtp/inc/xquote_api_struct.h"
 
 struct MarketData {

@@ -8,7 +8,6 @@
 #ifndef WORKSPACE_MARKET_INFRA_XTPRECER_H_
 #define WORKSPACE_MARKET_INFRA_XTPRECER_H_
 #include "common/extern/xtp/inc/xtp_quote_api.h"
-#include "common/self/utils.h"
 
 class XtpQuoteSpi : public XTP::API::QuoteSpi {
  public:

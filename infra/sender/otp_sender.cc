@@ -5,7 +5,6 @@
 #include "common/extern/log/log.h"
 #include "common/extern/otp/inc/mds_api/mds_async_api.h"
 #include "common/self/file_util.h"
-#include "common/self/global_sem.h"
 #include "common/self/utils.h"
 #include "market/infra/recer/otp_recer.h"
 #include "mds_api/mds_api.h"

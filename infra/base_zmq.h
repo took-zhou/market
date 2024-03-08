@@ -8,7 +8,6 @@
 #define WORKSPACE_MARKET_INFRA_ZMQBASE_H_
 
 #include <string>
-#include "common/extern/libzmq/include/zmq.h"
 
 struct BaseZmq {
  public:

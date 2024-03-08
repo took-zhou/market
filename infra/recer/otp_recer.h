@@ -7,8 +7,8 @@
 
 #ifndef WORKSPACE_MARKET_INFRA_OTPRECER_H_
 #define WORKSPACE_MARKET_INFRA_OTPRECER_H_
-#include "common/extern/otp/inc/mds_api/mds_async_api.h"
-#include "common/self/utils.h"
+#include <string>
+#include "common/extern/otp/inc/mds_global/mds_base_model.h"
 
 class OtpMarketSpi {
  public:

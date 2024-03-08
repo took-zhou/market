@@ -6,8 +6,10 @@
  */
 
 #include "market/infra/sender/proxy_sender.h"
+#include "common/extern/libzmq/include/zmq.h"
 #include "common/extern/log/log.h"
 #include "market/infra/base_zmq.h"
+
 
 ProxySender::ProxySender() {
   publisher_ = zmq_socket(BaseZmq::GetInstance().GetContext(), ZMQ_PUB);

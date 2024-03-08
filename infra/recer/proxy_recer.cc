@@ -7,9 +7,11 @@
 #include "market/infra/recer/proxy_recer.h"
 #include <map>
 #include <thread>
+#include "common/extern/libzmq/include/zmq.h"
 #include "common/extern/log/log.h"
 #include "common/self/utils.h"
 #include "market/infra/base_zmq.h"
+
 
 ProxyRecer::ProxyRecer() {
   receiver_ = zmq_socket(BaseZmq::GetInstance().GetContext(), ZMQ_SUB);
@@ -55,6 +57,7 @@ void ProxyRecer::SubscribeTopic() {
   topic_list_.push_back("ctpview_market.BugInjection");
   topic_list_.push_back("ctpview_market.ProfilerControl");
   topic_list_.push_back("ctpview_market.UpdatePara");
+  topic_list_.push_back("ctpview_market.ClearDiagnosticEvent");
 
   for (auto &topic : topic_list_) {
     INFO_LOG("%s", topic.c_str());

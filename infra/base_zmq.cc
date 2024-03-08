@@ -5,7 +5,9 @@
  *      Author: Administrator
  */
 #include "market/infra/base_zmq.h"
+#include "common/extern/libzmq/include/zmq.h"
 #include "common/self/utils.h"
+
 
 BaseZmq::BaseZmq() {
   context_ = zmq_ctx_new();

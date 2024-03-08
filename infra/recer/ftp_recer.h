@@ -8,7 +8,6 @@
 #ifndef WORKSPACE_MARKET_INFRA_FTPRECER_H_
 #define WORKSPACE_MARKET_INFRA_FTPRECER_H_
 #include "common/extern/ftp/inc/ftp_market_api.h"
-#include "common/self/utils.h"
 
 class FtpMarketSpi : public ftp::api::MarketSpi {
  public:

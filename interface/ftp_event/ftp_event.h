@@ -10,7 +10,6 @@
 #include <functional>
 #include <map>
 #include <string>
-#include "common/extern/ftp/inc/ftp_market_struct.h"
 #include "common/self/utils.h"
 
 struct FtpEvent {

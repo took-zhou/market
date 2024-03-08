@@ -10,7 +10,6 @@
 #include "common/extern/log/log.h"
 #include "common/self/file_util.h"
 #include "common/self/protobuf/ctpview-market.pb.h"
-#include "common/self/timer.h"
 #include "common/self/utils.h"
 
 uint8_t MarketTimeState::IsDuringDayLogoutTime(void) {
@@ -183,4 +182,6 @@ SubTimeState MarketTimeState::GetSubTimeState() {
   }
 }
 
-struct tm *MarketTimeState::GetTimeNow() { return timenow_; }
+struct tm *MarketTimeState::GetTimeNow() {
+  return timenow_;
+}

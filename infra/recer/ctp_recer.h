@@ -8,7 +8,6 @@
 #ifndef WORKSPACE_MARKET_INFRA_CTPRECER_H_
 #define WORKSPACE_MARKET_INFRA_CTPRECER_H_
 #include "common/extern/ctp/inc/ThostFtdcMdApi.h"
-#include "common/self/utils.h"
 
 class CtpMarketSpi : public CThostFtdcMdSpi {
  public:

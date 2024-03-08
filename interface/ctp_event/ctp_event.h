@@ -10,7 +10,6 @@
 #include <functional>
 #include <map>
 #include <string>
-#include "common/extern/ctp/inc/ThostFtdcMdApi.h"
 #include "common/self/protobuf/ctpview-market.pb.h"
 #include "common/self/utils.h"
 

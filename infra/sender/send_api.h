@@ -1,7 +1,6 @@
 #ifndef __MARKETSENDAPI__
 #define __MARKETSENDAPI__
 #include "common/self/utils.h"
-#include "vector"
 
 struct SendApi {
  public:

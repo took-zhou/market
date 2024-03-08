@@ -16,7 +16,6 @@
 #include "market/domain/components/publish_market_state.h"
 #include "market/domain/components/store_depth_market_data.h"
 #include "market/domain/components/subscribe_manage.h"
-#include "market/infra/recer_sender.h"
 
 enum MarketLoginState { kErrorState = 0, kLoginState = 1, kLogoutState = 2, kManualExit = 3, kLossConnection = 4 };
 

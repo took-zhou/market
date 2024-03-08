@@ -8,15 +8,9 @@
 #include "common/extern//btp/inc/btp_market_struct.h"
 #include "common/extern//ftp/inc/ftp_market_struct.h"
 #include "common/extern/ctp/inc/ThostFtdcUserApiStruct.h"
-#include "common/extern/xtp/inc/xtp_quote_api.h"
 
-#include "common/self/dci/role.h"
 #include "common/self/protobuf/strategy-market.pb.h"
-#include "common/self/utils.h"
-
-#include "common/extern/otp/inc/mds_api/mds_async_api.h"
 #include "market/domain/components/depth_market_data.h"
-#include "market/domain/components/publish_control.h"
 
 struct PublishData : public MarketData {
  public:

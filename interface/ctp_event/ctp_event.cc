@@ -13,13 +13,11 @@
 #include "common/extern/log/log.h"
 #include "common/self/file_util.h"
 #include "common/self/global_sem.h"
-#include "common/self/profiler.h"
 #include "common/self/protobuf/ipc.pb.h"
 #include "common/self/protobuf/market-trader.pb.h"
 #include "common/self/utils.h"
 #include "market/domain/market_service.h"
 #include "market/infra/recer_sender.h"
-
 
 CtpEvent::CtpEvent() {
   RegMsgFun();

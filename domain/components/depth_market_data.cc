@@ -1,8 +1,5 @@
 #include "market/domain/components/depth_market_data.h"
 #include "common/extern/log/log.h"
-#include "common/self/file_util.h"
-#include "common/self/profiler.h"
-#include "common/self/utils.h"
 #include "market/domain/market_service.h"
 
 MarketData::MarketData() { instrument_exchange_map_.clear(); }

@@ -6,6 +6,7 @@
  */
 
 #include "market/infra/sender/direct_sender.h"
+#include "common/extern/libzmq/include/zmq.h"
 #include "common/extern/log/log.h"
 #include "market/infra/base_zmq.h"
 

@@ -10,7 +10,6 @@
 #include <functional>
 #include <map>
 #include <string>
-#include "common/extern/btp/inc/btp_market_struct.h"
 #include "common/self/utils.h"
 
 struct BtpEvent {

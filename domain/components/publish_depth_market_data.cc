@@ -3,12 +3,10 @@
 // 自定义头文件
 #include "common/extern/log/log.h"
 #include "common/self/file_util.h"
-#include "common/self/profiler.h"
 #include "common/self/protobuf/strategy-market.pb.h"
 #include "common/self/utils.h"
 #include "market/domain/components/publish_depth_market_data.h"
 #include "market/domain/market_service.h"
-#include "market/infra/recer/ctp_recer.h"
 #include "market/infra/recer_sender.h"
 
 PublishData::PublishData() { ; }
@@ -156,10 +154,11 @@ void PublishData::OnceFromDefault(const string &ins) {
 
   tick_data->set_volume(0);
 
+  // 该函数和DirectSender是独立的线程，采用ProxySender发送，msg_name不增加合约名字
   utils::ItpMsg msg;
   tick.SerializeToString(&msg.pb_msg);
   msg.session_name = "strategy_market";
-  msg.msg_name = "TickData." + tick_data->instrument_id();
+  msg.msg_name = "TickData";
   auto &recer_sender = RecerSender::GetInstance();
   recer_sender.ROLE(Sender).ROLE(ProxySender).SendMsg(msg);
 }
@@ -317,12 +316,13 @@ void PublishData::OnceFromDefault(FtpMarketDataStruct *p_d) {
 
   tick_data->set_volume(0);
 
+  // 和超时发送保持一致，采用ProxySender发送
   utils::ItpMsg msg;
   tick.SerializeToString(&msg.pb_msg);
   msg.session_name = "strategy_market";
-  msg.msg_name = "TickData." + tick_data->instrument_id();
+  msg.msg_name = "TickData";
   auto &recer_sender = RecerSender::GetInstance();
-  recer_sender.ROLE(Sender).ROLE(DirectSender).SendMsg(msg);
+  recer_sender.ROLE(Sender).ROLE(ProxySender).SendMsg(msg);
 }
 
 void PublishData::DirectForwardDataToStrategy(MdsMktDataSnapshotT *p_d) {

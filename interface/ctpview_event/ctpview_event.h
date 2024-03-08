@@ -23,6 +23,7 @@ struct CtpviewEvent {
   void BugInjectionHandle(utils::ItpMsg &msg);
   void ProfilerControlHandle(utils::ItpMsg &msg);
   void UpdateParaHandle(utils::ItpMsg &msg);
+  void ClearDiagnosticEventHandle(utils::ItpMsg &msg);
 
  private:
   std::map<std::string, std::function<void(utils::ItpMsg &msg)>> msg_func_map_;

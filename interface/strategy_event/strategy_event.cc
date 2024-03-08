@@ -11,7 +11,9 @@
 
 #include "common/self/global_sem.h"
 #include "market/domain/market_service.h"
+#include "market/infra/recer_sender.h"
 #include "market/interface/strategy_event/strategy_event.h"
+
 
 StrategyEvent::StrategyEvent() { RegMsgFun(); }
 

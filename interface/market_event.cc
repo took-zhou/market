@@ -10,7 +10,6 @@
 #include "common/extern/log/log.h"
 #include "common/self/global_sem.h"
 #include "common/self/utils.h"
-#include "market/domain/market_service.h"
 #include "market/infra/recer_sender.h"
 
 void MarketEvent::RegSessionFunc() {
