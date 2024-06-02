@@ -4,7 +4,6 @@
 #include "common/self/file_util.h"
 #include "common/self/utils.h"
 
-
 static char payload_text[1000];
 
 static size_t PayloadSource(void *ptr, size_t size, size_t nmemb, void *userp) {
@@ -69,7 +68,7 @@ int EmailSender::Send(const std::string &subject, const std::string &body) {
       recv_list += item.first;
     }
     curl_easy_setopt(curl, CURLOPT_MAIL_RCPT, recipients);
-    sprintf(payload_text, "To: %s\r\nFrom: chaodai DevOps team\r\nSubject: %s\r\n\r\n%s\r\n", recv_list.c_str(), subject.c_str(),
+    sprintf(payload_text, "To: %s\r\nFrom: Tsaodai DevOps team\r\nSubject: %s\r\n\r\n%s\r\n", recv_list.c_str(), subject.c_str(),
             body.c_str());
     curl_easy_setopt(curl, CURLOPT_READFUNCTION, PayloadSource);
     curl_easy_setopt(curl, CURLOPT_READDATA, &upload_ctx);

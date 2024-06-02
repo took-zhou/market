@@ -10,8 +10,10 @@
 #include "common/self/file_util.h"
 #include "common/self/profiler.h"
 #include "common/self/protobuf/ctpview-market.pb.h"
+#include "common/self/protobuf/ipc.pb.h"
 #include "common/self/protobuf/strategy-market.pb.h"
 #include "market/domain/market_service.h"
+#include "market/infra/recer_sender.h"
 #include "market/interface/market_event.h"
 
 CtpviewEvent::CtpviewEvent() { RegMsgFun(); }
@@ -25,6 +27,7 @@ void CtpviewEvent::RegMsgFun() {
   msg_func_map_["ProfilerControl"] = [this](utils::ItpMsg &msg) { ProfilerControlHandle(msg); };
   msg_func_map_["UpdatePara"] = [this](utils::ItpMsg &msg) { UpdateParaHandle(msg); };
   msg_func_map_["ClearDiagnosticEvent"] = [this](utils::ItpMsg &msg) { ClearDiagnosticEventHandle(msg); };
+  msg_func_map_["SendTestEmail"] = [this](utils::ItpMsg &msg) { SendTestEmailHandle(msg); };
 
   for (auto &iter : msg_func_map_) {
     INFO_LOG("msg_func_map_[%d] key is [%s]", cnt, iter.first.c_str());
@@ -120,4 +123,29 @@ void CtpviewEvent::ClearDiagnosticEventHandle(utils::ItpMsg &msg) {
   auto event_id = clear_diagnostic_event.diagnostic_event_id();
 
   market_ser.ROLE(Diagnostic).ClearStatus(static_cast<DiagnosticEventId>(event_id));
+}
+
+void CtpviewEvent::SendTestEmailHandle(utils::ItpMsg &msg) {
+  ctpview_market::message message;
+  message.ParseFromString(msg.pb_msg);
+  auto send_email = message.send_email();
+
+  auto action = send_email.send_action();
+  if (action == ctpview_market::SendTestEmail::send) {
+    char subject_content[30] = "test email connection";
+    char save_content[180] = "Test email connectivity without replying";
+
+    auto &recer_sender = RecerSender::GetInstance();
+    ipc::message send_message;
+    auto *send_email = send_message.mutable_send_email();
+    send_email->set_head(subject_content);
+    send_email->set_body(save_content);
+
+    utils::ItpMsg itp_msg;
+    send_message.SerializeToString(&itp_msg.pb_msg);
+    itp_msg.session_name = "market_market";
+    itp_msg.msg_name = "SendEmail";
+    // innerSenders专为itp设计，所以只能走ProxySender的接口
+    recer_sender.ROLE(Sender).ROLE(ProxySender).SendMsg(itp_msg);
+  }
 }

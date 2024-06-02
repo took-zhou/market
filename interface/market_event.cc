@@ -23,6 +23,7 @@ void MarketEvent::RegSessionFunc() {
   session_func_map_["otp_market"] = [this](utils::ItpMsg msg) { ROLE(OtpEvent).Handle(msg); };
   session_func_map_["ftp_market"] = [this](utils::ItpMsg msg) { ROLE(FtpEvent).Handle(msg); };
   session_func_map_["ctpview_market"] = [this](utils::ItpMsg msg) { ROLE(CtpviewEvent).Handle(msg); };
+  session_func_map_["market_market"] = [this](utils::ItpMsg msg) { ROLE(SelfEvent).Handle(msg); };
 
   for (auto &iter : session_func_map_) {
     INFO_LOG("session_func_map_[%d] key is [%s]", cnt, iter.first.c_str());

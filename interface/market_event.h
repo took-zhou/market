@@ -13,6 +13,7 @@
 #include "market/interface/ctpview_event/ctpview_event.h"
 #include "market/interface/ftp_event/ftp_event.h"
 #include "market/interface/otp_event/otp_event.h"
+#include "market/interface/self_event/self_event.h"
 #include "market/interface/strategy_event/strategy_event.h"
 #include "market/interface/trader_event/trader_event.h"
 #include "market/interface/xtp_event/xtp_event.h"
@@ -22,7 +23,7 @@
 #include <string>
 #include "common/self/dci/role.h"
 
-struct MarketEvent : BtpEvent, CtpEvent, XtpEvent, OtpEvent, FtpEvent, StrategyEvent, TraderEvent, CtpviewEvent {
+struct MarketEvent : BtpEvent, CtpEvent, XtpEvent, OtpEvent, FtpEvent, StrategyEvent, TraderEvent, CtpviewEvent, SelfEvent {
  public:
   MarketEvent();
   MarketEvent(const MarketEvent &) = delete;
@@ -42,6 +43,7 @@ struct MarketEvent : BtpEvent, CtpEvent, XtpEvent, OtpEvent, FtpEvent, StrategyE
   IMPL_ROLE(StrategyEvent);
   IMPL_ROLE(TraderEvent);
   IMPL_ROLE(CtpviewEvent);
+  IMPL_ROLE(SelfEvent);
 
  private:
   std::map<std::string, std::function<void(utils::ItpMsg msg)>> session_func_map_;

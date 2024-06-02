@@ -24,6 +24,7 @@ struct CtpviewEvent {
   void ProfilerControlHandle(utils::ItpMsg &msg);
   void UpdateParaHandle(utils::ItpMsg &msg);
   void ClearDiagnosticEventHandle(utils::ItpMsg &msg);
+  void SendTestEmailHandle(utils::ItpMsg &msg);
 
  private:
   std::map<std::string, std::function<void(utils::ItpMsg &msg)>> msg_func_map_;
