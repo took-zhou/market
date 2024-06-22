@@ -13,8 +13,8 @@
 #include "market/domain/components/fd_manage.h"
 
 Diagnostic::Diagnostic() {
-  AddTestConfig(kApiCallFailed, 10, 10);
-  AddTestConfig(kLoginFailed, 10, 10);
+  AddTestConfig(kApiCallFailed, 10, 10, DiagEventStatus::kPass);
+  AddTestConfig(kLoginFailed, 10, 10, DiagEventStatus::kPass);
 
   InitDatabase();
   PrepareSqlSentence();
