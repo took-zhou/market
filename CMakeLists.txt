@@ -15,6 +15,7 @@ target_link_libraries(marketlib
     xtpquoteapi
     btpmarketapi
     ftpmarketapi
+    gtpmarketapi
     oes_api
     commonlib
     zmq
@@ -23,6 +24,7 @@ target_link_libraries(marketlib
     sqlite3
     z
     curl
+    boost_system
 )
 
 file(GLOB_RECURSE test_source
