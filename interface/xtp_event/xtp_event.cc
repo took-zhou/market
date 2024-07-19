@@ -15,7 +15,6 @@
 #include "common/self/utils.h"
 #include "market/domain/market_service.h"
 
-
 #include <unistd.h>
 #include <sstream>
 #include <string>
@@ -60,7 +59,9 @@ void XtpEvent::OnDepthMarketDataHandle(utils::ItpMsg &msg) {
   auto &market_ser = MarketService::GetInstance();
 
   if (req_instrument_from_ == "api") {
-    market_ser.ROLE(LoadData).LoadDepthMarketDataToCsv(deepdata);
+    if (market_ser.ROLE(MarketTimeState).GetTimeState() == kLoginTime) {
+      market_ser.ROLE(LoadData).LoadDepthMarketDataToCsv(deepdata);
+    }
   } else {
     if (block_control_ == ctpview_market::BlockControl_Command_unblock) {
       market_ser.ROLE(PublishData).DirectForwardDataToStrategy(deepdata);

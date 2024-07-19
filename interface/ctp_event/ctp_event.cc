@@ -58,7 +58,9 @@ void CtpEvent::DeepMarktDataHandle(utils::ItpMsg &msg) {
   auto &market_ser = MarketService::GetInstance();
 
   if (req_instrument_from_ == "api") {
-    market_ser.ROLE(LoadData).LoadDepthMarketDataToCsv(deepdata);
+    if (market_ser.ROLE(MarketTimeState).GetTimeState() == kLoginTime) {
+      market_ser.ROLE(LoadData).LoadDepthMarketDataToCsv(deepdata);
+    }
   } else {
     if (!block_control_.block ||
         (block_control_.block && block_control_.instruments.find(deepdata->InstrumentID) == block_control_.instruments.end())) {
