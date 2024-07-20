@@ -93,6 +93,36 @@ bool MarketData::IsValidTickData(MdsMktDataSnapshotT *p_d) {
   return ret;
 }
 
+bool MarketData::IsValidTickData(GtpMarketDataStruct *p_d) {
+  tm tick_tm;
+  bool ret = false;
+  auto &market_ser = MarketService::GetInstance();
+  auto timenow = market_ser.ROLE(MarketTimeState).GetTimeNow();
+  if (timenow != nullptr) {
+    strptime(p_d->date_time, "%Y-%m-%d %H:%M:%S", &tick_tm);
+
+    int tick_second = tick_tm.tm_hour * 60 * 60 + tick_tm.tm_min * 60 + tick_tm.tm_sec;
+    int now_second = timenow->tm_hour * 60 * 60 + timenow->tm_min * 60 + timenow->tm_sec;
+
+    int delay_second = now_second - tick_second;
+
+#ifdef BENCH_TEST
+    if (delay_second != 0) {
+      INFO_LOG("%s local time: %02d:%02d:%02d--gtp time: %02d:%02d:%02d delay_second %d", p_d->instrument_id, timenow->tm_hour,
+               timenow->tm_min, timenow->tm_sec, tick_tm.tm_hour, tick_tm.tm_min, tick_tm.tm_sec, delay_second);
+    }
+#endif
+
+    if (delay_second <= 180 && delay_second >= -180 && (p_d->bid_price[0] > 0.0 || p_d->ask_price[0] > 0.0)) {
+      ret = true;
+    }
+  } else {
+    ret = false;
+  }
+
+  return ret;
+}
+
 double MarketData::Max2zero(double num) {
   if (num >= 100000000) {
     return 0.0;
@@ -152,4 +182,9 @@ bool MarketData::GetAssemblingTime(char *t_arr, MdsMktDataSnapshotT *p_d) {
   } else {
     return false;
   }
+}
+
+bool MarketData::GetAssemblingTime(char *t_arr, GtpMarketDataStruct *p_d) {
+  strcpy(t_arr, p_d->date_time);
+  return true;
 }

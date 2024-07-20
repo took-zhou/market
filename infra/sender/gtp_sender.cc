@@ -16,23 +16,17 @@ bool GtpSender::Init(void) {
   if (!is_init_) {
     auto &json_cfg = utils::JsonConfig::GetInstance();
     auto users = json_cfg.GetConfig("market", "User");
-    for (auto &user : users) {
-      auto temp_folder = json_cfg.GetConfig("market", "ControlParaFilePath").get<std::string>();
-      std::string db_path = temp_folder + "/" + static_cast<std::string>(user);
-      market_api = gtp::api::MarketApi::CreateMarketApi(db_path.c_str());
-      if (market_api == nullptr) {
-        out = false;
-        INFO_LOG("quote_api init fail.");
-        break;
-      } else {
-        out = true;
-        market_spi = new GtpMarketSpi();
-        market_api->RegisterSpi(market_spi);
+    market_api = gtp::api::MarketApi::CreateMarketApi(json_cfg.GetFileName().c_str());
+    if (market_api == nullptr) {
+      out = false;
+      INFO_LOG("quote_api init fail.");
+    } else {
+      out = true;
+      market_spi = new GtpMarketSpi();
+      market_api->RegisterSpi(market_spi);
 
-        INFO_LOG("quote_api init ok.");
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-        break;
-      }
+      INFO_LOG("quote_api init ok.");
+      std::this_thread::sleep_for(std::chrono::seconds(1));
     }
     is_init_ = true;
   }
@@ -46,6 +40,7 @@ bool GtpSender::ReqUserLogin(void) {
     Release();
     ret = false;
   } else {
+    market_api->QryInstrumentInfo();
     GtpLoginLogoutStruct login_struct;
     market_api->Login(login_struct);
   }

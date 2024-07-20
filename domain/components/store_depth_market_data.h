@@ -7,6 +7,7 @@
 
 #include "common/extern/ctp/inc/ThostFtdcUserApiStruct.h"
 #include "common/extern/xtp/inc/xquote_api_struct.h"
+#include "gtp/inc/gtp_market_struct.h"
 #include "market/domain/components/depth_market_data.h"
 
 struct LoadData : public MarketData {
@@ -21,6 +22,9 @@ struct LoadData : public MarketData {
 
   void FormDepthMarketData2Stringflow(MdsMktDataSnapshotT *p_d);
   void LoadDepthMarketDataToCsv(MdsMktDataSnapshotT *p_d);
+
+  void FormDepthMarketData2Stringflow(GtpMarketDataStruct *p_d);
+  void LoadDepthMarketDataToCsv(GtpMarketDataStruct *p_d);
 
   bool ClassifyContractFiles(void);
   bool MoveContractToFolder(const std::string &contract_name, const std::string &exchange_name);

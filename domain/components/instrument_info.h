@@ -13,7 +13,7 @@ struct InstrumentInfo {
     int32_t min_market_order_volume;
     int32_t max_limit_order_volume;
     int32_t min_limit_order_volume;
-    int32_t tradeuint;
+    double tradeuint;
     int32_t is_trading;
   };
 

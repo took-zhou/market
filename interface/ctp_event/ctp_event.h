@@ -13,11 +13,6 @@
 #include "common/self/protobuf/ctpview-market.pb.h"
 #include "common/self/utils.h"
 
-struct BlockControl {
-  bool block = false;
-  std::set<std::string> instruments;
-};
-
 struct CtpEvent {
  public:
   CtpEvent();
@@ -37,6 +32,11 @@ struct CtpEvent {
   void SetBlockControl(const std::string &ins, ctpview_market::BlockControl_Command command);
 
  private:
+  struct BlockControl {
+    bool block = false;
+    std::set<std::string> instruments;
+  };
+
   void UpdateInstrumentInfoFromTrader();
   std::map<std::string, std::function<void(utils::ItpMsg &msg)>> msg_func_map_;
   std::string req_instrument_from_ = "local";

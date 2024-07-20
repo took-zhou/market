@@ -57,7 +57,16 @@ void GtpEvent::OnDepthMarketDataHandle(utils::ItpMsg &msg) {
   auto deepdata = reinterpret_cast<GtpMarketDataStruct *>(itp_msg.address());
   auto &market_ser = MarketService::GetInstance();
 
-  market_ser.ROLE(PublishData).DirectForwardDataToStrategy(deepdata);
+  if (req_instrument_from_ == "api") {
+    if (market_ser.ROLE(MarketTimeState).GetTimeState() == kLoginTime) {
+      market_ser.ROLE(LoadData).LoadDepthMarketDataToCsv(deepdata);
+    }
+  } else {
+    if (!block_control_.block ||
+        (block_control_.block && block_control_.instruments.find(deepdata->instrument_id) == block_control_.instruments.end())) {
+      market_ser.ROLE(PublishData).DirectForwardDataToStrategy(deepdata);
+    }
+  }
 }
 
 void GtpEvent::OnRspUserLoginHandle(utils::ItpMsg &msg) {
@@ -124,4 +133,13 @@ void GtpEvent::OnRspAllInstrumentInfoHandle(utils::ItpMsg &msg) {
   if (gtpqsi->is_last) {
     market_ser.ROLE(InstrumentInfo).ShowInstrumentInfo();
   }
+}
+
+void GtpEvent::SetBlockControl(const std::string &ins, ctpview_market::BlockControl_Command command) {
+  if (block_control_.instruments.find(ins) != block_control_.instruments.end() && command == ctpview_market::BlockControl::unblock) {
+    block_control_.instruments.erase(ins);
+  } else if (block_control_.instruments.find(ins) == block_control_.instruments.end() && command == ctpview_market::BlockControl::block) {
+    block_control_.instruments.insert(ins);
+  }
+  block_control_.block = block_control_.instruments.size() > 0;
 }

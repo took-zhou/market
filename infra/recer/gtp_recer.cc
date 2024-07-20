@@ -17,7 +17,7 @@ void GtpMarketSpi::OnRspUserLogin(const GtpLoginLogoutStruct *login_info) {
     send_msg->set_address(reinterpret_cast<int64_t>(login_info));
     utils::ItpMsg msg;
     req_msg.SerializeToString(&msg.pb_msg);
-    msg.session_name = "btp_market";
+    msg.session_name = "gtp_market";
     msg.msg_name = "OnRspUserLogin";
 
     auto &global_sem = GlobalSem::GetInstance();
@@ -37,7 +37,7 @@ void GtpMarketSpi::OnRspUserLogout(const GtpLoginLogoutStruct *login_info) {
     send_msg->set_address(reinterpret_cast<int64_t>(login_info));
     utils::ItpMsg msg;
     req_msg.SerializeToString(&msg.pb_msg);
-    msg.session_name = "btp_market";
+    msg.session_name = "gtp_market";
     msg.msg_name = "OnRspUserLogout";
 
     auto &global_sem = GlobalSem::GetInstance();
@@ -60,7 +60,7 @@ void GtpMarketSpi::OnDepthMarketData(const GtpMarketDataStruct *market_data) {
     send_msg->set_address(reinterpret_cast<int64_t>(market_data));
     utils::ItpMsg msg;
     req_msg.SerializeToString(&msg.pb_msg);
-    msg.session_name = "btp_market";
+    msg.session_name = "gtp_market";
     msg.msg_name = "OnDepthMarketData";
 
     auto &global_sem = GlobalSem::GetInstance();
@@ -79,7 +79,7 @@ void GtpMarketSpi::OnRspAllInstrumentInfo(GtpInstrumentInfo *ticker_info) {
     send_msg->set_address(reinterpret_cast<int64_t>(ticker_info));
     utils::ItpMsg msg;
     req_msg.SerializeToString(&msg.pb_msg);
-    msg.session_name = "btp_market";
+    msg.session_name = "gtp_market";
     msg.msg_name = "OnRspAllInstrumentInfo";
 
     auto &global_sem = GlobalSem::GetInstance();
