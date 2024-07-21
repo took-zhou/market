@@ -441,12 +441,15 @@ void LoadData::FormDepthMarketData2Stringflow(GtpMarketDataStruct *p_d) {
   int ask_volume5 = p_d->ask_volume[4];
   /// 数量 TThostFtdcVolumeType int
   int volume = p_d->volume;
+  /// 持仓量 TThostFtdcLargeVolumeType double
+  int64_t open_interest = p_d->positon;
 
-  sprintf(
-      dataflow_, "%s,%s%s%s,%s,%.6lf,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%d,,,,,,,,,",
-      p_d->instrument_id, trading_year.c_str(), trading_month.c_str(), trading_date.c_str(), update_time.c_str(), last_price, bid_price1,
-      bid_volume1, ask_price1, ask_volume1, bid_price2, bid_volume2, ask_price2, ask_volume2, bid_price3, bid_volume3, ask_price3,
-      ask_volume3, bid_price4, bid_volume4, ask_price4, ask_volume4, bid_price5, bid_volume5, ask_price5, ask_volume5, volume);
+  sprintf(dataflow_,
+          "%s,%s%s%s,%s,%.6lf,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%d,,%ld,,,,,,,",
+          p_d->instrument_id, trading_year.c_str(), trading_month.c_str(), trading_date.c_str(), update_time.c_str(), last_price,
+          bid_price1, bid_volume1, ask_price1, ask_volume1, bid_price2, bid_volume2, ask_price2, ask_volume2, bid_price3, bid_volume3,
+          ask_price3, ask_volume3, bid_price4, bid_volume4, ask_price4, ask_volume4, bid_price5, bid_volume5, ask_price5, ask_volume5,
+          volume, open_interest);
 }
 
 void LoadData::LoadDepthMarketDataToCsv(GtpMarketDataStruct *p_d) {
