@@ -10,6 +10,7 @@ struct MarketTimeState {
  public:
   void Step();
   void Update(void);
+  void Simulate(const char *time_str);
 
   MarketTimeState();
   ~MarketTimeState();
