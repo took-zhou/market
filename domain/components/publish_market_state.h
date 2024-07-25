@@ -3,6 +3,7 @@
 
 #include <pthread.h>
 #include "common/extern/ftp/inc/ftp_market_struct.h"
+#include "market/domain/components/market_time_state.h"
 
 struct PublishState {
  public:
@@ -26,6 +27,7 @@ struct PublishState {
   uint32_t wait_publish_count_ = 0;
   const uint32_t max_wait_pushlish_count_ = 3600;
   pthread_mutex_t sm_mutex_;
+  SubTimeState prev_sub_time_state_ = kInInitSts;
 };
 
 #endif

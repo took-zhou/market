@@ -2,6 +2,7 @@
 #include "common/extern/log/log.h"
 #include "common/self/protobuf/market-trader.pb.h"
 #include "common/self/protobuf/strategy-market.pb.h"
+
 #include "market/domain/components/market_time_state.h"
 #include "market/domain/market_service.h"
 #include "market/infra/recer_sender.h"
@@ -14,14 +15,13 @@ PublishState::PublishState() {}
 
 void PublishState::PublishEvent(void) {
   auto &market_ser = MarketService::GetInstance();
-  static SubTimeState prev_sub_time_state = kInInitSts;
   SubTimeState now_sub_time_state = market_ser.ROLE(MarketTimeState).GetSubTimeState();
-  if (prev_sub_time_state == kInInitSts) {
-    prev_sub_time_state = now_sub_time_state;
+  if (prev_sub_time_state_ == kInInitSts) {
+    prev_sub_time_state_ = now_sub_time_state;
   }
-  if (prev_sub_time_state != now_sub_time_state && market_ser.GetLoginState() == kLoginState) {
+  if (prev_sub_time_state_ != now_sub_time_state && market_ser.GetLoginState() == kLoginState) {
     PublishToStrategy();
-    prev_sub_time_state = now_sub_time_state;
+    prev_sub_time_state_ = now_sub_time_state;
     wait_publish_count_ = 0;
   }
   if (publish_flag_) {
@@ -177,7 +177,7 @@ void PublishState::GetTradeData(char *buff) {
   auto &market_ser = MarketService::GetInstance();
   auto timenow = market_ser.ROLE(MarketTimeState).GetTimeNow();
   if (timenow != nullptr) {
-    if (19 <= timenow->tm_hour && timenow->tm_hour <= 23) {
+    if (19 <= timenow->tm_hour && timenow->tm_hour <= 23) {  // 期货夜盘登录时间段
       if (timenow->tm_wday == 5) {
         time_t tsecond = mktime(timenow) + 259200;
         strftime(buff, 10, "%Y%m%d", localtime(&tsecond));
@@ -185,8 +185,15 @@ void PublishState::GetTradeData(char *buff) {
         time_t tsecond = mktime(timenow) + 86400;
         strftime(buff, 10, "%Y%m%d", localtime(&tsecond));
       }
-    } else if (1 <= timenow->tm_hour && timenow->tm_hour <= 3 && timenow->tm_wday == 6) {
-      time_t tsecond = mktime(timenow) + 172800;
+    } else if (0 <= timenow->tm_hour && timenow->tm_hour <= 3) {  // 期货夜盘登出时间段
+      if (timenow->tm_wday == 6) {
+        time_t tsecond = mktime(timenow) + 172800;
+        strftime(buff, 10, "%Y%m%d", localtime(&tsecond));
+      } else {
+        strftime(buff, 10, "%Y%m%d", timenow);
+      }
+    } else if (4 <= timenow->tm_hour && timenow->tm_hour <= 5) {  // 加密货币登出时间段
+      time_t tsecond = mktime(timenow) - 86400;
       strftime(buff, 10, "%Y%m%d", localtime(&tsecond));
     } else {
       strftime(buff, 10, "%Y%m%d", timenow);
