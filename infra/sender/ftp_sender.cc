@@ -81,7 +81,7 @@ bool FtpSender::SubscribeMarketData(std::vector<utils::InstrumtntID> const &name
     count++;
   }
 
-  if (count >= 0) {
+  if (count > 0) {
     result = market_api->SubscribeMarketData(pp_instrument_id, count, request_id);
     if (result != 0) {
       ERROR_LOG("SubscribeMarketData fail, error code[%d]", result);
@@ -108,7 +108,7 @@ bool FtpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &na
     count++;
   }
 
-  if (count >= 0) {
+  if (count > 0) {
     result = market_api->UnSubscribeMarketData(pp_instrument_id, count, request_id);
     if (result == 0) {
       INFO_LOG("UnSubscription request ......Send a success, total number: %d", count);
