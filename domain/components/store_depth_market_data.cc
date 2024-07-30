@@ -92,9 +92,9 @@ void LoadData::FormDepthMarketData2Stringflow(CThostFtdcDepthMarketDataField *p_
   double settlement_price = Max2zero(p_d->SettlementPrice);
 
   sprintf(dataflow_,
-          "%s,%s,%s.%d,%.6lf,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%."
-          "6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%d,%.6lf,%.6lf,%.6lf,%."
-          "6lf,%.6lf,%.6lf,%.6lf,%.5lf,%.6lf",
+          "%s,%s,%s.%d,%.15g,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%."
+          "6lf,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%d,%.15g,%.15g,%.15g,%."
+          "6lf,%.15g,%.15g,%.15g,%.5lf,%.15g",
           instrument_id, trading_day, update_time, update_millisec, last_price, bid_price1, bid_volume1, ask_price1, ask_volume1,
           bid_price2, bid_volume2, ask_price2, ask_volume2, bid_price3, bid_volume3, ask_price3, ask_volume3, bid_price4, bid_volume4,
           ask_price4, ask_volume4, bid_price5, bid_volume5, ask_price5, ask_volume5, volume, turnover, open_interest, upper_limit_price,
@@ -219,8 +219,8 @@ void LoadData::FormDepthMarketData2Stringflow(XTPMD *p_d) {
   double settlement_price = Max2zero(p_d->settl_price);
 
   sprintf(dataflow_,
-          "%s,%s,%s:%s:%s.%s,%.6lf,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%d,%.6lf,%."
-          "6lf,%.6lf,%.6lf,%.6lf,%.6lf,%.6lf,%.5lf,%.6lf",
+          "%s,%s,%s:%s:%s.%s,%.15g,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%d,%.15g,%."
+          "6lf,%.15g,%.15g,%.15g,%.15g,%.15g,%.5lf,%.15g",
           instrument_id, trading_day.c_str(), update_time_hour.c_str(), update_time_min.c_str(), update_time_second.c_str(),
           update_millisec.c_str(), last_price, bid_price1, bid_volume1, ask_price1, ask_volume1, bid_price2, bid_volume2, ask_price2,
           ask_volume2, bid_price3, bid_volume3, ask_price3, ask_volume3, bid_price4, bid_volume4, ask_price4, ask_volume4, bid_price5,
@@ -341,9 +341,9 @@ void LoadData::FormDepthMarketData2Stringflow(MdsMktDataSnapshotT *p_d) {
   double settlement_price = 0;
 
   sprintf(dataflow_,
-          "%s,%s,%02d:%02d:%02d.%03d,%.6lf,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%d,%."
+          "%s,%s,%02d:%02d:%02d.%03d,%.15g,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%d,%."
           "6lf,%."
-          "6lf,%.6lf,%.6lf,%.6lf,%.6lf,%.6lf,%.5lf,%.6lf",
+          "6lf,%.15g,%.15g,%.15g,%.15g,%.15g,%.5lf,%.15g",
           instrument_id, trading_day.c_str(), update_time_hour, update_time_min, update_time_second, update_millisec, last_price,
           bid_price1, bid_volume1, ask_price1, ask_volume1, bid_price2, bid_volume2, ask_price2, ask_volume2, bid_price3, bid_volume3,
           ask_price3, ask_volume3, bid_price4, bid_volume4, ask_price4, ask_volume4, bid_price5, bid_volume5, ask_price5, ask_volume5,
@@ -445,7 +445,7 @@ void LoadData::FormDepthMarketData2Stringflow(GtpMarketDataStruct *p_d) {
   int64_t open_interest = p_d->positon;
 
   sprintf(dataflow_,
-          "%s,%s%s%s,%s,%.6lf,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%.6lf,%d,%d,,%ld,,,,,,,",
+          "%s,%s%s%s,%s,%.15g,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%d,,%ld,,,,,,,",
           p_d->instrument_id, trading_year.c_str(), trading_month.c_str(), trading_date.c_str(), update_time.c_str(), last_price,
           bid_price1, bid_volume1, ask_price1, ask_volume1, bid_price2, bid_volume2, ask_price2, ask_volume2, bid_price3, bid_volume3,
           ask_price3, ask_volume3, bid_price4, bid_volume4, ask_price4, ask_volume4, bid_price5, bid_volume5, ask_price5, ask_volume5,

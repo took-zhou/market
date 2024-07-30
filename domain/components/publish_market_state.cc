@@ -33,9 +33,11 @@ void PublishState::PublishEvent(void) {
 }
 
 void PublishState::PublishToStrategy(void) {
-  char date_buff[10];
-  GetTradeData(date_buff);
   auto &market_ser = MarketService::GetInstance();
+  char time_buff[24], date_buff[10];
+  auto timenow = market_ser.ROLE(MarketTimeState).GetTimeNow();
+  strftime(time_buff, sizeof(time_buff), "%Y-%m-%d %H:%M:%S", timenow);
+  market_ser.ROLE(PythonApi).GetTickNature().GetTradeDate().GetLoginDate(time_buff, date_buff);
 
   strategy_market::MarketStateReq_MarketState state = strategy_market::MarketStateReq_MarketState_reserve;
   if (market_ser.ROLE(MarketTimeState).GetSubTimeState() == kInDayLogout) {
@@ -171,32 +173,4 @@ void PublishState::SetPublishFlag() {
   pthread_mutex_lock(&(sm_mutex_));
   publish_flag_ = true;
   pthread_mutex_unlock(&(sm_mutex_));
-}
-
-void PublishState::GetTradeData(char *buff) {
-  auto &market_ser = MarketService::GetInstance();
-  auto timenow = market_ser.ROLE(MarketTimeState).GetTimeNow();
-  if (timenow != nullptr) {
-    if (19 <= timenow->tm_hour && timenow->tm_hour <= 23) {  // 期货夜盘登录时间段
-      if (timenow->tm_wday == 5) {
-        time_t tsecond = mktime(timenow) + 259200;
-        strftime(buff, 10, "%Y%m%d", localtime(&tsecond));
-      } else {
-        time_t tsecond = mktime(timenow) + 86400;
-        strftime(buff, 10, "%Y%m%d", localtime(&tsecond));
-      }
-    } else if (0 <= timenow->tm_hour && timenow->tm_hour <= 3) {  // 期货夜盘登出时间段
-      if (timenow->tm_wday == 6) {
-        time_t tsecond = mktime(timenow) + 172800;
-        strftime(buff, 10, "%Y%m%d", localtime(&tsecond));
-      } else {
-        strftime(buff, 10, "%Y%m%d", timenow);
-      }
-    } else if (4 <= timenow->tm_hour && timenow->tm_hour <= 5) {  // 加密货币登出时间段
-      time_t tsecond = mktime(timenow) - 86400;
-      strftime(buff, 10, "%Y%m%d", localtime(&tsecond));
-    } else {
-      strftime(buff, 10, "%Y%m%d", timenow);
-    }
-  }
 }

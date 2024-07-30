@@ -22,7 +22,6 @@ struct PublishState {
   ~PublishState(){};
 
  private:
-  void GetTradeData(char *);
   bool publish_flag_ = false;
   uint32_t wait_publish_count_ = 0;
   const uint32_t max_wait_pushlish_count_ = 3600;

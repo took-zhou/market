@@ -14,12 +14,21 @@
 #include "market/domain/components/publish_control.h"
 #include "market/domain/components/publish_depth_market_data.h"
 #include "market/domain/components/publish_market_state.h"
+#include "market/domain/components/python_api.h"
 #include "market/domain/components/store_depth_market_data.h"
 #include "market/domain/components/subscribe_manage.h"
 
 enum MarketLoginState { kErrorState = 0, kLoginState = 1, kLogoutState = 2, kManualExit = 3, kLossConnection = 4 };
 
-struct MarketService : MarketTimeState, LoadData, PublishControl, PublishData, PublishState, SubscribeManager, InstrumentInfo, Diagnostic {
+struct MarketService : MarketTimeState,
+                       LoadData,
+                       PublishControl,
+                       PublishData,
+                       PublishState,
+                       SubscribeManager,
+                       InstrumentInfo,
+                       Diagnostic,
+                       PythonApi {
   MarketService();
   MarketService(const MarketService &) = delete;
   MarketService &operator=(const MarketService &) = delete;
@@ -36,6 +45,7 @@ struct MarketService : MarketTimeState, LoadData, PublishControl, PublishData, P
   IMPL_ROLE(SubscribeManager);
   IMPL_ROLE(InstrumentInfo);
   IMPL_ROLE(Diagnostic);
+  IMPL_ROLE(PythonApi);
 
   bool UpdateLoginState(MarketLoginState state);
   MarketLoginState GetLoginState();
