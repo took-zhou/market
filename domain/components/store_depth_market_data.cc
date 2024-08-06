@@ -92,9 +92,8 @@ void LoadData::FormDepthMarketData2Stringflow(CThostFtdcDepthMarketDataField *p_
   double settlement_price = Max2zero(p_d->SettlementPrice);
 
   sprintf(dataflow_,
-          "%s,%s,%s.%d,%.15g,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%."
-          "6lf,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%d,%.15g,%.15g,%.15g,%."
-          "6lf,%.15g,%.15g,%.15g,%.5lf,%.15g",
+          "%s,%s,%s.%d,%.15g,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%d,%.15g,%.15g,%."
+          "15g,%.15g,%.15g,%.15g,%.15g,%.5lf,%.15g",
           instrument_id, trading_day, update_time, update_millisec, last_price, bid_price1, bid_volume1, ask_price1, ask_volume1,
           bid_price2, bid_volume2, ask_price2, ask_volume2, bid_price3, bid_volume3, ask_price3, ask_volume3, bid_price4, bid_volume4,
           ask_price4, ask_volume4, bid_price5, bid_volume5, ask_price5, ask_volume5, volume, turnover, open_interest, upper_limit_price,
@@ -198,11 +197,11 @@ void LoadData::FormDepthMarketData2Stringflow(XTPMD *p_d) {
   /// 申卖量一 TThostFtdcVolumeType int
   int ask_volume5 = p_d->ask_qty[4];
   /// 数量 TThostFtdcVolumeType int
-  int volume = p_d->trades_count;
+  int64_t volume = p_d->trades_count;
   /// 成交金额 TThostFtdcMoneyType double
   double turnover = Max2zero(p_d->turnover);
   /// 持仓量 TThostFtdcLargeVolumeType double
-  double open_interest = Max2zero(p_d->total_long_positon);
+  int64_t open_interest = Max2zero(p_d->total_long_positon);
   /// 涨停板价 TThostFtdcPriceType double
   double upper_limit_price = Max2zero(p_d->upper_limit_price);
   /// 跌停板价 TThostFtdcPriceType double
@@ -214,13 +213,13 @@ void LoadData::FormDepthMarketData2Stringflow(XTPMD *p_d) {
   /// 昨收盘 TThostFtdcPriceType double
   double pre_close_price = Max2zero(p_d->pre_close_price);
   /// 昨持仓量 TThostFtdcLargeVolumeType double
-  double pre_open_interest = Max2zero(p_d->pre_total_long_positon);
+  int64_t pre_open_interest = Max2zero(p_d->pre_total_long_positon);
   /// 结算价 SettlementPrice double
   double settlement_price = Max2zero(p_d->settl_price);
 
   sprintf(dataflow_,
-          "%s,%s,%s:%s:%s.%s,%.15g,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%d,%.15g,%."
-          "6lf,%.15g,%.15g,%.15g,%.15g,%.15g,%.5lf,%.15g",
+          "%s,%s,%s:%s:%s.%s,%.15g,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%ld,%.15g,%ld,"
+          "%.15g,%.15g,%.15g,%.15g,%.15g,%ld,%.15g",
           instrument_id, trading_day.c_str(), update_time_hour.c_str(), update_time_min.c_str(), update_time_second.c_str(),
           update_millisec.c_str(), last_price, bid_price1, bid_volume1, ask_price1, ask_volume1, bid_price2, bid_volume2, ask_price2,
           ask_volume2, bid_price3, bid_volume3, ask_price3, ask_volume3, bid_price4, bid_volume4, ask_price4, ask_volume4, bid_price5,
@@ -320,11 +319,11 @@ void LoadData::FormDepthMarketData2Stringflow(MdsMktDataSnapshotT *p_d) {
   /// 申卖量一 TThostFtdcVolumeType int
   int ask_volume5 = p_d->l2Stock.OfferLevels[4].NumberOfOrders;
   /// 数量 TThostFtdcVolumeType int
-  int volume = p_d->l2Stock.TotalVolumeTraded;
+  int64_t volume = p_d->l2Stock.TotalVolumeTraded;
   /// 成交金额 TThostFtdcMoneyType double
   double turnover = p_d->l2Stock.TotalValueTraded * 0.0001;
   /// 持仓量 TThostFtdcLargeVolumeType double
-  double open_interest = 0;
+  int64_t open_interest = 0;
   /// 涨停板价 TThostFtdcPriceType double
   double upper_limit_price = 0;
   /// 跌停板价 TThostFtdcPriceType double
@@ -336,14 +335,13 @@ void LoadData::FormDepthMarketData2Stringflow(MdsMktDataSnapshotT *p_d) {
   /// 昨收盘 TThostFtdcPriceType double
   double pre_close_price = p_d->l2Stock.PrevClosePx * 0.0001;
   /// 昨持仓量 TThostFtdcLargeVolumeType double
-  double pre_open_interest = 0;
+  int64_t pre_open_interest = 0;
   /// 结算价 SettlementPrice double
   double settlement_price = 0;
 
   sprintf(dataflow_,
-          "%s,%s,%02d:%02d:%02d.%03d,%.15g,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%d,%."
-          "6lf,%."
-          "6lf,%.15g,%.15g,%.15g,%.15g,%.15g,%.5lf,%.15g",
+          "%s,%s,%02d:%02d:%02d.%03d,%.15g,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%ld,%."
+          "15g,%ld,%.15g,%.15g,%.15g,%.15g,%.15g,%ld,%.15g",
           instrument_id, trading_day.c_str(), update_time_hour, update_time_min, update_time_second, update_millisec, last_price,
           bid_price1, bid_volume1, ask_price1, ask_volume1, bid_price2, bid_volume2, ask_price2, ask_volume2, bid_price3, bid_volume3,
           ask_price3, ask_volume3, bid_price4, bid_volume4, ask_price4, ask_volume4, bid_price5, bid_volume5, ask_price5, ask_volume5,
@@ -440,12 +438,12 @@ void LoadData::FormDepthMarketData2Stringflow(GtpMarketDataStruct *p_d) {
   /// 申卖量一 TThostFtdcVolumeType int
   int ask_volume5 = p_d->ask_volume[4];
   /// 数量 TThostFtdcVolumeType int
-  int volume = p_d->volume;
+  int64_t volume = p_d->volume;
   /// 持仓量 TThostFtdcLargeVolumeType double
   int64_t open_interest = p_d->positon;
 
   sprintf(dataflow_,
-          "%s,%s%s%s,%s,%.15g,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%d,,%ld,,,,,,,",
+          "%s,%s%s%s,%s,%.15g,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%ld,,%ld,,,,,,,",
           p_d->instrument_id, trading_year.c_str(), trading_month.c_str(), trading_date.c_str(), update_time.c_str(), last_price,
           bid_price1, bid_volume1, ask_price1, ask_volume1, bid_price2, bid_volume2, ask_price2, ask_volume2, bid_price3, bid_volume3,
           ask_price3, ask_volume3, bid_price4, bid_volume4, ask_price4, ask_volume4, bid_price5, bid_volume5, ask_price5, ask_volume5,
