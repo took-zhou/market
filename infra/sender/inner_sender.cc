@@ -14,13 +14,19 @@
 InnerSender::InnerSender() {
   pusher_ = zmq_socket(BaseZmq::GetInstance().GetContext(), ZMQ_PUSH);
 
-  int result = zmq_connect(pusher_, BaseZmq::GetInstance().GetInprocAddress().c_str());
+  inner_address_ = BaseZmq::GetInstance().GetInnerAddress();
+  int result = zmq_connect(pusher_, inner_address_.c_str());
   std::this_thread::sleep_for(std::chrono::seconds(1));
   if (result != 0) {
-    ERROR_LOG("publisher connect to %s failed", BaseZmq::GetInstance().GetInprocAddress().c_str());
+    ERROR_LOG("pusher connect to %s failed", inner_address_.c_str());
   } else {
-    INFO_LOG("publisher connect to %s ok", BaseZmq::GetInstance().GetInprocAddress().c_str());
+    INFO_LOG("pusher connect to %s ok", inner_address_.c_str());
   }
+}
+
+InnerSender::~InnerSender() {
+  zmq_close(pusher_);
+  INFO_LOG("pusher disconnect to %s ok", inner_address_.c_str());
 }
 
 bool InnerSender::SendMsg(utils::ItpMsg &msg) {

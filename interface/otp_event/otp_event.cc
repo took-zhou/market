@@ -26,17 +26,11 @@ OtpEvent::OtpEvent() {
 }
 
 void OtpEvent::RegMsgFun() {
-  int cnt = 0;
   msg_func_map_.clear();
   msg_func_map_["OnDepthMarketData"] = [this](utils::ItpMsg &msg) { OnDepthMarketDataHandle(msg); };
   msg_func_map_["OnRspUserLogin"] = [this](utils::ItpMsg &msg) { OnRspUserLoginHandle(msg); };
   msg_func_map_["OnRspUserLogout"] = [this](utils::ItpMsg &msg) { OnRspUserLogoutHandle(msg); };
   msg_func_map_["OnRspStockStaticInfo"] = [this](utils::ItpMsg &msg) { OnRspStockStaticInfoHandle(msg); };
-
-  for (auto &iter : msg_func_map_) {
-    INFO_LOG("msg_func_map_[%d] key is [%s]", cnt, iter.first.c_str());
-    cnt++;
-  }
 }
 
 void OtpEvent::Handle(utils::ItpMsg &msg) {

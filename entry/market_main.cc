@@ -5,6 +5,7 @@
  *      Author: Administrator
  */
 
+#include "market/entry/market_main.h"
 #include <signal.h>
 #include <chrono>
 #include <string>
@@ -16,18 +17,16 @@
 #include "common/self/utils.h"
 #include "market/domain/components/fd_manage.h"
 #include "market/domain/market_service.h"
+#include "market/infra/recer_sender.h"
 #include "market/interface/market_event.h"
 
+
 void SignalHandler(int signal) {
-  auto &market_ser = MarketService::GetInstance();
-  market_ser.UpdateLoginState(MarketLoginState::kManualExit);
-  FdManage::GetInstance().OpenThingsUp();
-  INFO_LOG("the process manually exits safely.");
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  exit(0);
+  auto &market_main = MarketMain::GetInstance();
+  market_main.Exit();
 }
 
-int main(int argc, char *agrv[]) {
+void MarketMain::Entry(int argc, char *argv[]) {
   pybind11::scoped_interpreter python;
   pybind11::gil_scoped_release release;
 
@@ -45,8 +44,12 @@ int main(int argc, char *agrv[]) {
   utils::CreatFolder(market_data_path);
   profiler::FlameGraphWriter::Instance().SetFilePath(market_data_path);
 
-  MarketService::GetInstance();
+  FdManage::GetInstance();
+  RecerSender::GetInstance();
+
+  auto &market_ser = MarketService::GetInstance();
   INFO_LOG("market_ser init ok");
+  market_ser.Run();
 
   std::this_thread::sleep_for(std::chrono::seconds(3));
 
@@ -54,5 +57,24 @@ int main(int argc, char *agrv[]) {
   INFO_LOG("market_event init ok");
   market_event.Run();
 
+  HoldOn();
+}
+
+void MarketMain::HoldOn(void) {
+  while (is_hold_on_) {
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+  }
+}
+
+void MarketMain::Exit(void) {
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  is_hold_on_ = false;
+}
+
+const std::string &MarketMain::GetMarketName() { return market_name_; }
+
+int main(int argc, char *argv[]) {
+  auto &market_main = MarketMain::GetInstance();
+  market_main.Entry(argc, argv);
   return 0;
 }

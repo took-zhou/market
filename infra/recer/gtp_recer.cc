@@ -24,6 +24,7 @@ void GtpMarketSpi::OnRspUserLogin(const GtpLoginLogoutStruct *login_info) {
     auto &recer_sender = RecerSender::GetInstance();
     recer_sender.ROLE(InnerSender).SendMsg(msg);
     global_sem.WaitSemBySemName(SemName::kApiRecv);
+    front_disconnected_ = false;
   } else {
     ERROR_LOG("login_info is nullptr");
   }
@@ -90,3 +91,7 @@ void GtpMarketSpi::OnRspAllInstrumentInfo(GtpInstrumentInfo *ticker_info) {
     ERROR_LOG("ticker_info is nullptr");
   }
 }
+
+void GtpMarketSpi::OnFrontDisconnected(int reason) { front_disconnected_ = true; }
+
+bool GtpMarketSpi::GetFrontDisconnected(void) { return front_disconnected_; }

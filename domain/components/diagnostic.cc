@@ -20,6 +20,8 @@ Diagnostic::Diagnostic() {
   PrepareSqlSentence();
 }
 
+Diagnostic::~Diagnostic() { sqlite3_finalize(update_diagnostic_info_); }
+
 void Diagnostic::InitDatabase() {
   const char* sql = "create table if not exists diagnostic_info(id INT, status INT, time TEXT)";
   char* error_msg = nullptr;

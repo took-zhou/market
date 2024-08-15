@@ -7,6 +7,7 @@
 struct FdManage {
  public:
   FdManage();
+  ~FdManage();
   FdManage(const FdManage &) = delete;
   FdManage &operator=(const FdManage &) = delete;
   static FdManage &GetInstance() {

@@ -15,11 +15,13 @@
 struct ProxySender {
  public:
   ProxySender();
+  ~ProxySender();
   bool SendMsg(utils::ItpMsg &msg);
 
  private:
   void *publisher_{nullptr};
   std::mutex m_lock_;
+  std::string pub_ipaddport_;
 };
 
 #endif /* WORKSPACE_MARKET_INFRA_PROXYSENDER_H_ */

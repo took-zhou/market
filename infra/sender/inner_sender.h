@@ -15,10 +15,12 @@
 struct InnerSender {
  public:
   InnerSender();
+  ~InnerSender();
   bool SendMsg(utils::ItpMsg &msg);
 
  private:
   void *pusher_{nullptr};
+  std::string inner_address_;
 };
 
 #endif /* WORKSPACE_MARKET_INFRA_INNERSENDER_H_ */

@@ -16,6 +16,7 @@
 struct BtpSender : SendApi {
  public:
   BtpSender(void);
+  ~BtpSender();
   bool ReqUserLogin();
   bool ReqUserLogout();
   bool SubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id = 0);

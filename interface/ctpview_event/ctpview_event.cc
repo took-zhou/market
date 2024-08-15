@@ -19,7 +19,6 @@
 CtpviewEvent::CtpviewEvent() { RegMsgFun(); }
 
 void CtpviewEvent::RegMsgFun() {
-  int cnt = 0;
   msg_func_map_.clear();
   msg_func_map_["LoginControl"] = [this](utils::ItpMsg &msg) { LoginControlHandle(msg); };
   msg_func_map_["BlockControl"] = [this](utils::ItpMsg &msg) { BlockControlHandle(msg); };
@@ -28,11 +27,6 @@ void CtpviewEvent::RegMsgFun() {
   msg_func_map_["UpdatePara"] = [this](utils::ItpMsg &msg) { UpdateParaHandle(msg); };
   msg_func_map_["ClearDiagnosticEvent"] = [this](utils::ItpMsg &msg) { ClearDiagnosticEventHandle(msg); };
   msg_func_map_["SendTestEmail"] = [this](utils::ItpMsg &msg) { SendTestEmailHandle(msg); };
-
-  for (auto &iter : msg_func_map_) {
-    INFO_LOG("msg_func_map_[%d] key is [%s]", cnt, iter.first.c_str());
-    cnt++;
-  }
 }
 
 void CtpviewEvent::Handle(utils::ItpMsg &msg) {

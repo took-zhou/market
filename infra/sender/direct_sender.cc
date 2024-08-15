@@ -13,14 +13,19 @@
 DirectSender::DirectSender() {
   publisher_ = zmq_socket(BaseZmq::GetInstance().GetContext(), ZMQ_PUB);
 
-  string pub_ipaddport = "tcp://" + BaseZmq::GetInstance().GetLocalIp() + ":5557";
-  int result = zmq_bind(publisher_, pub_ipaddport.c_str());
+  pub_ipaddport_ = "tcp://" + BaseZmq::GetInstance().GetLocalIp() + ":5557";
+  int result = zmq_bind(publisher_, pub_ipaddport_.c_str());
 
   if (result != 0) {
-    ERROR_LOG("publisher connect to %s failed", pub_ipaddport.c_str());
+    ERROR_LOG("publisher connect to %s failed", pub_ipaddport_.c_str());
   } else {
-    INFO_LOG("publisher connect to %s ok", pub_ipaddport.c_str());
+    INFO_LOG("publisher connect to %s ok", pub_ipaddport_.c_str());
   }
+}
+
+DirectSender::~DirectSender() {
+  zmq_close(publisher_);
+  INFO_LOG("publisher disconnect to %s ok", pub_ipaddport_.c_str());
 }
 
 bool DirectSender::SendMsg(utils::ItpMsg &msg) {

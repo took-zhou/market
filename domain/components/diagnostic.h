@@ -14,6 +14,7 @@ enum DiagnosticEventId { kApiCallFailed = 0, kLoginFailed = 1, kStrategyDied = 2
 struct Diagnostic : Dem {
  public:
   Diagnostic();
+  ~Diagnostic();
 
   void MonitorStatus();
   void ClearStatus(DiagnosticEventId event_id);

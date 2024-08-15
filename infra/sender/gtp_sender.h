@@ -16,6 +16,7 @@
 struct GtpSender : SendApi {
  public:
   GtpSender(void);
+  ~GtpSender(void);
   bool ReqUserLogin();
   bool ReqUserLogout();
   bool SubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id = 0);

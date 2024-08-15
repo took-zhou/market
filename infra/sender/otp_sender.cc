@@ -20,6 +20,8 @@ static int32 HandleMsg(MdsApiSessionInfoT *session, SMsgHeadT *head, void *item,
 
 OtpSender::OtpSender(void) { ; }
 
+OtpSender::~OtpSender(void) { Release(); }
+
 bool OtpSender::Init(void) {
   bool out = true;
   if (!is_init_) {

@@ -109,10 +109,10 @@ void MarketTimeState::Step() {
         break;
 
       case kInInitSts:
-        if (IsDuringDayLogoutTime()) {
+        if (IsDuringDayLogoutTime() && !IsDuringNightLoginTime()) {
           sub_time_state_ = kInDayLogout;
           time_state_ = kLogoutTime;
-        } else if (IsDuringNightLogoutTime()) {
+        } else if (IsDuringNightLogoutTime() && !IsDuringDayLoginTime()) {
           sub_time_state_ = kInNightLogout;
           time_state_ = kLogoutTime;
         } else if (IsDuringDayLoginTime()) {

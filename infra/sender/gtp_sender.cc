@@ -11,6 +11,8 @@ GtpMarketSpi *GtpSender::market_spi;
 
 GtpSender::GtpSender(void) { ; }
 
+GtpSender::~GtpSender(void) { Release(); }
+
 bool GtpSender::Init(void) {
   bool out = true;
   if (!is_init_) {
@@ -134,4 +136,4 @@ bool GtpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &na
   return true;
 }
 
-bool GtpSender::LossConnection() { return false; }
+bool GtpSender::LossConnection() { return market_spi->GetFrontDisconnected(); }

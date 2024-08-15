@@ -12,6 +12,7 @@
 struct BaseZmq {
  public:
   BaseZmq();
+  ~BaseZmq();
   BaseZmq(const BaseZmq &) = delete;
   BaseZmq &operator=(const BaseZmq &) = delete;
   static BaseZmq &GetInstance() {
@@ -20,12 +21,12 @@ struct BaseZmq {
   }
 
   std::string &GetLocalIp();
-  std::string &GetInprocAddress();
+  std::string &GetInnerAddress();
   void *GetContext();
 
  private:
   std::string local_ip_{""};
-  std::string inproc_address_{"inproc://innerzmq"};
+  std::string inner_address_{"inproc://innerzmq"};
   void *context_{nullptr};
 };
 

@@ -18,6 +18,11 @@ class GtpMarketSpi : public gtp::api::MarketSpi {
   void OnRspUserLogout(const GtpLoginLogoutStruct *login_info);
   void OnDepthMarketData(const GtpMarketDataStruct *market_data);
   void OnRspAllInstrumentInfo(GtpInstrumentInfo *ticker_info);
+  void OnFrontDisconnected(int reason);
+  bool GetFrontDisconnected(void);
+
+ private:
+  bool front_disconnected_ = false;
 };
 
 #endif /* WORKSPACE_MARKET_INFRA_GTPRECER_H_ */

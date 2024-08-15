@@ -14,22 +14,15 @@
 #include "market/infra/recer_sender.h"
 #include "market/interface/strategy_event/strategy_event.h"
 
-
 StrategyEvent::StrategyEvent() { RegMsgFun(); }
 
 void StrategyEvent::RegMsgFun() {
-  int cnt = 0;
   msg_func_map_.clear();
   msg_func_map_["TickSubscribeReq"] = [this](utils::ItpMsg &msg) { TickSubscribeReqHandle(msg); };
   msg_func_map_["InstrumentReq"] = [this](utils::ItpMsg &msg) { InstrumentReqHandle(msg); };
   msg_func_map_["MarketStateRsp"] = [this](utils::ItpMsg &msg) { MarketStateRspHandle(msg); };
   msg_func_map_["PreProcessStateRsp"] = [this](utils::ItpMsg &msg) { PreProcessStateRspHandle(msg); };
   msg_func_map_["CheckMarketAliveReq"] = [this](utils::ItpMsg &msg) { CheckMarketAliveReqHandle(msg); };
-
-  for (auto &iter : msg_func_map_) {
-    INFO_LOG("msg_func_map_[%d] key is [%s]", cnt, iter.first.c_str());
-    cnt++;
-  }
 }
 
 void StrategyEvent::Handle(utils::ItpMsg &msg) {

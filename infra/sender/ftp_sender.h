@@ -16,6 +16,7 @@
 struct FtpSender : SendApi {
  public:
   FtpSender(void);
+  ~FtpSender(void);
   bool ReqUserLogin();
   bool ReqUserLogout();
   bool SubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id = 0);

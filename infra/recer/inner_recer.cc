@@ -7,13 +7,21 @@
 
 InnerRecer::InnerRecer() {
   puller_ = zmq_socket(BaseZmq::GetInstance().GetContext(), ZMQ_PULL);
-  int result = zmq_bind(puller_, BaseZmq::GetInstance().GetInprocAddress().c_str());
+  zmq_setsockopt(puller_, ZMQ_RCVTIMEO, &rec_timeout_, sizeof(rec_timeout_));
+
+  inner_address_ = BaseZmq::GetInstance().GetInnerAddress();
+  int result = zmq_bind(puller_, inner_address_.c_str());
   std::this_thread::sleep_for(std::chrono::seconds(1));
   if (result != 0) {
-    ERROR_LOG("puller_ bind to %s failed", BaseZmq::GetInstance().GetInprocAddress().c_str());
+    ERROR_LOG("puller bind to %s failed", inner_address_.c_str());
   } else {
-    INFO_LOG("puller_ bind to %s ok", BaseZmq::GetInstance().GetInprocAddress().c_str());
+    INFO_LOG("puller bind to %s ok", inner_address_.c_str());
   }
+}
+
+InnerRecer::~InnerRecer() {
+  zmq_close(puller_);
+  INFO_LOG("puller unbind to %s ok", inner_address_.c_str());
 }
 
 bool InnerRecer::ReceMsg(utils::ItpMsg &msg) {

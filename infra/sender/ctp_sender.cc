@@ -19,6 +19,8 @@ CtpMarketSpi *CtpSender::market_spi;
 
 CtpSender::CtpSender(void) { ; }
 
+CtpSender::~CtpSender(void) { Release(); }
+
 bool CtpSender::Init(void) {
   bool out = true;
   if (!is_init_) {

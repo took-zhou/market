@@ -14,17 +14,23 @@
 
 ProxyRecer::ProxyRecer() {
   receiver_ = zmq_socket(BaseZmq::GetInstance().GetContext(), ZMQ_SUB);
+  zmq_setsockopt(receiver_, ZMQ_RCVTIMEO, &rec_timeout_, sizeof(rec_timeout_));
 
-  string sub_ipaddport = "tcp://" + BaseZmq::GetInstance().GetLocalIp() + ":8100";
-  int result = zmq_connect(receiver_, sub_ipaddport.c_str());
+  sub_ipaddport_ = "tcp://" + BaseZmq::GetInstance().GetLocalIp() + ":8100";
+  int result = zmq_connect(receiver_, sub_ipaddport_.c_str());
   std::this_thread::sleep_for(std::chrono::seconds(1));
   if (result != 0) {
-    ERROR_LOG("receiver_ connect to %s failed", sub_ipaddport.c_str());
+    ERROR_LOG("receiver connect to %s failed", sub_ipaddport_.c_str());
   } else {
-    INFO_LOG("receiver_ connect to %s ok", sub_ipaddport.c_str());
+    INFO_LOG("receiver connect to %s ok", sub_ipaddport_.c_str());
   }
 
   SubscribeTopic();
+}
+
+ProxyRecer::~ProxyRecer() {
+  zmq_close(receiver_);
+  INFO_LOG("receiver disconnect to %s ok", sub_ipaddport_.c_str());
 }
 
 bool ProxyRecer::IsTopicInSubTopics(const std::string &title) {
@@ -63,7 +69,6 @@ void ProxyRecer::SubscribeTopic() {
   topic_list_.push_back("market_market.SendEmail");
 
   for (auto &topic : topic_list_) {
-    INFO_LOG("%s", topic.c_str());
     zmq_setsockopt(receiver_, ZMQ_SUBSCRIBE, topic.c_str(), strlen(topic.c_str()));
   }
 }

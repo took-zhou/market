@@ -13,7 +13,6 @@
 #include "market/domain/components/instrument_info.h"
 #include "market/domain/market_service.h"
 
-
 TraderEvent::TraderEvent() { RegMsgFun(); }
 
 void TraderEvent::Handle(utils::ItpMsg &msg) {
@@ -27,16 +26,9 @@ void TraderEvent::Handle(utils::ItpMsg &msg) {
 }
 
 void TraderEvent::RegMsgFun() {
-  int cnt = 0;
   msg_func_map_.clear();
   msg_func_map_["QryInstrumentRsp"] = [this](utils::ItpMsg &msg) { QryInstrumentRspHandle(msg); };
   msg_func_map_["MarketStateRsp"] = [this](utils::ItpMsg &msg) { MarketStateRspHandle(msg); };
-
-  for (auto &iter : msg_func_map_) {
-    INFO_LOG("msg_func_map_[%d] key is [%s]", cnt, iter.first.c_str());
-    cnt++;
-  }
-  return;
 }
 
 void TraderEvent::QryInstrumentRspHandle(utils::ItpMsg &msg) {

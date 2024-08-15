@@ -11,6 +11,8 @@ BtpMarketSpi *BtpSender::market_spi;
 
 BtpSender::BtpSender(void) { ; }
 
+BtpSender::~BtpSender() { Release(); }
+
 bool BtpSender::Init(void) {
   bool out = true;
   if (!is_init_) {

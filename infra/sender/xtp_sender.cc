@@ -12,6 +12,8 @@ XtpQuoteSpi *XtpSender::quote_spi;
 
 XtpSender::XtpSender(void) { ; }
 
+XtpSender::~XtpSender(void) { Release(); }
+
 bool XtpSender::Init(void) {
   bool out = true;
   if (!is_init_) {

@@ -11,6 +11,8 @@ FtpMarketSpi *FtpSender::market_spi;
 
 FtpSender::FtpSender(void) { ; }
 
+FtpSender::~FtpSender(void) { Release(); }
+
 bool FtpSender::Init(void) {
   bool out = true;
   if (!is_init_) {

@@ -22,11 +22,13 @@
 #include <functional>
 #include <map>
 #include <string>
+#include <thread>
 #include "common/self/dci/role.h"
 
 struct MarketEvent : BtpEvent, CtpEvent, XtpEvent, OtpEvent, FtpEvent, GtpEvent, StrategyEvent, TraderEvent, CtpviewEvent, SelfEvent {
  public:
   MarketEvent();
+  ~MarketEvent();
   MarketEvent(const MarketEvent &) = delete;
   MarketEvent &operator=(const MarketEvent &) = delete;
   static MarketEvent &GetInstance() {
@@ -48,7 +50,12 @@ struct MarketEvent : BtpEvent, CtpEvent, XtpEvent, OtpEvent, FtpEvent, GtpEvent,
   IMPL_ROLE(SelfEvent);
 
  private:
+  void ProxyRecTask();
+  void ItpRecTask();
   std::map<std::string, std::function<void(utils::ItpMsg msg)>> session_func_map_;
+  std::thread proxy_rec_thread_;
+  std::thread itp_rec_thread_;
+  std::atomic<bool> running_{false};
 };
 
 #endif /* WORKSPACE_MARKET_INTERFACE_MARKETEVENT_H_ */
