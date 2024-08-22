@@ -511,9 +511,10 @@ bool LoadData::ClassifyContractFiles(void) {
     string exch = market_ser.ROLE(InstrumentInfo).GetExchange(file_name);
     if (exch != "") {
       MoveContractToFolder(contract_file, exch);
-      usleep(1000);
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
     } else {
-      WARNING_LOG("not found fileName:%s", file_name.c_str());
+      utils::DeleteFile(history_tick_folder_ + contract_file);
+      WARNING_LOG("not found file name: %s", file_name.c_str());
     }
   }
 

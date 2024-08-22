@@ -20,15 +20,14 @@
 #include "market/infra/recer_sender.h"
 #include "market/interface/market_event.h"
 
-
 void SignalHandler(int signal) {
   auto &market_main = MarketMain::GetInstance();
   market_main.Exit();
 }
 
 void MarketMain::Entry(int argc, char *argv[]) {
-  pybind11::scoped_interpreter python;
-  pybind11::gil_scoped_release release;
+  static pybind11::scoped_interpreter python;
+  static pybind11::gil_scoped_release release;
 
   signal(SIGINT, SignalHandler);
 
