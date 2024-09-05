@@ -36,7 +36,7 @@ void PublishControl::RestoreFromSqlite3() {
 
   const char *sql = "select * from publish_control;";
   if (sqlite3_get_table(FdManage::GetInstance().GetMarketConn(), sql, &result, &nrow, &ncolumn, &error_msg) != SQLITE_OK) {
-    ERROR_LOG("Sql error %s.", error_msg);
+    ERROR_LOG("sql error %s.", error_msg);
     sqlite3_free(error_msg);
     sqlite3_close(FdManage::GetInstance().GetMarketConn());
   }
@@ -51,7 +51,7 @@ void PublishControl::InitDatabase() {
   char *error_msg = nullptr;
   const char *sql = "create table if not exists publish_control(ins TEXT, exch TEXT);";
   if (sqlite3_exec(FdManage::GetInstance().GetMarketConn(), sql, NULL, NULL, &error_msg) != SQLITE_OK) {
-    ERROR_LOG("Sql error %s.", error_msg);
+    ERROR_LOG("sql error %s.", error_msg);
     sqlite3_free(error_msg);
     sqlite3_close(FdManage::GetInstance().GetMarketConn());
   }

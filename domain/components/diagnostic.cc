@@ -26,7 +26,7 @@ void Diagnostic::InitDatabase() {
   const char* sql = "create table if not exists diagnostic_info(id INT, status INT, time TEXT)";
   char* error_msg = nullptr;
   if (sqlite3_exec(FdManage::GetInstance().GetMarketConn(), sql, NULL, NULL, &error_msg) != SQLITE_OK) {
-    ERROR_LOG("Sql error %s.", error_msg);
+    ERROR_LOG("sql error %s.", error_msg);
     sqlite3_free(error_msg);
     sqlite3_close(FdManage::GetInstance().GetMarketConn());
   }
