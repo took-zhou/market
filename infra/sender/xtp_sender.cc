@@ -74,7 +74,7 @@ bool XtpSender::ReqUserLogin(void) {
     } else {
       UpdateInstrumentInfoFromMarket();
       auto &global_sem = GlobalSem::GetInstance();
-      if (global_sem.WaitSemBySemName(SemName::kLoginLogout, 3) != 0) {
+      if (global_sem.WaitSemBySemName(SemName::kLoginLogout, 10) != 0) {
         quote_spi->OnRspUserLogin();
       }
     }
@@ -92,7 +92,7 @@ bool XtpSender::ReqUserLogout() {
     INFO_LOG("ReqUserLogout send result is [%d]", result);
 
     auto &global_sem = GlobalSem::GetInstance();
-    if (global_sem.WaitSemBySemName(SemName::kLoginLogout, 3) != 0) {
+    if (global_sem.WaitSemBySemName(SemName::kLoginLogout, 10) != 0) {
       quote_spi->OnRspUserLogout();
     }
 

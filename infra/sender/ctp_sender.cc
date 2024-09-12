@@ -41,7 +41,7 @@ bool CtpSender::Init(void) {
       market_api->Init();
 
       auto &global_sem = GlobalSem::GetInstance();
-      if (global_sem.WaitSemBySemName(SemName::kLoginLogout, 3)) {
+      if (global_sem.WaitSemBySemName(SemName::kLoginLogout, 10)) {
         out = false;
         ERROR_LOG("market init fail.");
       } else {
@@ -125,7 +125,7 @@ bool CtpSender::ReqUserLogout() {
         INFO_LOG("ReqUserLogout send result is [%d]", result);
       }
       auto &global_sem = GlobalSem::GetInstance();
-      if (global_sem.WaitSemBySemName(SemName::kLoginLogout, 3) != 0) {
+      if (global_sem.WaitSemBySemName(SemName::kLoginLogout, 10) != 0) {
         market_spi->OnRspUserLogout();
       }
       Release();
