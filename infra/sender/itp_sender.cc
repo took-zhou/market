@@ -5,6 +5,7 @@
 #include "market/infra/sender/ctp_sender.h"
 #include "market/infra/sender/ftp_sender.h"
 #include "market/infra/sender/gtp_sender.h"
+#include "market/infra/sender/mtp_sender.h"
 #include "market/infra/sender/otp_sender.h"
 #include "market/infra/sender/xtp_sender.h"
 
@@ -23,6 +24,8 @@ ItpSender::ItpSender() {
     send_api_ = std::make_unique<FtpSender>();
   } else if (api_type == "gtp") {
     send_api_ = std::make_unique<GtpSender>();
+  } else if (api_type == "mtp") {
+    send_api_ = std::make_unique<MtpSender>();
   }
 }
 

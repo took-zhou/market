@@ -485,6 +485,104 @@ void LoadData::LoadDepthMarketDataToCsv(GtpMarketDataStruct *p_d) {
   out.close();  // 关闭文件
 }
 
+void LoadData::FormDepthMarketData2Stringflow(MtpMarketDataStruct *p_d) {
+  string data_time = std::string(p_d->date_time);
+  /// 交易日期
+  string trading_year = data_time.substr(0, 4);
+  string trading_month = data_time.substr(5, 2);
+  string trading_date = data_time.substr(8, 2);
+  /// 最后修改时间 TThostFtdcTimeType char[9]
+  string update_time = data_time.substr(11);
+  /// 最新价 TThostFtdcPriceType double
+  double last_price = Max2zero(p_d->last_price);
+  /// 申买价一 TThostFtdcPriceType double
+  double bid_price1 = Max2zero(p_d->bid_price[0]);
+  /// 申买量一 TThostFtdcVolumeType int
+  int bid_volume1 = p_d->bid_volume[0];
+  /// 申卖价一 TThostFtdcPriceType double
+  double ask_price1 = Max2zero(p_d->ask_price[0]);
+  /// 申卖量一 TThostFtdcVolumeType int
+  int ask_volume1 = p_d->ask_volume[0];
+  /// 申买价一 TThostFtdcPriceType double
+  double bid_price2 = Max2zero(p_d->bid_price[1]);
+  /// 申买量一 TThostFtdcVolumeType int
+  int bid_volume2 = p_d->bid_volume[1];
+  /// 申卖价一 TThostFtdcPriceType double
+  double ask_price2 = Max2zero(p_d->ask_price[1]);
+  /// 申卖量一 TThostFtdcVolumeType int
+  int ask_volume2 = p_d->ask_volume[1];
+  /// 申买价一 TThostFtdcPriceType double
+  double bid_price3 = Max2zero(p_d->bid_price[2]);
+  /// 申买量一 TThostFtdcVolumeType int
+  int bid_volume3 = p_d->bid_volume[2];
+  /// 申卖价一 TThostFtdcPriceType double
+  double ask_price3 = Max2zero(p_d->ask_price[2]);
+  /// 申卖量一 TThostFtdcVolumeType int
+  int ask_volume3 = p_d->ask_volume[2];
+  /// 申买价一 TThostFtdcPriceType double
+  double bid_price4 = Max2zero(p_d->bid_price[3]);
+  /// 申买量一 TThostFtdcVolumeType int
+  int bid_volume4 = p_d->bid_volume[3];
+  /// 申卖价一 TThostFtdcPriceType double
+  double ask_price4 = Max2zero(p_d->ask_price[3]);
+  /// 申卖量一 TThostFtdcVolumeType int
+  int ask_volume4 = p_d->ask_volume[3];
+  /// 申买价一 TThostFtdcPriceType double
+  double bid_price5 = Max2zero(p_d->bid_price[4]);
+  /// 申买量一 TThostFtdcVolumeType int
+  int bid_volume5 = p_d->bid_volume[4];
+  /// 申卖价一 TThostFtdcPriceType double
+  double ask_price5 = Max2zero(p_d->ask_price[4]);
+  /// 申卖量一 TThostFtdcVolumeType int
+  int ask_volume5 = p_d->ask_volume[4];
+  /// 数量 TThostFtdcVolumeType int
+  int64_t volume = p_d->volume;
+  /// 持仓量 TThostFtdcLargeVolumeType double
+  int64_t open_interest = p_d->positon;
+
+  sprintf(dataflow_,
+          "%s,%s%s%s,%s,%.15g,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%.15g,%d,%ld,,%ld,,,,,,,",
+          p_d->instrument_id, trading_year.c_str(), trading_month.c_str(), trading_date.c_str(), update_time.c_str(), last_price,
+          bid_price1, bid_volume1, ask_price1, ask_volume1, bid_price2, bid_volume2, ask_price2, ask_volume2, bid_price3, bid_volume3,
+          ask_price3, ask_volume3, bid_price4, bid_volume4, ask_price4, ask_volume4, bid_price5, bid_volume5, ask_price5, ask_volume5,
+          volume, open_interest);
+}
+
+void LoadData::LoadDepthMarketDataToCsv(MtpMarketDataStruct *p_d) {
+  char csvpath[200];
+  uint8_t exist_flag = 1;
+
+  if (!IsValidTickData(p_d)) {
+    return;
+  }
+
+  if (access(history_tick_folder_.c_str(), F_OK) == -1) {
+    mkdir(history_tick_folder_.c_str(), S_IRWXU);
+  }
+
+  sprintf(csvpath, "%s/%s.csv", history_tick_folder_.c_str(),
+          p_d->instrument_id);  // 合成存储路径
+
+  FormDepthMarketData2Stringflow(p_d);
+
+  if (access(csvpath, F_OK) == -1) {
+    exist_flag = 0;
+  }
+
+  std::ofstream out(csvpath, std::ios::app);
+  if (out.is_open()) {
+    if (exist_flag == 0) {
+      out << titleflow_ << "\r\r\n";
+    }
+    out << dataflow_ << "\r\r\n";
+  } else {
+    INFO_LOG("%s open fail.\n", csvpath);
+    fflush(stdout);
+  }
+
+  out.close();  // 关闭文件
+}
+
 bool LoadData::ClassifyContractFiles(void) {
   struct dirent *filename;  // return value for readdir()
   DIR *dir;                 // return value for opendir()

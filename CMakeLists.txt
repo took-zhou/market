@@ -16,12 +16,14 @@ target_link_libraries(marketlib
     btpmarketapi
     ftpmarketapi
     gtpmarketapi
+    mtpmarketapi
     oes_api
     commonlib
     zmq
     protobuf
     python3.8
     sqlite3
+    quickfix
     z
     curl
     boost_system

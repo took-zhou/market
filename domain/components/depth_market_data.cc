@@ -123,6 +123,8 @@ bool MarketData::IsValidTickData(GtpMarketDataStruct *p_d) {
   return ret;
 }
 
+bool MarketData::IsValidTickData(MtpMarketDataStruct *p_d) { return true; }
+
 double MarketData::Max2zero(double num) {
   if (num >= 100000000) {
     return 0.0;
@@ -188,3 +190,5 @@ bool MarketData::GetAssemblingTime(char *t_arr, GtpMarketDataStruct *p_d) {
   strcpy(t_arr, p_d->date_time);
   return true;
 }
+
+bool MarketData::GetAssemblingTime(char *t_arr, MtpMarketDataStruct *p_d) { return true; }
