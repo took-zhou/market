@@ -27,6 +27,7 @@ target_link_libraries(marketlib
     z
     curl
     boost_system
+    dl
 )
 
 file(GLOB_RECURSE test_source
