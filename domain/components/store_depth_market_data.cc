@@ -632,10 +632,10 @@ bool LoadData::MoveContractToFolder(const string &contract_name, const string &e
 
   if (access(folderpath, F_OK) == -1) {
     if (mkdir(folderpath, S_IRWXU) == 0) {
-      INFO_LOG("create folder %s ok.\n", folderpath);
+      INFO_LOG("create folder %s ok.", folderpath);
       fflush(stdout);
     } else {
-      ERROR_LOG("create folder %s fail.\n", folderpath);
+      ERROR_LOG("create folder %s fail.", folderpath);
       fflush(stdout);
       return false;
     }

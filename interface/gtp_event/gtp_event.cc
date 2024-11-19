@@ -8,6 +8,7 @@
 #include "market/interface/gtp_event/gtp_event.h"
 #include "common/extern/log/log.h"
 #include "common/self/file_util.h"
+#include "common/self/global_sem.h"
 #include "common/self/protobuf/ipc.pb.h"
 #include "common/self/protobuf/market-trader.pb.h"
 #include "common/self/utils.h"
@@ -126,6 +127,9 @@ void GtpEvent::OnRspAllInstrumentInfoHandle(utils::ItpMsg &msg) {
 
   if (gtpqsi->is_last) {
     market_ser.ROLE(InstrumentInfo).ShowInstrumentInfo();
+
+    auto &global_sem = GlobalSem::GetInstance();
+    global_sem.PostSemBySemName(SemName::kUpdateInstrumentInfo);
   }
 }
 

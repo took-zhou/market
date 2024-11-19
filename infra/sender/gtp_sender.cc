@@ -3,6 +3,7 @@
 #include <thread>
 #include "common/extern/log/log.h"
 #include "common/self/file_util.h"
+#include "common/self/global_sem.h"
 #include "common/self/utils.h"
 #include "market/infra/recer/gtp_recer.h"
 
@@ -42,7 +43,15 @@ bool GtpSender::ReqUserLogin(void) {
     Release();
     ret = false;
   } else {
-    market_api->QryInstrumentInfo();
+    for (uint8_t wait_count = 0; wait_count < 3; wait_count++) {
+      market_api->QryInstrumentInfo();
+      auto &global_sem = GlobalSem::GetInstance();
+      INFO_LOG("update instrument info from market send ok, waiting market rsp.");
+      if (!global_sem.WaitSemBySemName(SemName::kUpdateInstrumentInfo, 60)) {
+        break;
+      }
+    }
+
     GtpLoginLogoutStruct login_struct;
     market_api->Login(login_struct);
   }
