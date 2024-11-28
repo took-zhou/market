@@ -18,9 +18,9 @@ static int32 ApiAsyncDisconnect(MdsAsyncApiChannelT *async_channel, void *callba
 static int32 QryStockStaticInfo(MdsApiSessionInfoT *session, SMsgHeadT *head, void *item, MdsQryCursorT *cursor, void *callback);
 static int32 HandleMsg(MdsApiSessionInfoT *session, SMsgHeadT *head, void *item, void *callback);
 
-OtpSender::OtpSender(void) { ; }
+OtpSender::OtpSender(void) {}
 
-OtpSender::~OtpSender(void) { Release(); }
+OtpSender::~OtpSender(void) {}
 
 bool OtpSender::Init(void) {
   bool out = true;

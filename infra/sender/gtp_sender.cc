@@ -10,9 +10,9 @@
 gtp::api::MarketApi *GtpSender::market_api;
 GtpMarketSpi *GtpSender::market_spi;
 
-GtpSender::GtpSender(void) { ; }
+GtpSender::GtpSender(void) {}
 
-GtpSender::~GtpSender(void) { Release(); }
+GtpSender::~GtpSender(void) {}
 
 bool GtpSender::Init(void) {
   bool out = true;
@@ -43,7 +43,7 @@ bool GtpSender::ReqUserLogin(void) {
     Release();
     ret = false;
   } else {
-    for (uint8_t wait_count = 0; wait_count < 3; wait_count++) {
+    for (uint8_t wait_count = 0; wait_count < 10; wait_count++) {
       market_api->QryInstrumentInfo();
       auto &global_sem = GlobalSem::GetInstance();
       INFO_LOG("update instrument info from market send ok, waiting market rsp.");

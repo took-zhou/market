@@ -13,6 +13,7 @@
 #include "common/extern/log/log.h"
 #include "common/extern/pybind11/include/pybind11/embed.h"
 #include "common/self/file_util.h"
+#include "common/self/global_sem.h"
 #include "common/self/profiler.h"
 #include "common/self/utils.h"
 #include "market/domain/components/fd_manage.h"
@@ -44,19 +45,12 @@ void MarketMain::Entry(int argc, char *argv[]) {
   profiler::FlameGraphWriter::Instance().SetFilePath(market_data_path);
 
   FdManage::GetInstance();
+  GlobalSem::GetInstance();
   RecerSender::GetInstance();
 
-  auto &market_ser = MarketService::GetInstance();
-  INFO_LOG("market_ser init ok");
-  market_ser.Run();
-
-  std::this_thread::sleep_for(std::chrono::seconds(3));
-
-  auto &market_event = MarketEvent::GetInstance();
-  INFO_LOG("market_event init ok");
-  market_event.Run();
-
+  StartService();
   HoldOn();
+  StopService();
 }
 
 void MarketMain::HoldOn(void) {
@@ -71,6 +65,24 @@ void MarketMain::Exit(void) {
 }
 
 const std::string &MarketMain::GetMarketName() { return market_name_; }
+
+void MarketMain::StartService(void) {
+  auto &market_ser = MarketService::GetInstance();
+  auto &market_event = MarketEvent::GetInstance();
+
+  market_ser.Run();
+  std::this_thread::sleep_for(std::chrono::seconds(3));
+  market_event.Run();
+}
+
+void MarketMain::StopService(void) {
+  auto &market_ser = MarketService::GetInstance();
+  auto &market_event = MarketEvent::GetInstance();
+
+  market_ser.Stop();
+  std::this_thread::sleep_for(std::chrono::seconds(3));
+  market_event.Stop();
+}
 
 int main(int argc, char *argv[]) {
   auto &market_main = MarketMain::GetInstance();

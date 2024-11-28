@@ -17,9 +17,9 @@
 CThostFtdcMdApi *CtpSender::market_api;
 CtpMarketSpi *CtpSender::market_spi;
 
-CtpSender::CtpSender(void) { ; }
+CtpSender::CtpSender(void) {}
 
-CtpSender::~CtpSender(void) { Release(); }
+CtpSender::~CtpSender(void) {}
 
 bool CtpSender::Init(void) {
   bool out = true;

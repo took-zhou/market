@@ -22,14 +22,13 @@ struct BtpSender : SendApi {
   bool SubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id = 0);
   bool UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id = 0);
   bool LossConnection();
+  bool Release();
 
   static btp::api::MarketApi *market_api;
   static BtpMarketSpi *market_spi;
 
  private:
   bool Init(void);
-  bool Release(void);
-
   std::string con_path_ = "";
   bool is_init_ = false;
 };

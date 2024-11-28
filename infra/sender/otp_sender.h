@@ -22,12 +22,13 @@ struct OtpSender : SendApi {
   bool SubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id = 0);
   bool UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id = 0);
   bool LossConnection();
+  bool Release();
 
   static OtpMarketSpi *market_spi;
 
  private:
   bool Init(void);
-  bool Release(void);
+
   void UpdateInstrumentInfoFromMarket();
 
   MdsAsyncApiContextT *async_context_;

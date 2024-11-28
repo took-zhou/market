@@ -29,17 +29,7 @@ void MarketEvent::RegSessionFunc() {
 
 MarketEvent::MarketEvent() { RegSessionFunc(); }
 
-MarketEvent::~MarketEvent() {
-  running_ = false;
-  if (proxy_rec_thread_.joinable()) {
-    proxy_rec_thread_.join();
-    INFO_LOG("proxy rec thread exit");
-  }
-  if (itp_rec_thread_.joinable()) {
-    itp_rec_thread_.join();
-    INFO_LOG("itp rec thread exit");
-  }
-}
+MarketEvent::~MarketEvent() {}
 
 bool MarketEvent::Run() {
   running_ = true;
@@ -50,6 +40,19 @@ bool MarketEvent::Run() {
   itp_rec_thread_ = std::thread(&MarketEvent::ItpRecTask, this);
   INFO_LOG("itp rec thread start");
 
+  return true;
+}
+
+bool MarketEvent::Stop() {
+  running_ = false;
+  if (proxy_rec_thread_.joinable()) {
+    proxy_rec_thread_.join();
+    INFO_LOG("proxy rec thread exit");
+  }
+  if (itp_rec_thread_.joinable()) {
+    itp_rec_thread_.join();
+    INFO_LOG("itp rec thread exit");
+  }
   return true;
 }
 

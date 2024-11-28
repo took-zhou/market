@@ -16,21 +16,9 @@
 
 MarketService::MarketService() { InitDatabase(); }
 
-MarketService::~MarketService() {
-  UpdateLoginState(MarketLoginState::kManualExit);
-  INFO_LOG("set login state to manual exit.");
-  running_ = false;
-  if (fast_back_thread_.joinable()) {
-    fast_back_thread_.join();
-    INFO_LOG("market fast back thread exit");
-  }
-  if (real_time_thread_.joinable()) {
-    real_time_thread_.join();
-    INFO_LOG("market real time thread exit");
-  }
-}
+MarketService::~MarketService() {}
 
-void MarketService::Run() {
+bool MarketService::Run() {
   auto &json_cfg = utils::JsonConfig::GetInstance();
   auto api_type = json_cfg.GetConfig("common", "ApiType");
 
@@ -42,6 +30,26 @@ void MarketService::Run() {
     real_time_thread_ = std::thread(&MarketService::RealTimeTask, this);
     INFO_LOG("market real time thread start");
   }
+
+  return true;
+}
+
+bool MarketService::Stop() {
+  UpdateLoginState(MarketLoginState::kManualExit);
+  INFO_LOG("set login state to manual exit.");
+  running_ = false;
+  if (fast_back_thread_.joinable()) {
+    fast_back_thread_.join();
+    INFO_LOG("market fast back thread exit");
+  }
+  if (real_time_thread_.joinable()) {
+    real_time_thread_.join();
+    INFO_LOG("market real time thread exit");
+  }
+  auto &recer_sender = RecerSender::GetInstance();
+  recer_sender.ROLE(Sender).ROLE(ItpSender).Release();
+
+  return true;
 }
 
 void MarketService::FastBackTask() {

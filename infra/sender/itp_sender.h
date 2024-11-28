@@ -19,6 +19,7 @@ struct ItpSender {
   bool SubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id = 0);
   bool UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id = 0);
   bool LossConnection();
+  bool Release();
 
  private:
   std::unique_ptr<SendApi> send_api_;

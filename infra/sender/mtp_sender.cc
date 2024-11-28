@@ -9,9 +9,9 @@
 mtp::api::MarketApi *MtpSender::market_api;
 MtpMarketSpi *MtpSender::market_spi;
 
-MtpSender::MtpSender(void) { ; }
+MtpSender::MtpSender(void) {}
 
-MtpSender::~MtpSender(void) { Release(); }
+MtpSender::~MtpSender(void) {}
 
 bool MtpSender::Init(void) {
   bool out = true;

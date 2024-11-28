@@ -51,7 +51,8 @@ struct MarketService : MarketTimeState,
 
   bool UpdateLoginState(MarketLoginState state);
   MarketLoginState GetLoginState();
-  void Run();
+  bool Run();
+  bool Stop();
 
  private:
   void FastBackTask();

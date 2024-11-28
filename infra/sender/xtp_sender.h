@@ -22,6 +22,7 @@ struct XtpSender : SendApi {
   bool SubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id = 0);
   bool UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id = 0);
   bool LossConnection();
+  bool Release();
 
   static XTP::API::QuoteApi *quote_api;
   static XtpQuoteSpi *quote_spi;
@@ -29,7 +30,6 @@ struct XtpSender : SendApi {
  private:
   void UpdateInstrumentInfoFromMarket();
   bool Init(void);
-  bool Release(void);
 
   std::string con_path_ = "";
   bool is_init_ = false;

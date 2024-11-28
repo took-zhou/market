@@ -9,9 +9,9 @@
 btp::api::MarketApi *BtpSender::market_api;
 BtpMarketSpi *BtpSender::market_spi;
 
-BtpSender::BtpSender(void) { ; }
+BtpSender::BtpSender(void) {}
 
-BtpSender::~BtpSender() { Release(); }
+BtpSender::~BtpSender() {}
 
 bool BtpSender::Init(void) {
   bool out = true;

@@ -22,14 +22,12 @@ struct CtpSender : SendApi {
   bool SubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id = 0);
   bool UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id = 0);
   bool LossConnection();
-
-  bool Init(void);
-  bool Release(void);
+  bool Release();
 
  private:
+  bool Init(void);
   static CThostFtdcMdApi *market_api;
   static CtpMarketSpi *market_spi;
-
   std::string con_path_ = "";
   int request_id_ = 0;
   bool is_init_ = false;

@@ -9,9 +9,9 @@
 ftp::api::MarketApi *FtpSender::market_api;
 FtpMarketSpi *FtpSender::market_spi;
 
-FtpSender::FtpSender(void) { ; }
+FtpSender::FtpSender(void) {}
 
-FtpSender::~FtpSender(void) { Release(); }
+FtpSender::~FtpSender(void) {}
 
 bool FtpSender::Init(void) {
   bool out = true;

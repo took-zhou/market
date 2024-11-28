@@ -10,9 +10,9 @@
 XTP::API::QuoteApi *XtpSender::quote_api;
 XtpQuoteSpi *XtpSender::quote_spi;
 
-XtpSender::XtpSender(void) { ; }
+XtpSender::XtpSender(void) {}
 
-XtpSender::~XtpSender(void) { Release(); }
+XtpSender::~XtpSender(void) {}
 
 bool XtpSender::Init(void) {
   bool out = true;

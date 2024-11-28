@@ -18,6 +18,8 @@ struct MarketMain {
   const std::string &GetMarketName();
 
  private:
+  void StartService(void);
+  void StopService(void);
   std::string market_name_ = "market";
   bool is_hold_on_ = true;
 };
