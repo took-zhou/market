@@ -141,7 +141,7 @@ bool MarketService::HandleLogoutState() {
 bool MarketService::HandleLossConnection() {
   auto &recer_sender = RecerSender::GetInstance();
   if (ROLE(MarketTimeState).GetTimeState() == kLoginTime) {
-    if (try_login_count_++ <= 60) {
+    if (try_login_heartbeat_++ % 3 == 2 && try_login_count_++ <= 600) {
       ROLE(SubscribeManager).EraseAllSubscribed();
       ROLE(InstrumentInfo).EraseAllInstrumentInfo();
       if (recer_sender.ROLE(Sender).ROLE(ItpSender).ReqUserLogin()) {
