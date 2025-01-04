@@ -75,7 +75,7 @@ int EmailSender::Send(const std::string &subject, const std::string &body) {
     curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
     res = curl_easy_perform(curl);
     if (res != CURLE_OK) {
-      ERROR_LOG("curl_easy_perform() failed: %s.", curl_easy_strerror(res));
+      ERROR_LOG("curl easy perform failed: %s.", curl_easy_strerror(res));
     }
     curl_slist_free_all(recipients);
     curl_easy_cleanup(curl);

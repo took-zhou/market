@@ -73,7 +73,7 @@ void CtpEvent::OnRspUserLoginHandle(utils::ItpMsg &msg) {
   utils::Gbk2Utf8(rsp_info->ErrorMsg, errormsg, sizeof(errormsg));  // 报错返回信息
   if (rsp_info->ErrorID != 0) {
     // 端登失败，客户端需进行错误处理
-    ERROR_LOG("Failed to login, errorcode=%d errormsg=%s", rsp_info->ErrorID, errormsg);
+    ERROR_LOG("failed to login, errorcode=%d errormsg=%s", rsp_info->ErrorID, errormsg);
     exit(-1);
   } else {
     // 同步全局合约信息
@@ -101,7 +101,7 @@ void CtpEvent::OnRspUserLogoutHandle(utils::ItpMsg &msg) {
 
   if (rsp_info->ErrorID != 0) {
     // 端登失败，客户端需进行错误处理
-    ERROR_LOG("Failed to logout, errorcode=%d errormsg=%s", rsp_info->ErrorID, errormsg);
+    ERROR_LOG("failed to logout, errorcode=%d errormsg=%s", rsp_info->ErrorID, errormsg);
     exit(-1);
   } else {
     auto &market_ser = MarketService::GetInstance();

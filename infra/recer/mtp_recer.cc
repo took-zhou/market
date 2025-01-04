@@ -26,7 +26,7 @@ void MtpMarketSpi::OnRspUserLogin(const MtpLoginLogoutStruct *login_info) {
     global_sem.WaitSemBySemName(SemName::kApiRecv);
     front_disconnected_ = false;
   } else {
-    ERROR_LOG("login_info is nullptr");
+    ERROR_LOG("login info is nullptr");
   }
 }
 
@@ -46,7 +46,7 @@ void MtpMarketSpi::OnRspUserLogout(const MtpLoginLogoutStruct *login_info) {
     recer_sender.ROLE(InnerSender).SendMsg(msg);
     global_sem.WaitSemBySemName(SemName::kApiRecv);
   } else {
-    ERROR_LOG("login_info is nullptr");
+    ERROR_LOG("login info is nullptr");
   }
 }
 
@@ -69,7 +69,7 @@ void MtpMarketSpi::OnDepthMarketData(const MtpMarketDataStruct *market_data) {
     recer_sender.ROLE(InnerSender).SendMsg(msg);
     global_sem.WaitSemBySemName(SemName::kApiRecv);
   } else {
-    ERROR_LOG("market_data is nullptr");
+    ERROR_LOG("market data is nullptr");
   }
 }
 
@@ -88,7 +88,7 @@ void MtpMarketSpi::OnRspAllInstrumentInfo(MtpInstrumentInfo *ticker_info) {
     recer_sender.ROLE(InnerSender).SendMsg(msg);
     global_sem.WaitSemBySemName(SemName::kApiRecv);
   } else {
-    ERROR_LOG("ticker_info is nullptr");
+    ERROR_LOG("ticker info is nullptr");
   }
 }
 

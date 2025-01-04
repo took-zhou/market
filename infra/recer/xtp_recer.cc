@@ -15,7 +15,7 @@ XtpQuoteSpi::XtpQuoteSpi() {}
 XtpQuoteSpi::~XtpQuoteSpi() {}
 
 void XtpQuoteSpi::OnDisconnected(int reason) {
-  ERROR_LOG("front_disconnected, ErrorCode:%#x", reason);
+  ERROR_LOG("front disconnected, error code:%#x", reason);
   front_disconnected_ = true;
 }
 
@@ -80,7 +80,7 @@ void XtpQuoteSpi::OnDepthMarketData(XTPMD *market_data, int64_t bid1_qty[], int3
     recer_sender.ROLE(InnerSender).SendMsg(msg);
     global_sem.WaitSemBySemName(SemName::kApiRecv);
   } else {
-    ERROR_LOG("market_data is nullptr");
+    ERROR_LOG("market data is nullptr");
   }
 }
 
@@ -102,7 +102,7 @@ void XtpQuoteSpi::OnQueryAllTickers(XTPQSI *ticker_info, XTPRI *error_info, bool
     recer_sender.ROLE(InnerSender).SendMsg(msg);
     global_sem.WaitSemBySemName(SemName::kApiRecv);
   } else {
-    ERROR_LOG("ticker_info is nullptr");
+    ERROR_LOG("ticker info is nullptr");
   }
 }
 
@@ -151,7 +151,7 @@ void XtpQuoteSpi::OnUnSubscribeAllOptionTickByTick(XTP_EXCHANGE_TYPE exchange_id
 bool XtpQuoteSpi::IsErrorRspInfo(XTPRI *p_rsp_info) {
   bool b_result = ((p_rsp_info) && (p_rsp_info->error_id != 0));
   if (b_result) {
-    ERROR_LOG("ErrorID: %d, ErrorMsg: %s", p_rsp_info->error_id, p_rsp_info->error_msg);
+    ERROR_LOG("error id: %d, error msg: %s", p_rsp_info->error_id, p_rsp_info->error_msg);
   }
 
   return b_result;

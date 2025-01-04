@@ -25,7 +25,7 @@ OtpSender::~OtpSender(void) {}
 bool OtpSender::Init(void) {
   bool out = true;
   if (!is_init_) {
-    INFO_LOG("begin OtpMarketApi init");
+    INFO_LOG("begin otp market api init");
     if (!__MdsApi_CheckApiVersion()) {
       ERROR_LOG("api version error, version[%s], libversion[%s]", MDS_APPL_VER_ID, MdsApi_GetApiVersion());
     } else {
@@ -110,7 +110,7 @@ bool OtpSender::ReqUserLogout() {
 }
 
 bool OtpSender::Release() {
-  INFO_LOG("Is going to release quote_api.");
+  INFO_LOG("is going to release quote api.");
 
   if (async_context_ != nullptr) {
     MdsAsyncApi_Stop(async_context_);
@@ -143,7 +143,7 @@ void OtpSender::UpdateInstrumentInfoFromMarket() {
 bool OtpSender::SubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id) {
   int result = true;
   if (name_vec.size() > 500) {
-    WARNING_LOG("too much instruments to unSubscription.");
+    WARNING_LOG("too much instruments to un subscription.");
     return result;
   }
 
@@ -163,12 +163,12 @@ bool OtpSender::SubscribeMarketData(std::vector<utils::InstrumtntID> const &name
     INFO_LOG("exch: %s ins: %s", item.exch.c_str(), item.ins.c_str());
   }
   if (shse_instruments.size() > 0) {
-    INFO_LOG("shse_instruments %s ", shse_instruments.c_str());
+    INFO_LOG("shse instruments %s ", shse_instruments.c_str());
     result = MdsAsyncApi_SubscribeByString(async_channel_, shse_instruments.c_str(), "|", MDS_EXCH_SSE, MDS_MD_PRODUCT_TYPE_STOCK,
                                            MDS_SUB_MODE_APPEND, MDS_SUB_DATA_TYPE_L2_SNAPSHOT);
   }
   if (szse_instruments.size() > 0) {
-    INFO_LOG("szse_instruments %s ", szse_instruments.c_str());
+    INFO_LOG("szse instruments %s ", szse_instruments.c_str());
     result = MdsAsyncApi_SubscribeByString(async_channel_, szse_instruments.c_str(), "|", MDS_EXCH_SZSE, MDS_MD_PRODUCT_TYPE_STOCK,
                                            MDS_SUB_MODE_APPEND, MDS_SUB_DATA_TYPE_L2_SNAPSHOT);
   }
@@ -177,9 +177,9 @@ bool OtpSender::SubscribeMarketData(std::vector<utils::InstrumtntID> const &name
     INFO_LOG("no instrument need to Subscription.");
   } else {
     if (static_cast<bool>(result)) {
-      INFO_LOG("Subscription request ......Send a success, total number: %d", count);
+      INFO_LOG("subscription request ......send a success, total number: %d", count);
     } else {
-      ERROR_LOG("SubscribeMarketData fail, error code[%d]", result);
+      ERROR_LOG("subscribe market data fail, error code[%d]", result);
     }
   }
 
@@ -189,7 +189,7 @@ bool OtpSender::SubscribeMarketData(std::vector<utils::InstrumtntID> const &name
 bool OtpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id) {
   int result = true;
   if (name_vec.size() > 500) {
-    WARNING_LOG("too much instruments to unSubscription.");
+    WARNING_LOG("too much instruments to un subscription.");
     return result;
   }
 
@@ -217,12 +217,12 @@ bool OtpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &na
   }
 
   if (count == 0) {
-    INFO_LOG("no instrument need to unSubscription.");
+    INFO_LOG("no instrument need to un subscription.");
   } else {
     if (static_cast<bool>(result)) {
-      INFO_LOG("UnSubscription request ......Send a success, total number: %d", count);
+      INFO_LOG("un subscription request ......send a success, total number: %d", count);
     } else {
-      ERROR_LOG("UnSubscription fail, error code[%d]", result);
+      ERROR_LOG("un subscription fail, error code[%d]", result);
     }
   }
 

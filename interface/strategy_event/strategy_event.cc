@@ -31,7 +31,7 @@ void StrategyEvent::Handle(utils::ItpMsg &msg) {
     iter->second(msg);
     return;
   }
-  ERROR_LOG("can not find func for msg_name [%s]!", msg.msg_name.c_str());
+  ERROR_LOG("can not find func for msg name [%s]!", msg.msg_name.c_str());
   return;
 }
 
@@ -124,7 +124,7 @@ void StrategyEvent::MarketStateRspHandle(utils::ItpMsg &msg) {
 }
 
 void StrategyEvent::PreProcessStateRspHandle(utils::ItpMsg &msg) {
-  INFO_LOG("post sem name: kStrategyRsp");
+  INFO_LOG("post sem name: strategy rsp");
   GlobalSem::GetInstance().PostSemBySemName(SemName::kStrategyRsp);
 }
 

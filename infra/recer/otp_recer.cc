@@ -25,7 +25,7 @@ void OtpMarketSpi::OnRspUserLogin(const std::string *login_info) {
     recer_sender.ROLE(InnerSender).SendMsg(msg);
     global_sem.WaitSemBySemName(SemName::kApiRecv);
   } else {
-    ERROR_LOG("login_info is nullptr");
+    ERROR_LOG("login info is nullptr");
   }
 }
 
@@ -45,7 +45,7 @@ void OtpMarketSpi::OnRspUserLogout(const std::string *logout_info) {
     recer_sender.ROLE(InnerSender).SendMsg(msg);
     global_sem.WaitSemBySemName(SemName::kApiRecv);
   } else {
-    ERROR_LOG("logout_info is nullptr");
+    ERROR_LOG("logout info is nullptr");
   }
 }
 
@@ -65,7 +65,7 @@ void OtpMarketSpi::OnRspStockStaticInfo(const MdsStockStaticInfoT *static_info, 
     recer_sender.ROLE(InnerSender).SendMsg(msg);
     global_sem.WaitSemBySemName(SemName::kApiRecv);
   } else {
-    ERROR_LOG("static_info is nullptr");
+    ERROR_LOG("static info is nullptr");
   }
 }
 
@@ -88,6 +88,6 @@ void OtpMarketSpi::OnDepthMarketData(const MdsMktDataSnapshotT *market_data) {
     recer_sender.ROLE(InnerSender).SendMsg(msg);
     global_sem.WaitSemBySemName(SemName::kApiRecv);
   } else {
-    ERROR_LOG("market_data is nullptr");
+    ERROR_LOG("market data is nullptr");
   }
 }

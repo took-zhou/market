@@ -35,7 +35,7 @@ bool XtpSender::Init(void) {
       // 设定行情本地缓存大小，单位为MB
       quote_api->SetUDPBufferSize(1);
 
-      INFO_LOG("quote_api init ok.");
+      INFO_LOG("quote api init ok.");
       std::this_thread::sleep_for(std::chrono::seconds(1));
       break;
     }
@@ -68,7 +68,7 @@ bool XtpSender::ReqUserLogin(void) {
     int login_result_quote = quote_api->Login(ip_str.c_str(), port, user_id.c_str(), password.c_str(), protoc);
     if (login_result_quote == -1) {
       XTPRI *error_info = quote_api->GetApiLastError();
-      ERROR_LOG("Login to server error: %d : %s", error_info->error_id, error_info->error_msg);
+      ERROR_LOG("login to server error: %d : %s", error_info->error_id, error_info->error_msg);
       Release();
       ret = false;
     } else {
@@ -89,7 +89,7 @@ bool XtpSender::ReqUserLogout() {
 
   if (quote_api != nullptr) {
     int result = quote_api->Logout();
-    INFO_LOG("ReqUserLogout send result is [%d]", result);
+    INFO_LOG("req user logout send result is [%d]", result);
 
     auto &global_sem = GlobalSem::GetInstance();
     if (global_sem.WaitSemBySemName(SemName::kLoginLogout, 10) != 0) {
@@ -103,7 +103,7 @@ bool XtpSender::ReqUserLogout() {
 }
 
 bool XtpSender::Release() {
-  INFO_LOG("Is going to release quote_api.");
+  INFO_LOG("is going to release quote api.");
 
   if (quote_api != nullptr) {
     quote_api->Release();
@@ -123,7 +123,7 @@ bool XtpSender::Release() {
 bool XtpSender::SubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id) {
   int result = true;
   if (name_vec.size() > 500) {
-    WARNING_LOG("too much instruments to unSubscription.");
+    WARNING_LOG("too much instruments to un subscription.");
     return result;
   }
 
@@ -146,18 +146,18 @@ bool XtpSender::SubscribeMarketData(std::vector<utils::InstrumtntID> const &name
   if (sh_count > 0) {
     result = quote_api->SubscribeMarketData(pp_instrument_id_sh, sh_count, XTP_EXCHANGE_SH);
     if (result == 0) {
-      INFO_LOG("SubscribeMarketData request ......Send a success, total number: %d", sh_count);
+      INFO_LOG("subscribe market data request ......send a success, total number: %d", sh_count);
     } else {
-      ERROR_LOG("SubscribeMarketData fail, error code[%d]", result);
+      ERROR_LOG("subscribe market data fail, error code[%d]", result);
     }
   }
 
   if (sz_sount > 0) {
     result = quote_api->SubscribeMarketData(pp_instrument_id_sz, sz_sount, XTP_EXCHANGE_SZ);
     if (result == 0) {
-      INFO_LOG("SubscribeMarketData request ......Send a success, total number: %d", sz_sount);
+      INFO_LOG("subscribe market data request ......send a success, total number: %d", sz_sount);
     } else {
-      ERROR_LOG("SubscribeMarketData fail, error code[%d]", result);
+      ERROR_LOG("subscribe market data fail, error code[%d]", result);
     }
   }
 
@@ -170,7 +170,7 @@ bool XtpSender::SubscribeMarketData(std::vector<utils::InstrumtntID> const &name
 bool XtpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id) {
   int result = true;
   if (name_vec.size() > 500) {
-    WARNING_LOG("too much instruments to UnSubscription.");
+    WARNING_LOG("too much instruments to un subscription.");
     return result;
   }
 
@@ -193,18 +193,18 @@ bool XtpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &na
   if (sh_count > 0) {
     result = quote_api->UnSubscribeMarketData(pp_instrument_id_sh, sh_count, XTP_EXCHANGE_SH);
     if (result == 0) {
-      INFO_LOG("UnSubscription request ......Send a success, total number: %d", sh_count);
+      INFO_LOG("un subscription request ......send a success, total number: %d", sh_count);
     } else {
-      ERROR_LOG("UnSubscription fail, error code[%d]", result);
+      ERROR_LOG("un subscription fail, error code[%d]", result);
     }
   }
 
   if (sz_sount > 0) {
     result = quote_api->UnSubscribeMarketData(pp_instrument_id_sz, sz_sount, XTP_EXCHANGE_SZ);
     if (result == 0) {
-      INFO_LOG("UnSubscription request ......Send a success, total number: %d", sz_sount);
+      INFO_LOG("un subscription request ......send a success, total number: %d", sz_sount);
     } else {
-      ERROR_LOG("UnSubscription fail, error code[%d]", result);
+      ERROR_LOG("un subscription fail, error code[%d]", result);
     }
   }
 
@@ -237,7 +237,7 @@ void XtpSender::UpdateInstrumentInfoFromMarket() {
     }
   }
 
-  INFO_LOG("UpdateInstrumentInfoFromMarket ok");
+  INFO_LOG("update instrument info from market ok");
 }
 
 bool XtpSender::LossConnection() { return (quote_spi != nullptr && quote_spi->GetFrontDisconnect()); }

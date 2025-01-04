@@ -25,7 +25,7 @@ void FtpMarketSpi::OnRspUserLogin(const FtpLoginLogoutStruct *login_info) {
     recer_sender.ROLE(InnerSender).SendMsg(msg);
     global_sem.WaitSemBySemName(SemName::kApiRecv);
   } else {
-    ERROR_LOG("login_info is nullptr");
+    ERROR_LOG("login info is nullptr");
   }
 }
 
@@ -45,7 +45,7 @@ void FtpMarketSpi::OnRspUserLogout(const FtpLoginLogoutStruct *login_info) {
     recer_sender.ROLE(InnerSender).SendMsg(msg);
     global_sem.WaitSemBySemName(SemName::kApiRecv);
   } else {
-    ERROR_LOG("login_info is nullptr");
+    ERROR_LOG("login info is nullptr");
   }
 }
 
@@ -68,7 +68,7 @@ void FtpMarketSpi::OnDepthMarketData(const FtpMarketDataStruct *market_data) {
     recer_sender.ROLE(InnerSender).SendMsg(msg);
     global_sem.WaitSemBySemName(SemName::kApiRecv);
   } else {
-    ERROR_LOG("market_data is nullptr");
+    ERROR_LOG("market data is nullptr");
   }
 }
 
@@ -87,6 +87,6 @@ void FtpMarketSpi::OnRspAllInstrumentInfo(FtpInstrumentInfo *ticker_info) {
     recer_sender.ROLE(InnerSender).SendMsg(msg);
     global_sem.WaitSemBySemName(SemName::kApiRecv);
   } else {
-    ERROR_LOG("ticker_info is nullptr");
+    ERROR_LOG("ticker info is nullptr");
   }
 }

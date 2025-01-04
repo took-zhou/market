@@ -19,7 +19,7 @@ bool MarketData::IsValidTickData(CThostFtdcDepthMarketDataField *p_d) {
 
 #ifdef BENCH_TEST
     if (delay_second != 0) {
-      INFO_LOG("%s local time: %02d:%02d:%02d--ctp time: %s delay_second %d", p_d->InstrumentID, local_time->tm_hour, local_time->tm_min,
+      INFO_LOG("%s local time: %02d:%02d:%02d--ctp time: %s delay second %d", p_d->InstrumentID, local_time->tm_hour, local_time->tm_min,
                local_time->tm_sec, p_d->UpdateTime, delay_second);
     }
 #endif
@@ -50,7 +50,7 @@ bool MarketData::IsValidTickData(XTPMD *p_d) {
     int delay_second = now_second - tick_second;
 #ifdef BENCH_TEST
     if (delay_second != 0) {
-      INFO_LOG("%s local time: %02d:%02d:%02d--ctp time:  %02d:%02d:%02d delay_second %d", p_d->ticker, local_time->tm_hour,
+      INFO_LOG("%s local time: %02d:%02d:%02d--ctp time:  %02d:%02d:%02d delay second %d", p_d->ticker, local_time->tm_hour,
                local_time->tm_min, local_time->tm_sec, tick_tm.tm_hour, tick_tm.tm_min, tick_tm.tm_sec, delay_second);
     }
 #endif
@@ -79,7 +79,7 @@ bool MarketData::IsValidTickData(MdsMktDataSnapshotT *p_d) {
 
 #ifdef BENCH_TEST
     if (delay_second != 0) {
-      INFO_LOG("%s local time: %02d:%02d:%02d--ctp time:  %02d:%02d:%02d delay_second %d", p_d->ticker, local_time->tm_hour,
+      INFO_LOG("%s local time: %02d:%02d:%02d--ctp time:  %02d:%02d:%02d delay second %d", p_d->ticker, local_time->tm_hour,
                local_time->tm_min, local_time->tm_sec, tick_tm.tm_hour, tick_tm.tm_min, tick_tm.tm_sec, delay_second);
     }
 #endif
@@ -108,7 +108,7 @@ bool MarketData::IsValidTickData(GtpMarketDataStruct *p_d) {
 
 #ifdef BENCH_TEST
     if (delay_second != 0) {
-      INFO_LOG("%s local time: %02d:%02d:%02d--gtp time: %02d:%02d:%02d delay_second %d", p_d->instrument_id, timenow->tm_hour,
+      INFO_LOG("%s local time: %02d:%02d:%02d--gtp time: %02d:%02d:%02d delay second %d", p_d->instrument_id, timenow->tm_hour,
                timenow->tm_min, timenow->tm_sec, tick_tm.tm_hour, tick_tm.tm_min, tick_tm.tm_sec, delay_second);
     }
 #endif

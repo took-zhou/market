@@ -40,7 +40,7 @@ void XtpEvent::Handle(utils::ItpMsg &msg) {
     iter->second(msg);
     return;
   }
-  ERROR_LOG("can not find func for msgName [%s]!", msg.msg_name.c_str());
+  ERROR_LOG("can not find func for msg name [%s]!", msg.msg_name.c_str());
   return;
 }
 
@@ -71,7 +71,7 @@ void XtpEvent::OnRspUserLoginHandle(utils::ItpMsg &msg) {
   auto xtpri = reinterpret_cast<XTPRI *>(itp_msg.address());
   if (xtpri->error_id != 0) {
     // 端登失败，客户端需进行错误处理
-    ERROR_LOG("Failed to login, errorcode=%d errormsg=%s", xtpri->error_id, xtpri->error_msg);
+    ERROR_LOG("failed to login, errorcode=%d errormsg=%s", xtpri->error_id, xtpri->error_msg);
     exit(-1);
   } else {
     auto &market_ser = MarketService::GetInstance();
@@ -94,7 +94,7 @@ void XtpEvent::OnRspUserLogoutHandle(utils::ItpMsg &msg) {
   auto xtpri = reinterpret_cast<XTPRI *>(itp_msg.address());
   if (xtpri->error_id != 0) {
     // 端登失败，客户端需进行错误处理
-    ERROR_LOG("Failed to login, errorcode=%d errormsg=%s", xtpri->error_id, xtpri->error_msg);
+    ERROR_LOG("failed to login, errorcode=%d errormsg=%s", xtpri->error_id, xtpri->error_msg);
     exit(-1);
   } else {
     auto &market_ser = MarketService::GetInstance();

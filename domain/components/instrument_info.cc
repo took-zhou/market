@@ -47,4 +47,4 @@ InstrumentInfo::Info *InstrumentInfo::GetInstrumentInfo(const std::string &ins) 
   }
 }
 
-void InstrumentInfo::ShowInstrumentInfo() { INFO_LOG("the size of info_map_ is: %d", static_cast<int>(info_map_.size())); }
+void InstrumentInfo::ShowInstrumentInfo() { INFO_LOG("the size of info map is: %d", static_cast<int>(info_map_.size())); }

@@ -23,7 +23,7 @@ bool FtpSender::Init(void) {
     market_spi = new FtpMarketSpi();
     market_api->RegisterSpi(market_spi);
 
-    INFO_LOG("quote_api init ok.");
+    INFO_LOG("quote api init ok.");
     std::this_thread::sleep_for(std::chrono::seconds(1));
     is_init_ = true;
   }
@@ -51,7 +51,7 @@ bool FtpSender::ReqUserLogout() {
 }
 
 bool FtpSender::Release() {
-  INFO_LOG("Is going to release quote_api.");
+  INFO_LOG("Is going to release quote api.");
 
   if (market_api != nullptr) {
     market_api->Release();
@@ -71,7 +71,7 @@ bool FtpSender::Release() {
 bool FtpSender::SubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id) {
   int result = true;
   if (name_vec.size() > 500) {
-    WARNING_LOG("too much instruments to unSubscription.");
+    WARNING_LOG("too much instruments to un subscription.");
     return result;
   }
 
@@ -86,7 +86,7 @@ bool FtpSender::SubscribeMarketData(std::vector<utils::InstrumtntID> const &name
   if (count > 0) {
     result = market_api->SubscribeMarketData(pp_instrument_id, count, request_id);
     if (result != 0) {
-      ERROR_LOG("SubscribeMarketData fail, error code[%d]", result);
+      ERROR_LOG("subscribe market data fail, error code[%d]", result);
     }
   }
 
@@ -98,7 +98,7 @@ bool FtpSender::SubscribeMarketData(std::vector<utils::InstrumtntID> const &name
 bool FtpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id) {
   int result = true;
   if (name_vec.size() > 500) {
-    WARNING_LOG("too much instruments to unSubscription.");
+    WARNING_LOG("too much instruments to un subscription.");
     return result;
   }
 
@@ -113,9 +113,9 @@ bool FtpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &na
   if (count > 0) {
     result = market_api->UnSubscribeMarketData(pp_instrument_id, count, request_id);
     if (result == 0) {
-      INFO_LOG("UnSubscription request ......Send a success, total number: %d", count);
+      INFO_LOG("un subscription request ......send a success, total number: %d", count);
     } else {
-      ERROR_LOG("UnSubscription fail, error code[%d]", result);
+      ERROR_LOG("un subscription fail, error code[%d]", result);
     }
   }
 

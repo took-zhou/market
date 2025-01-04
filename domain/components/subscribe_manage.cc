@@ -38,7 +38,7 @@ void SubscribeManager::ReqInstrumrntFromControlPara() {
 
   if (ins_vec.size() > 0) {
     SubscribeInstrument(ins_vec);
-    INFO_LOG("The number of trading contracts is: %d.", instrument_count);
+    INFO_LOG("the number of trading contracts is: %d.", instrument_count);
     instrument_count = 0;
     ins_vec.clear();
   }
@@ -67,7 +67,7 @@ void SubscribeManager::ReqInstrumentsFromApi() {
 
   if (ins_vec.size() > 0) {
     SubscribeInstrument(ins_vec);
-    INFO_LOG("The number of trading contracts is: %d.", instrument_count);
+    INFO_LOG("the number of trading contracts is: %d.", instrument_count);
     instrument_count = 0;
     ins_vec.clear();
   }
@@ -108,7 +108,7 @@ void SubscribeManager::UnSubscribeAll() {
   pthread_mutex_lock(&(subscribed_.sm_mutex));
   subscribed_.instrument_ids.clear();
   pthread_mutex_unlock(&(subscribed_.sm_mutex));
-  INFO_LOG("The number of contracts being unsubscribe is: %d.", count);
+  INFO_LOG("the number of contracts being unsubscribe is: %d.", count);
 }
 
 void SubscribeManager::EraseAllSubscribed() {
@@ -117,7 +117,7 @@ void SubscribeManager::EraseAllSubscribed() {
   pthread_mutex_lock(&(subscribed_.sm_mutex));
   subscribed_.instrument_ids.clear();
   pthread_mutex_unlock(&(subscribed_.sm_mutex));
-  INFO_LOG("The number of contracts being erased is: %d.", count);
+  INFO_LOG("the number of contracts being erased is: %d.", count);
 }
 
 void SubscribeManager::AddSubscribed(std::vector<utils::InstrumtntID>& name_vec) {

@@ -57,7 +57,7 @@ bool CtpSender::Init(void) {
 }
 
 bool CtpSender::Release() {
-  INFO_LOG("Is going to release market_api.");
+  INFO_LOG("is going to release market api.");
   if (market_api != nullptr) {
     market_api->Release();
     market_api = nullptr;
@@ -94,7 +94,7 @@ bool CtpSender::ReqUserLogin() {
 
       int result = market_api->ReqUserLogin(&req_user_login, request_id_++);
       if (result != 0) {
-        INFO_LOG("ReqUserLogin send result is [%d]", result);
+        INFO_LOG("req user login send result is [%d]", result);
       } else {
         auto &global_sem = GlobalSem::GetInstance();
         global_sem.WaitSemBySemName(SemName::kLoginLogout);
@@ -122,7 +122,7 @@ bool CtpSender::ReqUserLogout() {
     if (market_api != nullptr) {
       int result = market_api->ReqUserLogout(&req_user_logout, request_id_++);
       if (result != 0) {
-        INFO_LOG("ReqUserLogout send result is [%d]", result);
+        INFO_LOG("req user logout send result is [%d]", result);
       }
       auto &global_sem = GlobalSem::GetInstance();
       if (global_sem.WaitSemBySemName(SemName::kLoginLogout, 10) != 0) {
@@ -141,7 +141,7 @@ bool CtpSender::SubscribeMarketData(std::vector<utils::InstrumtntID> const &name
   int md_num = 0;
 
   if (name_vec.size() > 500) {
-    WARNING_LOG("too much instruments to Subscription.");
+    WARNING_LOG("too much instruments to subscription.");
     return result;
   }
 
@@ -155,12 +155,12 @@ bool CtpSender::SubscribeMarketData(std::vector<utils::InstrumtntID> const &name
   if (md_num > 0) {
     result = market_api->SubscribeMarketData(pp_instrument_id, md_num);
     if (result == 0) {
-      INFO_LOG("Subscription request ......Send a success, total number: %d", md_num);
+      INFO_LOG("subscription request ......send a success, total number: %d", md_num);
     } else {
-      INFO_LOG("Subscription request ......Failed to send, error serial number=[%d]", result);
+      INFO_LOG("subscription request ......failed to send, error serial number=[%d]", result);
     }
   } else {
-    INFO_LOG("no instrument need to Subscription.");
+    INFO_LOG("no instrument need to subscription.");
   }
 
   delete[] pp_instrument_id;
@@ -173,7 +173,7 @@ bool CtpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &na
   int md_num = 0;
 
   if (name_vec.size() > 500) {
-    WARNING_LOG("too much instruments to unSubscription.");
+    WARNING_LOG("too much instruments to un subscription.");
     return result;
   }
 
@@ -187,12 +187,12 @@ bool CtpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &na
   if (md_num > 0) {
     result = market_api->UnSubscribeMarketData(pp_instrument_id, md_num);
     if (result == 0) {
-      INFO_LOG("UnSubscription request ......Send a success, total number: %d", md_num);
+      INFO_LOG("un subscription request ......send a success, total number: %d", md_num);
     } else {
-      INFO_LOG("UnSubscription request ......Failed to send, error serial number=[%d]", result);
+      INFO_LOG("un subscription request ......failed to send, error serial number=[%d]", result);
     }
   } else {
-    INFO_LOG("no instrument need to UnSubscription.");
+    INFO_LOG("no instrument need to un subscription.");
   }
 
   delete[] pp_instrument_id;

@@ -13,9 +13,8 @@
 #include "common/self/utils.h"
 #include "market/infra/recer_sender.h"
 
-
 void CtpMarketSpi::OnFrontConnected() {
-  INFO_LOG("OnFrontConnected():is excuted...");
+  INFO_LOG("on front connected is excuted...");
   //  在登出后系统会重新调用OnFrontConnected, 这里简单判断并忽略第1次之后的所有调用。
   if (re_connect_++ == 0) {
     auto &global_sem = GlobalSem::GetInstance();
@@ -24,11 +23,11 @@ void CtpMarketSpi::OnFrontConnected() {
 }
 
 void CtpMarketSpi::OnFrontDisconnected(int reason) {
-  ERROR_LOG("OnFrontDisconnected, ErrorCode:%#x", reason);
+  ERROR_LOG("on front disconnected, error code:%#x", reason);
   front_disconnected_ = true;
 }
 
-void CtpMarketSpi::OnHeartBeatWarning(int n_time_lapse) { ERROR_LOG("OnHeartBeatWarning  %d!", n_time_lapse); }
+void CtpMarketSpi::OnHeartBeatWarning(int n_time_lapse) { ERROR_LOG("on heart beat warning  %d!", n_time_lapse); }
 
 void CtpMarketSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *p_rsp_user_login, CThostFtdcRspInfoField *p_rsp_info, int n_request_id,
                                   bool b_is_last) {
@@ -52,7 +51,7 @@ void CtpMarketSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *p_rsp_user_login,
     front_disconnected_ = false;
     global_sem.PostSemBySemName(SemName::kLoginLogout);
   } else {
-    ERROR_LOG("p_rsp_user_login is nullptr");
+    ERROR_LOG("p rsp user login is nullptr");
   }
 }
 
@@ -77,7 +76,7 @@ void CtpMarketSpi::OnRspUserLogout(CThostFtdcUserLogoutField *user_logout, CThos
     global_sem.WaitSemBySemName(SemName::kApiRecv);
     global_sem.PostSemBySemName(SemName::kLoginLogout);
   } else {
-    ERROR_LOG("user_logout is nullptr");
+    ERROR_LOG("user logout is nullptr");
   }
 }
 
@@ -119,7 +118,7 @@ void CtpMarketSpi::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *depth_ma
     recer_sender.ROLE(InnerSender).SendMsg(msg);
     global_sem.WaitSemBySemName(SemName::kApiRecv);
   } else {
-    ERROR_LOG("depth_market_data is nullptr");
+    ERROR_LOG("depth market data is nullptr");
   }
 }
 

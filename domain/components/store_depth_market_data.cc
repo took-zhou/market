@@ -588,7 +588,7 @@ bool LoadData::ClassifyContractFiles(void) {
   DIR *dir;                 // return value for opendir()
   dir = opendir(history_tick_folder_.c_str());
   if (NULL == dir) {
-    ERROR_LOG("Can not open dir ");
+    ERROR_LOG("can not open dir ");
     return false;
   }
 
