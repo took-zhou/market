@@ -51,7 +51,7 @@ bool FtpSender::ReqUserLogout() {
 }
 
 bool FtpSender::Release() {
-  INFO_LOG("Is going to release quote api.");
+  INFO_LOG("is going to release quote api.");
 
   if (market_api != nullptr) {
     market_api->Release();
