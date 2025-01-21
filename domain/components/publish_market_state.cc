@@ -70,8 +70,9 @@ void PublishState::PublishToStrategy(void) {
 }
 
 void PublishState::PublishEvent(FtpLoginLogoutStruct *login_logout) {
+  auto &market_ser = MarketService::GetInstance();
   PublishToTrader(login_logout);
-  while (1) {
+  while (market_ser.GetLoginState() == kLoginState) {
     if (!publish_flag_) {
       wait_publish_count_ = 0;
       break;
@@ -86,7 +87,7 @@ void PublishState::PublishEvent(FtpLoginLogoutStruct *login_logout) {
   }
 
   PublishToStrategy(login_logout);
-  while (1) {
+  while (market_ser.GetLoginState() == kLoginState) {
     if (!publish_flag_) {
       wait_publish_count_ = 0;
       break;
