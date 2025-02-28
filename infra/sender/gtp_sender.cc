@@ -38,6 +38,7 @@ bool GtpSender::Init(void) {
 
 bool GtpSender::ReqUserLogin(void) {
   INFO_LOG("login time, is going to login.");
+  auto &global_sem = GlobalSem::GetInstance();
   bool ret = true;
   if (!Init()) {
     Release();
@@ -45,7 +46,6 @@ bool GtpSender::ReqUserLogin(void) {
   } else {
     for (uint8_t wait_count = 0; wait_count < 10; wait_count++) {
       market_api->QryInstrumentInfo();
-      auto &global_sem = GlobalSem::GetInstance();
       INFO_LOG("update instrument info from market send ok, waiting market rsp.");
       if (!global_sem.WaitSemBySemName(SemName::kUpdateInstrumentInfo, 60)) {
         break;
@@ -54,6 +54,7 @@ bool GtpSender::ReqUserLogin(void) {
 
     GtpLoginLogoutStruct login_struct;
     market_api->Login(login_struct);
+    global_sem.WaitSemBySemName(SemName::kLoginLogout);
   }
 
   return ret;

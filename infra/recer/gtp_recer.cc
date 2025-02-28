@@ -25,6 +25,7 @@ void GtpMarketSpi::OnRspUserLogin(const GtpLoginLogoutStruct *login_info) {
     recer_sender.ROLE(InnerSender).SendMsg(msg);
     global_sem.WaitSemBySemName(SemName::kApiRecv);
     front_disconnected_ = false;
+    global_sem.PostSemBySemName(SemName::kLoginLogout);
   } else {
     ERROR_LOG("login info is nullptr");
   }
