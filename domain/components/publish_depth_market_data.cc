@@ -549,3 +549,55 @@ void PublishData::OnceFromDataflow(MtpMarketDataStruct *p_d) {
   auto &recer_sender = RecerSender::GetInstance();
   recer_sender.ROLE(Sender).ROLE(DirectSender).SendMsg(msg);
 }
+
+void PublishData::DirectForwardDataToStrategy(YtpMarketDataStruct *p_d) {
+  auto &market_ser = MarketService::GetInstance();
+  auto publish_para_ptr = market_ser.ROLE(PublishControl).GetPublishPara(p_d->instrument_id);
+  if (publish_para_ptr != nullptr && market_ser.GetLoginState() == kLoginState) {
+    OnceFromDataflow(p_d);
+    publish_para_ptr->ClearHeartbeat();
+  } else if (!publish_para_ptr) {
+    ERROR_LOG("can not find ins from control para: %s", p_d->instrument_id);
+  }
+}
+
+void PublishData::OnceFromDataflow(YtpMarketDataStruct *p_d) {
+  strategy_market::message tick;
+  auto tick_data = tick.mutable_tick_data();
+
+  tick_data->set_time_point(p_d->date_time);
+
+  tick_data->set_state(strategy_market::TickData_TickState_active);
+  tick_data->set_instrument_id(p_d->instrument_id);
+  tick_data->set_last_price(Max2zero(p_d->last_price));
+  tick_data->set_bid_price1(Max2zero(p_d->bid_price[0]));
+  tick_data->set_bid_volume1(p_d->bid_volume[0]);
+  tick_data->set_ask_price1(Max2zero(p_d->ask_price[0]));
+  tick_data->set_ask_volume1(p_d->ask_volume[0]);
+  if (kDataLevel_ == 2) {
+    tick_data->set_bid_price2(Max2zero(p_d->bid_price[1]));
+    tick_data->set_bid_volume2(p_d->bid_volume[1]);
+    tick_data->set_ask_price2(Max2zero(p_d->ask_price[1]));
+    tick_data->set_ask_volume2(p_d->ask_volume[1]);
+    tick_data->set_bid_price3(Max2zero(p_d->bid_price[2]));
+    tick_data->set_bid_volume3(p_d->bid_volume[2]);
+    tick_data->set_ask_price3(Max2zero(p_d->ask_price[2]));
+    tick_data->set_ask_volume3(p_d->ask_volume[2]);
+    tick_data->set_bid_price4(Max2zero(p_d->bid_price[3]));
+    tick_data->set_bid_volume4(p_d->bid_volume[3]);
+    tick_data->set_ask_price4(Max2zero(p_d->ask_price[3]));
+    tick_data->set_ask_volume4(p_d->ask_volume[3]);
+    tick_data->set_bid_price5(Max2zero(p_d->bid_price[4]));
+    tick_data->set_bid_volume5(p_d->bid_volume[4]);
+    tick_data->set_ask_price5(Max2zero(p_d->ask_price[4]));
+    tick_data->set_ask_volume5(p_d->ask_volume[4]);
+  }
+  tick_data->set_volume(p_d->volume);
+
+  utils::ItpMsg msg;
+  tick.SerializeToString(&msg.pb_msg);
+  msg.session_name = "strategy_market";
+  msg.msg_name = "TickData." + tick_data->instrument_id();
+  auto &recer_sender = RecerSender::GetInstance();
+  recer_sender.ROLE(Sender).ROLE(DirectSender).SendMsg(msg);
+}

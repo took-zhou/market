@@ -8,6 +8,7 @@
 #include "market/infra/sender/mtp_sender.h"
 #include "market/infra/sender/otp_sender.h"
 #include "market/infra/sender/xtp_sender.h"
+#include "market/infra/sender/ytp_sender.h"
 
 ItpSender::ItpSender() {
   auto &json_cfg = utils::JsonConfig::GetInstance();
@@ -26,6 +27,8 @@ ItpSender::ItpSender() {
     send_api_ = std::make_unique<GtpSender>();
   } else if (api_type == "mtp") {
     send_api_ = std::make_unique<MtpSender>();
+  } else if (api_type == "ytp") {
+    send_api_ = std::make_unique<YtpSender>();
   }
 }
 

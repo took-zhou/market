@@ -62,7 +62,10 @@ void CtpviewEvent::BlockControlHandle(utils::ItpMsg &msg) {
   for (int i = 0; i < indication.instrument_size(); i++) {
     const auto &ins = indication.instrument(i);
     INFO_LOG("set block quotation control: %s, %d", ins.c_str(), command);
+    market_event.ROLE(BtpEvent).SetBlockControl(ins, command);
     market_event.ROLE(CtpEvent).SetBlockControl(ins, command);
+    market_event.ROLE(GtpEvent).SetBlockControl(ins, command);
+    market_event.ROLE(YtpEvent).SetBlockControl(ins, command);
   }
 }
 

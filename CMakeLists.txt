@@ -17,7 +17,10 @@ target_link_libraries(marketlib
     ftpmarketapi
     gtpmarketapi
     mtpmarketapi
+    ytpmarketapi
     oes_api
+    twsapi
+    bid
     commonlib
     zmq
     protobuf

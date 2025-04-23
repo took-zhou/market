@@ -51,7 +51,10 @@ void BtpEvent::OnDepthMarketDataHandle(utils::ItpMsg &msg) {
   auto deepdata = reinterpret_cast<BtpMarketDataStruct *>(itp_msg.address());
   auto &market_ser = MarketService::GetInstance();
 
-  market_ser.ROLE(PublishData).DirectForwardDataToStrategy(deepdata);
+  if (!block_control_.block ||
+      (block_control_.block && block_control_.instruments.find(deepdata->instrument_id) == block_control_.instruments.end())) {
+    market_ser.ROLE(PublishData).DirectForwardDataToStrategy(deepdata);
+  }
 }
 
 void BtpEvent::OnRspUserLoginHandle(utils::ItpMsg &msg) {
@@ -118,4 +121,13 @@ void BtpEvent::OnRspAllInstrumentInfoHandle(utils::ItpMsg &msg) {
   if (btpqsi->is_last) {
     market_ser.ROLE(InstrumentInfo).ShowInstrumentInfo();
   }
+}
+
+void BtpEvent::SetBlockControl(const std::string &ins, ctpview_market::BlockControl_Command command) {
+  if (block_control_.instruments.find(ins) != block_control_.instruments.end() && command == ctpview_market::BlockControl::unblock) {
+    block_control_.instruments.erase(ins);
+  } else if (block_control_.instruments.find(ins) == block_control_.instruments.end() && command == ctpview_market::BlockControl::block) {
+    block_control_.instruments.insert(ins);
+  }
+  block_control_.block = block_control_.instruments.size() > 0;
 }

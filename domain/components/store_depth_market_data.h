@@ -6,10 +6,11 @@
 #include <vector>
 
 #include "common/extern/ctp/inc/ThostFtdcUserApiStruct.h"
+#include "common/extern/gtp/inc/gtp_market_struct.h"
+#include "common/extern/mtp/inc/mtp_market_struct.h"
 #include "common/extern/xtp/inc/xquote_api_struct.h"
-#include "gtp/inc/gtp_market_struct.h"
+#include "common/extern/ytp/inc/ytp_market_struct.h"
 #include "market/domain/components/depth_market_data.h"
-#include "mtp/inc/mtp_market_struct.h"
 
 struct LoadData : public MarketData {
  public:
@@ -29,6 +30,9 @@ struct LoadData : public MarketData {
 
   void FormDepthMarketData2Stringflow(MtpMarketDataStruct *p_d);
   void LoadDepthMarketDataToCsv(MtpMarketDataStruct *p_d);
+
+  void FormDepthMarketData2Stringflow(YtpMarketDataStruct *p_d);
+  void LoadDepthMarketDataToCsv(YtpMarketDataStruct *p_d);
 
   bool ClassifyContractFiles(void);
   bool MoveContractToFolder(const std::string &contract_name, const std::string &exchange_name);

@@ -8,6 +8,11 @@
 #ifndef WORKSPACE_MARKET_INTERFACE_MARKETEVENT_H_
 #define WORKSPACE_MARKET_INTERFACE_MARKETEVENT_H_
 
+#include <functional>
+#include <map>
+#include <string>
+#include <thread>
+#include "common/self/dci/role.h"
 #include "market/interface/btp_event/btp_event.h"
 #include "market/interface/ctp_event/ctp_event.h"
 #include "market/interface/ctpview_event/ctpview_event.h"
@@ -19,12 +24,7 @@
 #include "market/interface/strategy_event/strategy_event.h"
 #include "market/interface/trader_event/trader_event.h"
 #include "market/interface/xtp_event/xtp_event.h"
-
-#include <functional>
-#include <map>
-#include <string>
-#include <thread>
-#include "common/self/dci/role.h"
+#include "market/interface/ytp_event/ytp_event.h"
 
 struct MarketEvent : BtpEvent,
                      CtpEvent,
@@ -33,6 +33,7 @@ struct MarketEvent : BtpEvent,
                      FtpEvent,
                      GtpEvent,
                      MtpEvent,
+                     YtpEvent,
                      StrategyEvent,
                      TraderEvent,
                      CtpviewEvent,
@@ -57,6 +58,7 @@ struct MarketEvent : BtpEvent,
   IMPL_ROLE(FtpEvent);
   IMPL_ROLE(GtpEvent);
   IMPL_ROLE(MtpEvent);
+  IMPL_ROLE(YtpEvent);
   IMPL_ROLE(StrategyEvent);
   IMPL_ROLE(TraderEvent);
   IMPL_ROLE(CtpviewEvent);

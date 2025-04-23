@@ -10,6 +10,7 @@
 #include "common/extern/mtp/inc/mtp_market_struct.h"
 #include "common/extern/otp/inc/mds_global/mds_base_model.h"
 #include "common/extern/xtp/inc/xquote_api_struct.h"
+#include "common/extern/ytp/inc/ytp_market_struct.h"
 
 struct MarketData {
  public:
@@ -20,6 +21,7 @@ struct MarketData {
   bool IsValidTickData(MdsMktDataSnapshotT *p_d);
   bool IsValidTickData(GtpMarketDataStruct *p_d);
   bool IsValidTickData(MtpMarketDataStruct *p_d);
+  bool IsValidTickData(YtpMarketDataStruct *p_d);
 
   double Max2zero(double num);
 
@@ -28,6 +30,7 @@ struct MarketData {
   bool GetAssemblingTime(char *t_arr, MdsMktDataSnapshotT *p_d);
   bool GetAssemblingTime(char *t_arr, GtpMarketDataStruct *p_d);
   bool GetAssemblingTime(char *t_arr, MtpMarketDataStruct *p_d);
+  bool GetAssemblingTime(char *t_arr, YtpMarketDataStruct *p_d);
 
  private:
   std::map<std::string, std::string> instrument_exchange_map_;

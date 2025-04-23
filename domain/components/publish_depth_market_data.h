@@ -8,8 +8,10 @@
 #include "common/extern//btp/inc/btp_market_struct.h"
 #include "common/extern//ftp/inc/ftp_market_struct.h"
 #include "common/extern//gtp/inc/gtp_market_struct.h"
+#include "common/extern//ytp/inc/ytp_market_struct.h"
 #include "common/extern/ctp/inc/ThostFtdcUserApiStruct.h"
 #include "common/extern/mtp/inc/mtp_market_struct.h"
+
 
 #include "common/self/protobuf/strategy-market.pb.h"
 #include "market/domain/components/depth_market_data.h"
@@ -54,6 +56,10 @@ struct PublishData : public MarketData {
   // mtp深度行情发送
   void DirectForwardDataToStrategy(MtpMarketDataStruct *p_d);
   void OnceFromDataflow(MtpMarketDataStruct *p_d);
+
+  // ytp深度行情发送
+  void DirectForwardDataToStrategy(YtpMarketDataStruct *p_d);
+  void OnceFromDataflow(YtpMarketDataStruct *p_d);
 
  private:
   const uint8_t kDataLevel_ = 1;
