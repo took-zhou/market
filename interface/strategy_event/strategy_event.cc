@@ -42,9 +42,9 @@ void StrategyEvent::TickSubscribeReqHandle(utils::ItpMsg &msg) {
   auto req_info = message.tick_sub_req();
 
   if (req_info.action() == strategy_market::TickSubscribeReq_Action_sub) {
-    vector<utils::InstrumtntID> ins_vec;
+    vector<utils::InstrumentID> ins_vec;
     ins_vec.clear();
-    utils::InstrumtntID ins_id;
+    utils::InstrumentID ins_id;
 
     ins_id.ins = req_info.instrument_info().instrument_id();
     ins_id.exch = req_info.instrument_info().exchange_id();
@@ -59,12 +59,12 @@ void StrategyEvent::TickSubscribeReqHandle(utils::ItpMsg &msg) {
       WARNING_LOG("now is logout, wait login to subscribe new instruments");
     }
   } else if (req_info.action() == strategy_market::TickSubscribeReq_Action_unsub) {
-    utils::InstrumtntID ins_id;
+    utils::InstrumentID ins_id;
     ins_id.exch = req_info.instrument_info().exchange_id();
     ins_id.ins = req_info.instrument_info().instrument_id();
     market_ser.ROLE(PublishControl).ErasePublishPara(ins_id.ins);
 
-    vector<utils::InstrumtntID> ins_vec;
+    vector<utils::InstrumentID> ins_vec;
     ins_vec.push_back(ins_id);
     market_ser.ROLE(SubscribeManager).UnSubscribeInstrument(ins_vec);
   }

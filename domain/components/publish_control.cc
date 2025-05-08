@@ -91,11 +91,11 @@ void PublishControl::ErasePublishPara(const std::string &ins) {
   }
 }
 
-const std::vector<utils::InstrumtntID> &PublishControl::GetInstrumentList() {
+const std::vector<utils::InstrumentID> &PublishControl::GetInstrumentList() {
   instrument_vec_.clear();
 
   for (auto &item_pc : publish_para_map_) {
-    utils::InstrumtntID item_ins;
+    utils::InstrumentID item_ins;
     item_ins.ins = item_pc.first;
     item_ins.exch = item_pc.second->GetExch();
     instrument_vec_.push_back(item_ins);

@@ -136,7 +136,7 @@ bool CtpSender::ReqUserLogout() {
   return ret;
 }
 
-bool CtpSender::SubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id) {
+bool CtpSender::SubscribeMarketData(std::vector<utils::InstrumentID> const &name_vec, int request_id) {
   int result = 0;
   int md_num = 0;
 
@@ -168,7 +168,7 @@ bool CtpSender::SubscribeMarketData(std::vector<utils::InstrumtntID> const &name
   return result;
 }
 
-bool CtpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id) {
+bool CtpSender::UnSubscribeMarketData(std::vector<utils::InstrumentID> const &name_vec, int request_id) {
   int result = 0;
   int md_num = 0;
 

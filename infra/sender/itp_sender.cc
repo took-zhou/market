@@ -34,10 +34,10 @@ ItpSender::ItpSender() {
 
 bool ItpSender::ReqUserLogin() { return send_api_->ReqUserLogin(); }
 bool ItpSender::ReqUserLogout() { return send_api_->ReqUserLogout(); }
-bool ItpSender::SubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id) {
+bool ItpSender::SubscribeMarketData(std::vector<utils::InstrumentID> const &name_vec, int request_id) {
   return send_api_->SubscribeMarketData(name_vec, request_id);
 }
-bool ItpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id) {
+bool ItpSender::UnSubscribeMarketData(std::vector<utils::InstrumentID> const &name_vec, int request_id) {
   return send_api_->UnSubscribeMarketData(name_vec, request_id);
 }
 bool ItpSender::LossConnection() { return send_api_->LossConnection(); }

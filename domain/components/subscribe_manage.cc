@@ -10,8 +10,8 @@ SubscribeManager::SubscribeManager() {
 }
 
 void SubscribeManager::ReqInstrumentsFromLocal() {
-  std::vector<utils::InstrumtntID> ins_vec;
-  utils::InstrumtntID ins;
+  std::vector<utils::InstrumentID> ins_vec;
+  utils::InstrumentID ins;
   ins.ins = "002236";
   ins.exch = "SZSE";
   ins_vec.push_back(ins);
@@ -24,7 +24,7 @@ void SubscribeManager::ReqInstrumentsFromLocal() {
 void SubscribeManager::ReqInstrumrntFromControlPara() {
   auto& market_ser = MarketService::GetInstance();
   int instrument_count = 0;
-  vector<utils::InstrumtntID> ins_vec;
+  vector<utils::InstrumentID> ins_vec;
   auto publish_ins_vec = market_ser.ROLE(PublishControl).GetInstrumentList();
   for (auto& ins : publish_ins_vec) {
     ins_vec.push_back(ins);
@@ -46,12 +46,12 @@ void SubscribeManager::ReqInstrumrntFromControlPara() {
 
 void SubscribeManager::ReqInstrumentsFromApi() {
   int instrument_count = 0;
-  vector<utils::InstrumtntID> ins_vec;
+  vector<utils::InstrumentID> ins_vec;
   auto& market_server = MarketService::GetInstance();
 
   auto instrument_info = market_server.ROLE(InstrumentInfo).GetInstrumentList();
   for (auto& ins : instrument_info) {
-    utils::InstrumtntID instrumtnt_id;
+    utils::InstrumentID instrumtnt_id;
 
     instrumtnt_id.exch = market_server.ROLE(InstrumentInfo).GetExchange(ins);
     instrumtnt_id.ins = ins;
@@ -73,13 +73,13 @@ void SubscribeManager::ReqInstrumentsFromApi() {
   }
 }
 
-void SubscribeManager::SubscribeInstrument(std::vector<utils::InstrumtntID>& name_vec, int request_id) {
+void SubscribeManager::SubscribeInstrument(std::vector<utils::InstrumentID>& name_vec, int request_id) {
   auto& recer_sender = RecerSender::GetInstance();
   AddSubscribed(name_vec);
   recer_sender.ROLE(Sender).ROLE(ItpSender).SubscribeMarketData(name_vec, request_id);
 }
 
-void SubscribeManager::UnSubscribeInstrument(std::vector<utils::InstrumtntID>& name_vec, int request_id) {
+void SubscribeManager::UnSubscribeInstrument(std::vector<utils::InstrumentID>& name_vec, int request_id) {
   auto& recer_sender = RecerSender::GetInstance();
   RemoveSubscribed(name_vec);
   if (name_vec.size() != 0) {
@@ -89,7 +89,7 @@ void SubscribeManager::UnSubscribeInstrument(std::vector<utils::InstrumtntID>& n
 
 void SubscribeManager::UnSubscribeAll() {
   int count = 0;
-  std::vector<utils::InstrumtntID> ins_vec;
+  std::vector<utils::InstrumentID> ins_vec;
 
   auto& recer_sender = RecerSender::GetInstance();
   for (auto& item : subscribed_.instrument_ids) {
@@ -120,7 +120,7 @@ void SubscribeManager::EraseAllSubscribed() {
   INFO_LOG("the number of contracts being erased is: %d.", count);
 }
 
-void SubscribeManager::AddSubscribed(std::vector<utils::InstrumtntID>& name_vec) {
+void SubscribeManager::AddSubscribed(std::vector<utils::InstrumentID>& name_vec) {
   pthread_mutex_lock(&(subscribed_.sm_mutex));
 
   for (auto iter = name_vec.begin(); iter != name_vec.end();) {
@@ -134,7 +134,7 @@ void SubscribeManager::AddSubscribed(std::vector<utils::InstrumtntID>& name_vec)
   pthread_mutex_unlock(&(subscribed_.sm_mutex));
 }
 
-void SubscribeManager::RemoveSubscribed(std::vector<utils::InstrumtntID>& name_vec) {
+void SubscribeManager::RemoveSubscribed(std::vector<utils::InstrumentID>& name_vec) {
   pthread_mutex_lock(&(subscribed_.sm_mutex));
   for (auto iter = name_vec.begin(); iter != name_vec.end();) {
     if (subscribed_.instrument_ids.find(*iter) == end(subscribed_.instrument_ids)) {

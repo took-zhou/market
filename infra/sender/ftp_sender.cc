@@ -68,7 +68,7 @@ bool FtpSender::Release() {
   return true;
 }
 
-bool FtpSender::SubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id) {
+bool FtpSender::SubscribeMarketData(std::vector<utils::InstrumentID> const &name_vec, int request_id) {
   int result = true;
   if (name_vec.size() > 500) {
     WARNING_LOG("too much instruments to un subscription.");
@@ -95,7 +95,7 @@ bool FtpSender::SubscribeMarketData(std::vector<utils::InstrumtntID> const &name
   return true;
 }
 
-bool FtpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id) {
+bool FtpSender::UnSubscribeMarketData(std::vector<utils::InstrumentID> const &name_vec, int request_id) {
   int result = true;
   if (name_vec.size() > 500) {
     WARNING_LOG("too much instruments to un subscription.");

@@ -44,7 +44,7 @@ bool GtpSender::ReqUserLogin(void) {
     Release();
     ret = false;
   } else {
-    for (uint8_t wait_count = 0; wait_count < 10; wait_count++) {
+    for (uint8_t wait_count = 0; wait_count < 100; wait_count++) {
       market_api->QryInstrumentInfo();
       INFO_LOG("update instrument info from market send ok, waiting market rsp.");
       if (!global_sem.WaitSemBySemName(SemName::kUpdateInstrumentInfo, 60)) {
@@ -90,7 +90,7 @@ bool GtpSender::Release() {
   return true;
 }
 
-bool GtpSender::SubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id) {
+bool GtpSender::SubscribeMarketData(std::vector<utils::InstrumentID> const &name_vec, int request_id) {
   int result = true;
   if (name_vec.size() > 500) {
     WARNING_LOG("too much instruments to un subscription.");
@@ -117,7 +117,7 @@ bool GtpSender::SubscribeMarketData(std::vector<utils::InstrumtntID> const &name
   return true;
 }
 
-bool GtpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id) {
+bool GtpSender::UnSubscribeMarketData(std::vector<utils::InstrumentID> const &name_vec, int request_id) {
   int result = true;
   if (name_vec.size() > 500) {
     WARNING_LOG("too much instruments to un subscription.");

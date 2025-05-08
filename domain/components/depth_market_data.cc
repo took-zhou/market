@@ -145,7 +145,7 @@ bool MarketData::IsValidTickData(YtpMarketDataStruct *p_d) {
     }
 #endif
 
-    if (delay_second <= 180 && delay_second >= -180 && (p_d->bid_price[0] > 0.0 || p_d->ask_price[0] > 0.0)) {
+    if (delay_second <= 1200 && delay_second >= -1200 && (p_d->bid_price[0] > 0.0 || p_d->ask_price[0] > 0.0)) {
       ret = true;
     }
   } else {

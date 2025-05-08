@@ -120,7 +120,7 @@ bool XtpSender::Release() {
   return true;
 }
 
-bool XtpSender::SubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id) {
+bool XtpSender::SubscribeMarketData(std::vector<utils::InstrumentID> const &name_vec, int request_id) {
   int result = true;
   if (name_vec.size() > 500) {
     WARNING_LOG("too much instruments to un subscription.");
@@ -167,7 +167,7 @@ bool XtpSender::SubscribeMarketData(std::vector<utils::InstrumtntID> const &name
   return true;
 }
 
-bool XtpSender::UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id) {
+bool XtpSender::UnSubscribeMarketData(std::vector<utils::InstrumentID> const &name_vec, int request_id) {
   int result = true;
   if (name_vec.size() > 500) {
     WARNING_LOG("too much instruments to un subscription.");

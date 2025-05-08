@@ -6,8 +6,8 @@ struct SendApi {
  public:
   virtual bool ReqUserLogin() = 0;
   virtual bool ReqUserLogout() = 0;
-  virtual bool SubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id = 0) = 0;
-  virtual bool UnSubscribeMarketData(std::vector<utils::InstrumtntID> const &name_vec, int request_id = 0) = 0;
+  virtual bool SubscribeMarketData(std::vector<utils::InstrumentID> const &name_vec, int request_id = 0) = 0;
+  virtual bool UnSubscribeMarketData(std::vector<utils::InstrumentID> const &name_vec, int request_id = 0) = 0;
   virtual bool LossConnection() = 0;
   virtual bool Release() = 0;
   virtual ~SendApi(){};

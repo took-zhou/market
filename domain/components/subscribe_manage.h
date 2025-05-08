@@ -9,7 +9,7 @@
 
 struct InstrumentIDs {
   pthread_mutex_t sm_mutex;
-  std::set<utils::InstrumtntID, utils::InstrumtntIDSortCriterion> instrument_ids;
+  std::set<utils::InstrumentID, utils::InstrumentIDSortCriterion> instrument_ids;
 };
 
 struct SubscribeManager {
@@ -18,14 +18,14 @@ struct SubscribeManager {
   void ReqInstrumentsFromLocal();
   void ReqInstrumrntFromControlPara();
   void ReqInstrumentsFromApi();
-  void SubscribeInstrument(std::vector<utils::InstrumtntID>& name_vec, int request_id = 0);
-  void UnSubscribeInstrument(std::vector<utils::InstrumtntID>& name_vec, int request_id = 0);
+  void SubscribeInstrument(std::vector<utils::InstrumentID>& name_vec, int request_id = 0);
+  void UnSubscribeInstrument(std::vector<utils::InstrumentID>& name_vec, int request_id = 0);
   void UnSubscribeAll();
   void EraseAllSubscribed();
 
  private:
-  void AddSubscribed(std::vector<utils::InstrumtntID>& name_vec);
-  void RemoveSubscribed(std::vector<utils::InstrumtntID>& name_vec);
+  void AddSubscribed(std::vector<utils::InstrumentID>& name_vec);
+  void RemoveSubscribed(std::vector<utils::InstrumentID>& name_vec);
   InstrumentIDs subscribed_;
 };
 
