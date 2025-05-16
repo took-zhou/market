@@ -19,6 +19,7 @@ FdManage::FdManage() {
     sqlite3_close(market_conn_);
   }
   sqlite3_exec(market_conn_, "PRAGMA synchronous = OFF; ", 0, 0, 0);
+  sqlite3_exec(market_conn_, "PRAGMA user_version = 1; ", 0, 0, 0);
   sqlite3_busy_timeout(market_conn_, 3000);
 
   char *error_msg = nullptr;
