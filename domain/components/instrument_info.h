@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <unordered_map>
 #include <vector>
+#include "common/extern/sqlite3/sqlite3.h"
 
 struct InstrumentInfo {
   struct Info {
@@ -18,8 +19,8 @@ struct InstrumentInfo {
   };
 
  public:
-  InstrumentInfo(){};
-  ~InstrumentInfo(){};
+  InstrumentInfo();
+  ~InstrumentInfo();
 
   void BuildInstrumentInfo(const std::string &keyname, const Info &info);
   void EraseAllInstrumentInfo(void);
@@ -28,9 +29,15 @@ struct InstrumentInfo {
   double GetTickSize(const std::string &ins);
   Info *GetInstrumentInfo(const std::string &ins);
   void ShowInstrumentInfo();
+  void UpdateInstrumentInfo();
 
  private:
+  void PrepareSqlSentence();
+  void RestoreFromSqlite3();
+  void InitDatabase();
   std::unordered_map<std::string, Info> info_map_;
+  sqlite3_stmt *insert_instrument_ = nullptr;
+  sqlite3_stmt *delete_instrument_ = nullptr;
 };
 
 #endif

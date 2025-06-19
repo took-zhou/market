@@ -25,6 +25,7 @@ struct CtpviewEvent {
   void UpdateParaHandle(utils::ItpMsg &msg);
   void ClearDiagnosticEventHandle(utils::ItpMsg &msg);
   void SendTestEmailHandle(utils::ItpMsg &msg);
+  void UpdateInstrumentInfoHandle(utils::ItpMsg &msg);
 
  private:
   std::map<std::string, std::function<void(utils::ItpMsg &msg)>> msg_func_map_;

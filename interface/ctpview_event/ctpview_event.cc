@@ -27,6 +27,7 @@ void CtpviewEvent::RegMsgFun() {
   msg_func_map_["UpdatePara"] = [this](utils::ItpMsg &msg) { UpdateParaHandle(msg); };
   msg_func_map_["ClearDiagnosticEvent"] = [this](utils::ItpMsg &msg) { ClearDiagnosticEventHandle(msg); };
   msg_func_map_["SendTestEmail"] = [this](utils::ItpMsg &msg) { SendTestEmailHandle(msg); };
+  msg_func_map_["UpdateInstrumentInfo"] = [this](utils::ItpMsg &msg) { UpdateInstrumentInfoHandle(msg); };
 }
 
 void CtpviewEvent::Handle(utils::ItpMsg &msg) {
@@ -144,5 +145,17 @@ void CtpviewEvent::SendTestEmailHandle(utils::ItpMsg &msg) {
     itp_msg.msg_name = "SendEmail";
     // innerSenders专为itp设计，所以只能走ProxySender的接口
     recer_sender.ROLE(Sender).ROLE(ProxySender).SendMsg(itp_msg);
+  }
+}
+
+void CtpviewEvent::UpdateInstrumentInfoHandle(utils::ItpMsg &msg) {
+  ctpview_market::message message;
+  message.ParseFromString(msg.pb_msg);
+  auto update_instrument_info = message.update_instrument_info();
+
+  auto action = update_instrument_info.update_action();
+  if (action == ctpview_market::UpdateInstrumentInfo::update) {
+    auto &market_ser = MarketService::GetInstance();
+    market_ser.ROLE(InstrumentInfo).UpdateInstrumentInfo();
   }
 }
