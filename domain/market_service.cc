@@ -40,12 +40,12 @@ bool MarketService::Stop() {
   running_ = false;
   if (fast_back_thread_.joinable()) {
     fast_back_thread_.join();
-    INFO_LOG("market fast back thread exit");
   }
+  INFO_LOG("market fast back thread exit");
   if (real_time_thread_.joinable()) {
     real_time_thread_.join();
-    INFO_LOG("market real time thread exit");
   }
+  INFO_LOG("market real time thread exit");
   auto &recer_sender = RecerSender::GetInstance();
   recer_sender.ROLE(Sender).ROLE(ItpSender).Release();
 

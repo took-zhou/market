@@ -48,12 +48,12 @@ bool MarketEvent::Stop() {
   running_ = false;
   if (proxy_rec_thread_.joinable()) {
     proxy_rec_thread_.join();
-    INFO_LOG("proxy rec thread exit");
   }
+  INFO_LOG("proxy rec thread exit");
   if (itp_rec_thread_.joinable()) {
     itp_rec_thread_.join();
-    INFO_LOG("itp rec thread exit");
   }
+  INFO_LOG("itp rec thread exit");
   return true;
 }
 
