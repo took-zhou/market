@@ -10,6 +10,7 @@
 #include <functional>
 #include <map>
 #include <string>
+#include "common/self/protobuf/ctpview-market.pb.h"
 #include "common/self/utils.h"
 
 struct FtpEvent {
@@ -30,9 +31,17 @@ struct FtpEvent {
 
   void OnRspAllInstrumentInfoHandle(utils::ItpMsg &msg);
 
+  void SetSplitControl(const std::string &ins, ctpview_market::ShareSplit_Command command);
+
  private:
+  struct SplitControl {
+    bool split = false;
+    std::set<std::string> instruments;
+  };
+
   std::string req_instrument_from_ = "local";
   std::map<std::string, std::function<void(utils::ItpMsg &msg)>> msg_func_map_;
+  SplitControl split_control_;
 };
 
 #endif /* WORKSPACE_MARKET_INTERFACE_FTPEVENT_FTPEVENT_H_ */

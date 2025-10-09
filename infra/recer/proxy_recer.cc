@@ -64,7 +64,7 @@ void ProxyRecer::SubscribeTopic() {
   topic_list_.push_back("ctpview_market.UpdatePara");
   topic_list_.push_back("ctpview_market.ClearDiagnosticEvent");
   topic_list_.push_back("ctpview_market.SendTestEmail");
-  topic_list_.push_back("ctpview_market.UpdateInstrumentInfo");
+  topic_list_.push_back("ctpview_market.ShareSplit");
 
   // market_market
   topic_list_.push_back("market_market.SendEmail");

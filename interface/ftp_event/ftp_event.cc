@@ -51,7 +51,20 @@ void FtpEvent::OnDepthMarketDataHandle(utils::ItpMsg &msg) {
   auto deepdata = reinterpret_cast<FtpMarketDataStruct *>(itp_msg.address());
   auto &market_ser = MarketService::GetInstance();
 
-  market_ser.ROLE(PublishData).DirectForwardDataToStrategy(deepdata);
+  if (!split_control_.split ||
+      (split_control_.split && split_control_.instruments.find(deepdata->instrument_id) == split_control_.instruments.end())) {
+    market_ser.ROLE(PublishData).DirectForwardDataToStrategy(deepdata);
+  } else {
+    deepdata->last_price *= 0.5;
+    deepdata->volume *= 2.0;
+    for (int i = 0; i <= 4; i++) {
+      deepdata->bid_price[i] *= 0.5;
+      deepdata->bid_volume[i] *= 2.0;
+      deepdata->ask_price[i] *= 0.5;
+      deepdata->ask_volume[i] *= 2.0;
+    }
+    market_ser.ROLE(PublishData).DirectForwardDataToStrategy(deepdata);
+  }
 }
 
 void FtpEvent::OnRspUserLoginHandle(utils::ItpMsg &msg) {
@@ -97,4 +110,11 @@ void FtpEvent::OnRspAllInstrumentInfoHandle(utils::ItpMsg &msg) {
   if (ins_info->is_last) {
     market_ser.ROLE(InstrumentInfo).ShowInstrumentInfo();
   }
+}
+
+void FtpEvent::SetSplitControl(const std::string &ins, ctpview_market::ShareSplit_Command command) {
+  if (split_control_.instruments.find(ins) == split_control_.instruments.end() && command == ctpview_market::ShareSplit::split) {
+    split_control_.instruments.insert(ins);
+  }
+  split_control_.split = split_control_.instruments.size() > 0;
 }
