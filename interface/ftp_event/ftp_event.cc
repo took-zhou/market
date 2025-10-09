@@ -113,7 +113,9 @@ void FtpEvent::OnRspAllInstrumentInfoHandle(utils::ItpMsg &msg) {
 }
 
 void FtpEvent::SetSplitControl(const std::string &ins, ctpview_market::ShareSplit_Command command) {
-  if (split_control_.instruments.find(ins) == split_control_.instruments.end() && command == ctpview_market::ShareSplit::split) {
+  if (split_control_.instruments.find(ins) != split_control_.instruments.end() && command == ctpview_market::ShareSplit::unsplit) {
+    split_control_.instruments.erase(ins);
+  } else if (split_control_.instruments.find(ins) == split_control_.instruments.end() && command == ctpview_market::ShareSplit::split) {
     split_control_.instruments.insert(ins);
   }
   split_control_.split = split_control_.instruments.size() > 0;
