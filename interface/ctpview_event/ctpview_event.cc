@@ -50,6 +50,7 @@ void CtpviewEvent::LoginControlHandle(utils::ItpMsg &msg) {
 
   INFO_LOG("force set time state: %d", command);
   market_ser.ROLE(MarketTimeState).SetTimeState(command);
+  market_ser.ROLE(MarketTimeState).SetSubTimeState(command);
 }
 
 void CtpviewEvent::BlockControlHandle(utils::ItpMsg &msg) {

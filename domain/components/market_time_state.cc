@@ -177,6 +177,16 @@ void MarketTimeState::SetTimeState(int command) {
   }
 }
 
+void MarketTimeState::SetSubTimeState(int command) {
+  if (command == ctpview_market::LoginControl_Command_login) {
+    debug_sub_time_state_ = kInDayLogin;
+  } else if (command == ctpview_market::LoginControl_Command_logout) {
+    debug_sub_time_state_ = kInDayLogout;
+  } else if (command == ctpview_market::LoginControl_Command_reserve) {
+    debug_sub_time_state_ = kInInitSts;
+  }
+}
+
 MarketTimeState::MarketTimeState() {
   auto &json_cfg = utils::JsonConfig::GetInstance();
 
