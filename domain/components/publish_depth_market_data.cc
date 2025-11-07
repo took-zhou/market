@@ -66,7 +66,7 @@ void PublishData::OnceFromDataflow(CThostFtdcDepthMarketDataField *p_d) {
   utils::ItpMsg msg;
   tick.SerializeToString(&msg.pb_msg);
   msg.session_name = "strategy_market";
-  msg.msg_name = "TickData." + tick_data->instrument_id();
+  msg.msg_name = "TickData." + tick_data->instrument_id() + ".";
   auto &recer_sender = RecerSender::GetInstance();
   recer_sender.ROLE(Sender).ROLE(DirectSender).SendMsg(msg);
 }
@@ -217,7 +217,7 @@ void PublishData::OnceFromDataflow(XTPMD *p_d) {
   utils::ItpMsg msg;
   tick.SerializeToString(&msg.pb_msg);
   msg.session_name = "strategy_market";
-  msg.msg_name = "TickData." + tick_data->instrument_id();
+  msg.msg_name = "TickData." + tick_data->instrument_id() + ".";
   auto &recer_sender = RecerSender::GetInstance();
   recer_sender.ROLE(Sender).ROLE(DirectSender).SendMsg(msg);
 }
@@ -269,7 +269,7 @@ void PublishData::OnceFromDataflow(BtpMarketDataStruct *p_d) {
   utils::ItpMsg msg;
   tick.SerializeToString(&msg.pb_msg);
   msg.session_name = "strategy_market";
-  msg.msg_name = "TickData." + tick_data->instrument_id();
+  msg.msg_name = "TickData." + tick_data->instrument_id() + ".";
   auto &recer_sender = RecerSender::GetInstance();
   recer_sender.ROLE(Sender).ROLE(DirectSender).SendMsg(msg);
 }
@@ -382,7 +382,7 @@ void PublishData::OnceFromDataflow(MdsMktDataSnapshotT *p_d) {
   utils::ItpMsg msg;
   tick.SerializeToString(&msg.pb_msg);
   msg.session_name = "strategy_market";
-  msg.msg_name = "TickData." + tick_data->instrument_id();
+  msg.msg_name = "TickData." + tick_data->instrument_id() + ".";
   auto &recer_sender = RecerSender::GetInstance();
   recer_sender.ROLE(Sender).ROLE(DirectSender).SendMsg(msg);
 }
@@ -441,7 +441,7 @@ void PublishData::OnceFromDataflow(FtpMarketDataStruct *p_d) {
   utils::ItpMsg msg;
   tick.SerializeToString(&msg.pb_msg);
   msg.session_name = "strategy_market";
-  msg.msg_name = "TickData." + tick_data->instrument_id();
+  msg.msg_name = "TickData." + tick_data->instrument_id() + ".";
   auto &recer_sender = RecerSender::GetInstance();
   recer_sender.ROLE(Sender).ROLE(DirectSender).SendMsg(msg);
 }
@@ -493,7 +493,7 @@ void PublishData::OnceFromDataflow(GtpMarketDataStruct *p_d) {
   utils::ItpMsg msg;
   tick.SerializeToString(&msg.pb_msg);
   msg.session_name = "strategy_market";
-  msg.msg_name = "TickData." + tick_data->instrument_id();
+  msg.msg_name = "TickData." + tick_data->instrument_id() + ".";
   auto &recer_sender = RecerSender::GetInstance();
   recer_sender.ROLE(Sender).ROLE(DirectSender).SendMsg(msg);
 }
@@ -545,7 +545,7 @@ void PublishData::OnceFromDataflow(MtpMarketDataStruct *p_d) {
   utils::ItpMsg msg;
   tick.SerializeToString(&msg.pb_msg);
   msg.session_name = "strategy_market";
-  msg.msg_name = "TickData." + tick_data->instrument_id();
+  msg.msg_name = "TickData." + tick_data->instrument_id() + ".";
   auto &recer_sender = RecerSender::GetInstance();
   recer_sender.ROLE(Sender).ROLE(DirectSender).SendMsg(msg);
 }
@@ -597,7 +597,7 @@ void PublishData::OnceFromDataflow(YtpMarketDataStruct *p_d) {
   utils::ItpMsg msg;
   tick.SerializeToString(&msg.pb_msg);
   msg.session_name = "strategy_market";
-  msg.msg_name = "TickData." + tick_data->instrument_id();
+  msg.msg_name = "TickData." + tick_data->instrument_id() + ".";
   auto &recer_sender = RecerSender::GetInstance();
   recer_sender.ROLE(Sender).ROLE(DirectSender).SendMsg(msg);
 }
