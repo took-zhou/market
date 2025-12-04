@@ -103,8 +103,11 @@ bool MarketService::RealTimeLoginLogoutChange() {
 bool MarketService::HandleErrorState() {
   auto &recer_sender = RecerSender::GetInstance();
   if (ROLE(MarketTimeState).GetTimeState() == kLoginTime) {
-    if (try_login_heartbeat_++ % 600 == 599 && try_login_count_++ <= 3 && recer_sender.ROLE(Sender).ROLE(ItpSender).ReqUserLogin()) {
-      UpdateLoginState(kLoginState);
+    uint32_t wait_interval = wait_times[try_login_count_ % 3];
+    if (try_login_heartbeat_++ % wait_interval == wait_interval - 1 && try_login_count_++ <= 10) {
+      if (recer_sender.ROLE(Sender).ROLE(ItpSender).ReqUserLogin()) {
+        UpdateLoginState(kLoginState);
+      }
     }
   } else if (ROLE(MarketTimeState).GetTimeState() == kLogoutTime) {
     recer_sender.ROLE(Sender).ROLE(ItpSender).ReqUserLogout();

@@ -67,6 +67,7 @@ struct MarketService : MarketTimeState,
   MarketLoginState login_state_ = kLogoutState;
   uint32_t try_login_heartbeat_ = 0;
   uint32_t try_login_count_ = 0;
+  const uint32_t wait_times[3] = {10, 60, 600};
   std::thread fast_back_thread_;
   std::thread real_time_thread_;
   std::atomic<bool> running_{false};
