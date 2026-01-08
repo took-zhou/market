@@ -79,6 +79,8 @@ void MarketMain::StopService(void) {
   auto &market_ser = MarketService::GetInstance();
   auto &market_event = MarketEvent::GetInstance();
 
+  market_ser.ROLE(PythonApi).ApplyThreadPatch();
+
   market_ser.Stop();
   std::this_thread::sleep_for(std::chrono::seconds(3));
   market_event.Stop();

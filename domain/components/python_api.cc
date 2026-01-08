@@ -21,3 +21,28 @@ bool TradeDate::GetLoginDate(const std::string &timestring, char *login_date) {
 
   return ret;
 }
+
+bool PythonApi::ApplyThreadPatch() {
+  bool ret = true;
+  pybind11::gil_scoped_acquire acquire;
+  pybind11::module_ threading = pybind11::module_::import("threading");
+  pybind11::object original_shutdown = threading.attr("_shutdown");
+
+  auto patched_shutdown = [threading, original_shutdown]() {
+    auto current_thread = threading.attr("current_thread")();
+    pybind11::list all_threads = threading.attr("enumerate")();
+
+    int non_daemon_count = 0;
+    for (auto &thread : all_threads) {
+      if (!thread.equal(current_thread) && !thread.attr("daemon").cast<bool>()) {
+          non_daemon_count++;
+      }
+    }
+
+    if (non_daemon_count > 1) {
+      original_shutdown();
+    }
+  };
+  threading.attr("_shutdown") = pybind11::cpp_function(patched_shutdown);
+  return ret;
+}

@@ -18,6 +18,7 @@ struct TickNature {
 struct PythonApi {
  public:
   TickNature &GetTickNature() { return tick_nature_; };
+  bool ApplyThreadPatch();
 
  private:
   TickNature tick_nature_;
